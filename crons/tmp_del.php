@@ -20,5 +20,3 @@ if ($argc) {
 } else {
     exit(0);
 }
-
-?>

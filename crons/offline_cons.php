@@ -25,8 +25,7 @@ if ($argc) {
 } else {
     exit(0);
 }
-function F16D3e5B6Ae28bdB3e45d1c117eA0f14($E45cb49615d9ff0c133fcdeaa506ddb6, &$e86143ae714b5db9373cfb584f8aaf70)
-{
+function F16D3e5B6Ae28bdB3e45d1c117eA0f14($E45cb49615d9ff0c133fcdeaa506ddb6, &$e86143ae714b5db9373cfb584f8aaf70) {
     global $F30ccc8fd3427f97ca35bc6ba6610d01;
     if (file_exists($E45cb49615d9ff0c133fcdeaa506ddb6)) {
         $b4ad7225f6375fe5d757d3c7147fb034 = fopen($E45cb49615d9ff0c133fcdeaa506ddb6, "r");

@@ -30,7 +30,7 @@ if ($argc) {
         $Beb85f0c05e519f48a14915b66ad155c = json_decode(Db93DDef0764d97e767e03cf858ad457::C9f95Df7FaFb411701deD135f62E3Bb5(SERVER_ID, E2d73953a5089B9C7983838F61f23acf::$StreamingServers[SERVER_ID]["api_url_ip_local"], []), true);
         if (is_array($Beb85f0c05e519f48a14915b66ad155c) && $Beb85f0c05e519f48a14915b66ad155c["main_fetch"]) {
             $Eb94d9b64872b86d6715f9f655b8da94 = microtime(true);
-            $Dec7b5ea9cc81b6c8a97f9e8c7a7b24a = (double) number_format($Eb94d9b64872b86d6715f9f655b8da94 - $afe98be45e10c223a52934381b211730, 3);
+            $Dec7b5ea9cc81b6c8a97f9e8c7a7b24a = (float) number_format($Eb94d9b64872b86d6715f9f655b8da94 - $afe98be45e10c223a52934381b211730, 3);
         } else {
             $Ced112d15c5a3c9e5ba92478d0228e93++;
         }

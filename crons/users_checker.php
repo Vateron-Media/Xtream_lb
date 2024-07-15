@@ -11,9 +11,6 @@ function checkfpm($pid, $prname) {
     return shell_exec('ps -p ' . $pid . ' | grep ' . $prname);
 }
 
-
-
-
 require str_replace('\\', '/', dirname($argv[0])) . '/../wwwdir/init.php';
 cli_set_process_title('XtreamCodes[Users Parser]');
 $tmpFile = TMP_DIR . md5(AFFb052cca396818D81004fF99dB49aa() . __FILE__);

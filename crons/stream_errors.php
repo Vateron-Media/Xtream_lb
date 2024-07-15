@@ -28,8 +28,7 @@ if ($argc) {
 } else {
     exit(0);
 }
-function F5f93AFD707e5e9078c39ab1Af456d4C($e28c90a1ce83661822e722be8085d73d, $d0f2aea53477a47db820c0da06a3138f)
-{
+function F5f93AFD707e5e9078c39ab1Af456d4C($e28c90a1ce83661822e722be8085d73d, $d0f2aea53477a47db820c0da06a3138f) {
     foreach ($e28c90a1ce83661822e722be8085d73d as $A0d2cda48a3197c6f4b764ba5548b77d) {
         if (!stristr($d0f2aea53477a47db820c0da06a3138f, $A0d2cda48a3197c6f4b764ba5548b77d)) {
         } else {
@@ -38,5 +37,3 @@ function F5f93AFD707e5e9078c39ab1Af456d4C($e28c90a1ce83661822e722be8085d73d, $d0
     }
     return false;
 }
-
-?>
