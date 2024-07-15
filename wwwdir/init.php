@@ -57,8 +57,8 @@ if (file_exists(IPTV_PANEL_DIR . "config")) {
 } else {
     die(json_encode(array("main_fetch" => false, "error" => "Config Not Found")));
 }
-$F30ccc8fd3427f97ca35bc6ba6610d01 = new ipTV_db($_INFO["host"], $_INFO["db_user"], $_INFO["db_pass"], $_INFO["db_name"], $_INFO["db_port"], empty($_INFO["pconnect"]) ? false : true);
-e2d73953a5089b9c7983838f61f23acf::$ipTV_db = &$F30ccc8fd3427f97ca35bc6ba6610d01;
-F1Ca094152763c79018E9f1893ef1E48::$ipTV_db = &$F30ccc8fd3427f97ca35bc6ba6610d01;
-c872bCfa04b3Eaee1B4a93A0d775b9D7::$ipTV_db = &$F30ccc8fd3427f97ca35bc6ba6610d01;
-E2d73953a5089B9c7983838f61f23aCF::fBbDDfc7A3d7fe6018b1BB84802EBFd4();
+$ipTV_db = new ipTV_db($_INFO["host"], $_INFO["db_user"], $_INFO["db_pass"], $_INFO["db_name"], $_INFO["db_port"], empty($_INFO["pconnect"]) ? false : true);
+ipTV_lib::$ipTV_db = &$ipTV_db;
+ipTV_streaming::$ipTV_db = &$ipTV_db;
+ipTV_stream::$ipTV_db = &$ipTV_db;
+ipTV_lib::init();

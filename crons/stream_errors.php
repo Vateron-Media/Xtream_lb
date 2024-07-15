@@ -15,7 +15,7 @@ if ($argc) {
                     $c4d295c2e7809a5697cc83a4f04d65bf = array_values(array_unique(array_map("trim", explode("\n", file_get_contents($E45cb49615d9ff0c133fcdeaa506ddb6)))));
                     foreach ($c4d295c2e7809a5697cc83a4f04d65bf as $error) {
                         if (!(empty($error) || f5f93afd707e5e9078c39ab1af456d4c($Bc90810ba7aa9dba3da32be473481ebe, $error))) {
-                            $F30ccc8fd3427f97ca35bc6ba6610d01->query("INSERT INTO `stream_logs` (`stream_id`,`server_id`,`date`,`error`) VALUES('%d','%d','%d','%s')", $b6497ba71489783c3747f19debe893a4, SERVER_ID, time() + E2D73953a5089b9c7983838f61F23aCF::$StreamingServers[SERVER_ID]["diff_time_main"], $error);
+                            $ipTV_db->query("INSERT INTO `stream_logs` (`stream_id`,`server_id`,`date`,`error`) VALUES('%d','%d','%d','%s')", $b6497ba71489783c3747f19debe893a4, SERVER_ID, time() + ipTV_lib::$StreamingServers[SERVER_ID]["diff_time_main"], $error);
                         }
                     }
                     unlink($E45cb49615d9ff0c133fcdeaa506ddb6);
@@ -24,7 +24,7 @@ if ($argc) {
         }
         closedir($A7cd68109a3d420b829e6d9425875c6d);
     }
-    $F30ccc8fd3427f97ca35bc6ba6610d01->query("DELETE FROM `stream_logs` WHERE `date` <= '%d' AND `server_id` = '%d'", strtotime("-3 hours", time() + E2d73953A5089b9C7983838f61f23acF::$StreamingServers[SERVER_ID]["diff_time_main"]), SERVER_ID);
+    $ipTV_db->query("DELETE FROM `stream_logs` WHERE `date` <= '%d' AND `server_id` = '%d'", strtotime("-3 hours", time() + ipTV_lib::$StreamingServers[SERVER_ID]["diff_time_main"]), SERVER_ID);
 } else {
     exit(0);
 }

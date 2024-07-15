@@ -9,22 +9,22 @@ if ($argc) {
         if (!file_exists(TV_ARCHIVE . $b6497ba71489783c3747f19debe893a4)) {
             mkdir(TV_ARCHIVE . $b6497ba71489783c3747f19debe893a4);
         }
-        $F30ccc8fd3427f97ca35bc6ba6610d01->query("SELECT * \n                        FROM `streams` t1\n                        INNER JOIN `streams_sys` t2 ON t1.id = t2.stream_id AND t2.server_id = t1.tv_archive_server_id\n                        WHERE t1.`id` = '%d' AND t1.`tv_archive_server_id` = '%d' AND t1.`tv_archive_duration` > 0", $b6497ba71489783c3747f19debe893a4, SERVER_ID);
-        if (0 >= $F30ccc8fd3427f97ca35bc6ba6610d01->d4A34259Fc10B35FEDBcCdA0a23d69Ae()) {
+        $ipTV_db->query("SELECT * \n                        FROM `streams` t1\n                        INNER JOIN `streams_sys` t2 ON t1.id = t2.stream_id AND t2.server_id = t1.tv_archive_server_id\n                        WHERE t1.`id` = '%d' AND t1.`tv_archive_server_id` = '%d' AND t1.`tv_archive_duration` > 0", $b6497ba71489783c3747f19debe893a4, SERVER_ID);
+        if (0 >= $ipTV_db->num_rows()) {
         } else {
-            $Fa2325a1b301ca7c383cb69087c42d91 = $F30ccc8fd3427f97ca35bc6ba6610d01->eB6bfE16D93814Caf26d92092D5A4052();
-            if (F1Ca094152763c79018E9F1893eF1E48::ps_running($Fa2325a1b301ca7c383cb69087c42d91["tv_archive_pid"], PHP_BIN)) {
+            $Fa2325a1b301ca7c383cb69087c42d91 = $ipTV_db->get_row();
+            if (ipTV_streaming::ps_running($Fa2325a1b301ca7c383cb69087c42d91["tv_archive_pid"], PHP_BIN)) {
                 posix_kill($Fa2325a1b301ca7c383cb69087c42d91["tv_archive_pid"], 9);
             }
             if (empty($Fa2325a1b301ca7c383cb69087c42d91["pid"])) {
                 posix_kill(getmypid(), 9);
             }
-            $F30ccc8fd3427f97ca35bc6ba6610d01->query("UPDATE `streams` SET `tv_archive_pid` = '%d' WHERE `id` = '%d'", getmypid(), $b6497ba71489783c3747f19debe893a4);
+            $ipTV_db->query("UPDATE `streams` SET `tv_archive_pid` = '%d' WHERE `id` = '%d'", getmypid(), $b6497ba71489783c3747f19debe893a4);
             $a34b78cc7cc05320e0f45ad4d6c6a5d4 = time();
-            $F30ccc8fd3427f97ca35bc6ba6610d01->a9c27319DdF640F296201c75a1eF3EEB();
+            $ipTV_db->close_mysql();
             e44119e4141aC9f9E992529BbcC774dc($b6497ba71489783c3747f19debe893a4, $Fa2325a1b301ca7c383cb69087c42d91["tv_archive_duration"]);
             $D6a71195224cc05eb6e1a5510557e3c6 = date("Y-m-d:H-i");
-            $b4ad7225f6375fe5d757d3c7147fb034 = @fopen("http://127.0.0.1:" . E2D73953A5089b9C7983838f61F23Acf::$StreamingServers[SERVER_ID]["http_broadcast_port"] . "/streaming/admin_live.php?password=" . e2d73953A5089b9c7983838f61F23AcF::$settings["live_streaming_pass"] . "&stream=" . $b6497ba71489783c3747f19debe893a4 . "&extension=ts", "r");
+            $b4ad7225f6375fe5d757d3c7147fb034 = @fopen("http://127.0.0.1:" . ipTV_lib::$StreamingServers[SERVER_ID]["http_broadcast_port"] . "/streaming/admin_live.php?password=" . ipTV_lib::$settings["live_streaming_pass"] . "&stream=" . $b6497ba71489783c3747f19debe893a4 . "&extension=ts", "r");
             if ($b4ad7225f6375fe5d757d3c7147fb034) {
                 $c89b606d5f2c329aec44c2bab38d65a1 = fopen(TV_ARCHIVE . $b6497ba71489783c3747f19debe893a4 . "/" . $D6a71195224cc05eb6e1a5510557e3c6 . ".ts", "a");
                 while (feof($b4ad7225f6375fe5d757d3c7147fb034)) {
@@ -52,8 +52,7 @@ if ($argc) {
 } else {
     exit(0);
 }
-function e44119E4141AC9F9E992529Bbcc774dC($b6497ba71489783c3747f19debe893a4, $f2d04c1a265fe6228e173c917e0083cb)
-{
+function e44119E4141AC9F9E992529Bbcc774dC($b6497ba71489783c3747f19debe893a4, $f2d04c1a265fe6228e173c917e0083cb) {
     $E886613d3e0b0e8d281253732ef24727 = intval(count(scandir(TV_ARCHIVE . $b6497ba71489783c3747f19debe893a4 . "/")) - 2);
     if ($f2d04c1a265fe6228e173c917e0083cb * 24 * 60 < $E886613d3e0b0e8d281253732ef24727) {
         $d28ce8f5992f60104d778562650285fc = $E886613d3e0b0e8d281253732ef24727 - $f2d04c1a265fe6228e173c917e0083cb * 24 * 60;

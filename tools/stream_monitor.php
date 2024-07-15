@@ -9,10 +9,10 @@ if ($argc) {
         cli_set_process_title("XtreamCodes[" . $b6497ba71489783c3747f19debe893a4 . "]");
         require str_replace("\\", "/", dirname($argv[0])) . "/../wwwdir/init.php";
         set_time_limit(0);
-        $F30ccc8fd3427f97ca35bc6ba6610d01->query("SELECT * FROM `streams` t1 INNER JOIN `streams_sys` t2 ON t2.stream_id = t1.id AND t2.server_id = '%d' WHERE t1.id = '%d'", SERVER_ID, $b6497ba71489783c3747f19debe893a4);
-        if ($F30ccc8fd3427f97ca35bc6ba6610d01->D4a34259fC10b35feDBCCDa0a23d69aE() > 0) {
-            $de8b98affa55c7e6bfe327d372e15fc9 = $F30ccc8fd3427f97ca35bc6ba6610d01->EB6bFe16D93814caf26d92092d5A4052();
-            $F30ccc8fd3427f97ca35bc6ba6610d01->query("UPDATE `streams_sys` SET `monitor_pid` = '%d' WHERE `server_stream_id` = '%d'", getmypid(), $de8b98affa55c7e6bfe327d372e15fc9["server_stream_id"]);
+        $ipTV_db->query("SELECT * FROM `streams` t1 INNER JOIN `streams_sys` t2 ON t2.stream_id = t1.id AND t2.server_id = '%d' WHERE t1.id = '%d'", SERVER_ID, $b6497ba71489783c3747f19debe893a4);
+        if ($ipTV_db->num_rows() > 0) {
+            $de8b98affa55c7e6bfe327d372e15fc9 = $ipTV_db->get_row();
+            $ipTV_db->query("UPDATE `streams_sys` SET `monitor_pid` = '%d' WHERE `server_stream_id` = '%d'", getmypid(), $de8b98affa55c7e6bfe327d372e15fc9["server_stream_id"]);
             $c56e34a2166b612653a19b0811c9865d = file_exists(STREAMS_PATH . $b6497ba71489783c3747f19debe893a4 . "_.pid") ? intval(file_get_contents(STREAMS_PATH . $b6497ba71489783c3747f19debe893a4 . "_.pid")) : $de8b98affa55c7e6bfe327d372e15fc9["pid"];
             $e9b00e29dc8b3f8a1ff0276f94e34917 = json_decode($de8b98affa55c7e6bfe327d372e15fc9["auto_restart"], true);
             $f0d5508533eaf6452b2b014beae1cc7c = STREAMS_PATH . $b6497ba71489783c3747f19debe893a4 . "_.m3u8";
@@ -24,8 +24,8 @@ if ($argc) {
             }
             $F58961366af8dce9f886583c15d9d374 = $de8b98affa55c7e6bfe327d372e15fc9["current_source"];
             $F0f64b90d30f873badd83d4c9c76848b = NULL;
-            $F30ccc8fd3427f97ca35bc6ba6610d01->query("SELECT t1.*, t2.* FROM `streams_options` t1, `streams_arguments` t2 WHERE t1.stream_id = '%d' AND t1.argument_id = t2.id", $b6497ba71489783c3747f19debe893a4);
-            $Ac5372e43132587fad426d83ee2caccf = $F30ccc8fd3427f97ca35bc6ba6610d01->eD940A8511357C99475cc7969F034729();
+            $ipTV_db->query("SELECT t1.*, t2.* FROM `streams_options` t1, `streams_arguments` t2 WHERE t1.stream_id = '%d' AND t1.argument_id = t2.id", $b6497ba71489783c3747f19debe893a4);
+            $Ac5372e43132587fad426d83ee2caccf = $ipTV_db->get_rows();
             if (0 < $de8b98affa55c7e6bfe327d372e15fc9["delay_minutes"] && $de8b98affa55c7e6bfe327d372e15fc9["parent_id"] == 0) {
                 $Ef40f59b21839941b898f2dd4979f03d = DELAY_STREAM;
                 $f0d5508533eaf6452b2b014beae1cc7c = DELAY_STREAM . $b6497ba71489783c3747f19debe893a4 . "_.m3u8";
@@ -35,7 +35,7 @@ if ($argc) {
                 $Ef40f59b21839941b898f2dd4979f03d = STREAMS_PATH;
             }
             $e1ca82fdb2a31f8e43b341dccf24b7e3 = 0;
-            if (!F1ca094152763c79018e9f1893EF1E48::A1ecf5D2A93474b12E622361C656B958($c56e34a2166b612653a19b0811c9865d, $b6497ba71489783c3747f19debe893a4)) {
+            if (!ipTV_streaming::A1ecf5D2A93474b12E622361C656B958($c56e34a2166b612653a19b0811c9865d, $b6497ba71489783c3747f19debe893a4)) {
                 while (false) {
                 }
             } else {
@@ -43,7 +43,7 @@ if ($argc) {
                     $e1ca82fdb2a31f8e43b341dccf24b7e3 = RESTART_TAKE_CACHE + 1;
                     shell_exec("kill -9 " . $c56e34a2166b612653a19b0811c9865d);
                     shell_exec("rm -f " . STREAMS_PATH . $b6497ba71489783c3747f19debe893a4 . "_*");
-                    if ($Bd84a7e6e5c66ffae15ce0fa507a2cc7 && F1ca094152763C79018E9F1893EF1e48::A5C11cff1b8D4762a64b3B7Cf8862F98($ba62003ce025cbe715e83990ce635b6b, $b6497ba71489783c3747f19debe893a4)) {
+                    if ($Bd84a7e6e5c66ffae15ce0fa507a2cc7 && ipTV_streaming::A5C11cff1b8D4762a64b3B7Cf8862F98($ba62003ce025cbe715e83990ce635b6b, $b6497ba71489783c3747f19debe893a4)) {
                         shell_exec("kill -9 " . $ba62003ce025cbe715e83990ce635b6b);
                     }
                     usleep(50000);
@@ -51,10 +51,10 @@ if ($argc) {
                 }
             }
             if (0 < $c56e34a2166b612653a19b0811c9865d) {
-                $F30ccc8fd3427f97ca35bc6ba6610d01->a9C27319DDF640F296201c75A1EF3EeB();
+                $ipTV_db->close_mysql();
                 $Cc9b51b82848c26737b4564ddf4926ad = $E13f8ad7f294b3d53a97f3b3fcaeed0d = $d9089d6c4a05167df0eb1a67a995b57f = time();
                 $df1e2f0fa7893d3c9d06a406ec24a8a8 = md5_file($f0d5508533eaf6452b2b014beae1cc7c);
-                while (!(f1ca094152763c79018E9F1893Ef1e48::a1ecf5d2A93474B12e622361C656b958($c56e34a2166b612653a19b0811c9865d, $b6497ba71489783c3747f19debe893a4) && file_exists($f0d5508533eaf6452b2b014beae1cc7c))) {
+                while (!(ipTV_streaming::a1ecf5d2A93474B12e622361C656b958($c56e34a2166b612653a19b0811c9865d, $b6497ba71489783c3747f19debe893a4) && file_exists($f0d5508533eaf6452b2b014beae1cc7c))) {
                     if (!(empty($e9b00e29dc8b3f8a1ff0276f94e34917["days"]) || empty($e9b00e29dc8b3f8a1ff0276f94e34917["at"]))) {
                         list($e041641fb341837f896123fc736fa1b5, $C3701408f451b56ac9f60cf02f5867b3) = explode(":", $e9b00e29dc8b3f8a1ff0276f94e34917["at"]);
                         if (in_array(date("l"), $e9b00e29dc8b3f8a1ff0276f94e34917["days"]) && date("H") == $e041641fb341837f896123fc736fa1b5) {
@@ -62,32 +62,32 @@ if ($argc) {
                             }
                         }
                     }
-                    if (e2d73953A5089b9C7983838f61F23Acf::$settings["audio_restart_loss"] == 1 && 300 < time() - $Cc9b51b82848c26737b4564ddf4926ad) {
-                        list($B8355a23f8ef2efb6685523365b371e2) = f1cA094152763C79018E9f1893eF1E48::b03404A02C45Cf202dA01928E71D3b42($f0d5508533eaf6452b2b014beae1cc7c, 10);
+                    if (ipTV_lib::$settings["audio_restart_loss"] == 1 && 300 < time() - $Cc9b51b82848c26737b4564ddf4926ad) {
+                        list($B8355a23f8ef2efb6685523365b371e2) = ipTV_streaming::b03404A02C45Cf202dA01928E71D3b42($f0d5508533eaf6452b2b014beae1cc7c, 10);
                         if (!empty($B8355a23f8ef2efb6685523365b371e2)) {
-                            $dad2a08e78759b893753ecedbaeabe83 = c872bcfA04B3eaeE1B4A93a0D775B9d7::c40Ab46F24644F0dcfad4B6d617c2734($Ef40f59b21839941b898f2dd4979f03d . $B8355a23f8ef2efb6685523365b371e2, SERVER_ID);
+                            $dad2a08e78759b893753ecedbaeabe83 = ipTV_stream::c40Ab46F24644F0dcfad4B6d617c2734($Ef40f59b21839941b898f2dd4979f03d . $B8355a23f8ef2efb6685523365b371e2, SERVER_ID);
                             if (isset($dad2a08e78759b893753ecedbaeabe83["codecs"]["audio"]) && !empty($dad2a08e78759b893753ecedbaeabe83["codecs"]["audio"])) {
                                 $Cc9b51b82848c26737b4564ddf4926ad = time();
                             }
                         }
                     }
-                    if (e2D73953A5089b9c7983838F61F23AcF::$SegmentsSettings["seg_time"] * 6 <= time() - $E13f8ad7f294b3d53a97f3b3fcaeed0d) {
+                    if (ipTV_lib::$SegmentsSettings["seg_time"] * 6 <= time() - $E13f8ad7f294b3d53a97f3b3fcaeed0d) {
                         $E13168098604fb6634418f8c9321baef = md5_file($f0d5508533eaf6452b2b014beae1cc7c);
                         if ($df1e2f0fa7893d3c9d06a406ec24a8a8 != $E13168098604fb6634418f8c9321baef) {
                             $df1e2f0fa7893d3c9d06a406ec24a8a8 = $E13168098604fb6634418f8c9321baef;
                             $E13f8ad7f294b3d53a97f3b3fcaeed0d = time();
                         }
                     }
-                    if (e2D73953A5089b9c7983838F61F23ACf::$settings["priority_backup"] == 1 && 1 < count($Dcd9edd2f7792b5df43a34b76f090ac4) && $E6996f02446d721d2dd73111c24ce67a == 0 && 10 < time() - $d9089d6c4a05167df0eb1a67a995b57f) {
+                    if (ipTV_lib::$settings["priority_backup"] == 1 && 1 < count($Dcd9edd2f7792b5df43a34b76f090ac4) && $E6996f02446d721d2dd73111c24ce67a == 0 && 10 < time() - $d9089d6c4a05167df0eb1a67a995b57f) {
                         $d9089d6c4a05167df0eb1a67a995b57f = time();
                         $E5d29eebd54cbadb9868db24207ef778 = array_search($F58961366af8dce9f886583c15d9d374, $Dcd9edd2f7792b5df43a34b76f090ac4);
                         if (0 < $E5d29eebd54cbadb9868db24207ef778) {
                             foreach ($Dcd9edd2f7792b5df43a34b76f090ac4 as $E4866fec202244d7a3c9f4e24f6ee344) {
-                                $bae5056cfcbf9b293f6f8218c859de80 = c872bCfA04B3eAeE1B4A93a0d775b9d7::ParseStreamURL($E4866fec202244d7a3c9f4e24f6ee344);
+                                $bae5056cfcbf9b293f6f8218c859de80 = ipTV_stream::ParseStreamURL($E4866fec202244d7a3c9f4e24f6ee344);
                                 if ($bae5056cfcbf9b293f6f8218c859de80 != $F58961366af8dce9f886583c15d9d374) {
                                     $fd777ea6aad636f6a095e656372f239b = strtolower(substr($bae5056cfcbf9b293f6f8218c859de80, 0, strpos($bae5056cfcbf9b293f6f8218c859de80, "://")));
-                                    $D4249ceeeadd6a4b760b6c79e2a4f57e = implode(" ", c872BcfA04b3EAEE1B4A93A0D775B9D7::b53da0f20eC82CF4Ec576504051230aB($Ac5372e43132587fad426d83ee2caccf, $fd777ea6aad636f6a095e656372f239b, "fetch"));
-                                    if (!($a58a92e1c21a65066c6ca36591929d95 = C872bCfA04B3EAEe1B4a93A0d775B9D7::C40Ab46f24644f0DCFad4b6d617C2734($bae5056cfcbf9b293f6f8218c859de80, SERVER_ID, $D4249ceeeadd6a4b760b6c79e2a4f57e))) {
+                                    $D4249ceeeadd6a4b760b6c79e2a4f57e = implode(" ", ipTV_stream::b53da0f20eC82CF4Ec576504051230aB($Ac5372e43132587fad426d83ee2caccf, $fd777ea6aad636f6a095e656372f239b, "fetch"));
+                                    if (!($a58a92e1c21a65066c6ca36591929d95 = ipTV_stream::C40Ab46f24644f0DCFad4b6d617C2734($bae5056cfcbf9b293f6f8218c859de80, SERVER_ID, $D4249ceeeadd6a4b760b6c79e2a4f57e))) {
                                     } else {
                                         $F0f64b90d30f873badd83d4c9c76848b = $bae5056cfcbf9b293f6f8218c859de80;
                                     }
@@ -95,19 +95,19 @@ if ($argc) {
                             }
                         }
                     }
-                    if ($Bd84a7e6e5c66ffae15ce0fa507a2cc7 && $de8b98affa55c7e6bfe327d372e15fc9["delay_available_at"] <= time() && !f1cA094152763C79018e9F1893Ef1E48::a5C11cFF1B8D4762a64b3B7CF8862F98($ba62003ce025cbe715e83990ce635b6b, $b6497ba71489783c3747f19debe893a4)) {
+                    if ($Bd84a7e6e5c66ffae15ce0fa507a2cc7 && $de8b98affa55c7e6bfe327d372e15fc9["delay_available_at"] <= time() && !ipTV_streaming::a5C11cFF1B8D4762a64b3B7CF8862F98($ba62003ce025cbe715e83990ce635b6b, $b6497ba71489783c3747f19debe893a4)) {
                         $ba62003ce025cbe715e83990ce635b6b = intval(shell_exec(PHP_BIN . " " . TOOLS_PATH . "delay.php " . $b6497ba71489783c3747f19debe893a4 . " " . $de8b98affa55c7e6bfe327d372e15fc9["delay_minutes"] . " >/dev/null 2>/dev/null & echo \$!"));
                     }
                     sleep(1);
                 }
-                $F30ccc8fd3427f97ca35bc6ba6610d01->F7768984914f74D36D718561FCA367a3();
+                $ipTV_db->db_connect();
             }
-            if (F1CA094152763c79018e9f1893Ef1E48::A1eCF5d2A93474b12E622361C656B958($c56e34a2166b612653a19b0811c9865d, $b6497ba71489783c3747f19debe893a4)) {
+            if (ipTV_streaming::A1eCF5d2A93474b12E622361C656B958($c56e34a2166b612653a19b0811c9865d, $b6497ba71489783c3747f19debe893a4)) {
                 shell_exec("kill -9 " . $c56e34a2166b612653a19b0811c9865d);
                 usleep(50000);
             }
-            if (!f1ca094152763C79018E9f1893Ef1E48::A5c11Cff1b8d4762a64b3b7Cf8862F98($ba62003ce025cbe715e83990ce635b6b, $b6497ba71489783c3747f19debe893a4)) {
-                while (F1CA094152763c79018e9f1893Ef1E48::A1eCF5d2a93474b12e622361C656b958($c56e34a2166b612653a19b0811c9865d, $b6497ba71489783c3747f19debe893a4)) {
+            if (!ipTV_streaming::A5c11Cff1b8d4762a64b3b7Cf8862F98($ba62003ce025cbe715e83990ce635b6b, $b6497ba71489783c3747f19debe893a4)) {
+                while (ipTV_streaming::A1eCF5d2a93474b12e622361C656b958($c56e34a2166b612653a19b0811c9865d, $b6497ba71489783c3747f19debe893a4)) {
                 }
             } else {
                 shell_exec("kill -9 " . $ba62003ce025cbe715e83990ce635b6b);
@@ -115,7 +115,7 @@ if ($argc) {
             }
             echo "Restarting...\n";
             shell_exec("rm -f " . STREAMS_PATH . $b6497ba71489783c3747f19debe893a4 . "_*");
-            $Ecf4751835141bfcce480ec62720b500 = C872BCfA04B3eAEe1b4a93a0D775b9D7::Cc6CB4C7F753D55447A62C6C80F4839A($b6497ba71489783c3747f19debe893a4, $e1ca82fdb2a31f8e43b341dccf24b7e3, $F0f64b90d30f873badd83d4c9c76848b);
+            $Ecf4751835141bfcce480ec62720b500 = ipTV_stream::Cc6CB4C7F753D55447A62C6C80F4839A($b6497ba71489783c3747f19debe893a4, $e1ca82fdb2a31f8e43b341dccf24b7e3, $F0f64b90d30f873badd83d4c9c76848b);
             if ($Ecf4751835141bfcce480ec62720b500 !== false) {
                 if (!(is_numeric($Ecf4751835141bfcce480ec62720b500) && $Ecf4751835141bfcce480ec62720b500 == 0)) {
                     sleep(mt_rand(5, 10));
@@ -131,11 +131,11 @@ if ($argc) {
                     } else {
                         $Ef40f59b21839941b898f2dd4979f03d = STREAMS_PATH;
                     }
-                    for ($Df462682e370952f75b92da6e62a7293 = 0; !(f1Ca094152763c79018E9f1893EF1e48::a1eCf5D2a93474B12E622361c656b958($c56e34a2166b612653a19b0811c9865d, $b6497ba71489783c3747f19debe893a4) && !file_exists($f0d5508533eaf6452b2b014beae1cc7c) && $Df462682e370952f75b92da6e62a7293 <= e2D73953A5089B9c7983838F61F23aCf::$SegmentsSettings["seg_time"] * 3); $Df462682e370952f75b92da6e62a7293++) {
+                    for ($Df462682e370952f75b92da6e62a7293 = 0; !(ipTV_streaming::a1eCf5D2a93474B12E622361c656b958($c56e34a2166b612653a19b0811c9865d, $b6497ba71489783c3747f19debe893a4) && !file_exists($f0d5508533eaf6452b2b014beae1cc7c) && $Df462682e370952f75b92da6e62a7293 <= ipTV_lib::$SegmentsSettings["seg_time"] * 3); $Df462682e370952f75b92da6e62a7293++) {
                         echo "Checking For PlayList...\n";
                         sleep(1);
                     }
-                    if ($Df462682e370952f75b92da6e62a7293 == E2d73953A5089B9c7983838f61F23ACf::$SegmentsSettings["seg_time"] * 3) {
+                    if ($Df462682e370952f75b92da6e62a7293 == ipTV_lib::$SegmentsSettings["seg_time"] * 3) {
                         shell_exec("kill -9 " . $c56e34a2166b612653a19b0811c9865d);
                         usleep(50000);
                     }
@@ -149,7 +149,7 @@ if ($argc) {
                 exit;
             }
         } else {
-            c872Bcfa04b3eaeE1B4a93A0d775b9d7::c6AF00e22Ded8567809f9A063DC97624($b6497ba71489783c3747f19debe893a4);
+            ipTV_stream::c6AF00e22Ded8567809f9A063DC97624($b6497ba71489783c3747f19debe893a4);
             exit;
         }
     } else {

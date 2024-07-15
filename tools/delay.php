@@ -9,22 +9,22 @@ if ($argc) {
         cli_set_process_title("XtreamCodesDelay[" . $b6497ba71489783c3747f19debe893a4 . "]");
         require str_replace("\\", "/", dirname($argv[0])) . "/../wwwdir/init.php";
         set_time_limit(0);
-        $F30ccc8fd3427f97ca35bc6ba6610d01->query("SELECT * FROM `streams` t1 INNER JOIN `streams_sys` t2 ON t2.stream_id = t1.id AND t2.server_id = '%d' WHERE t1.id = '%d'", SERVER_ID, $b6497ba71489783c3747f19debe893a4);
-        if ($F30ccc8fd3427f97ca35bc6ba6610d01->d4A34259fc10B35fEdbCCdA0a23D69Ae() > 0) {
-            $de8b98affa55c7e6bfe327d372e15fc9 = $F30ccc8fd3427f97ca35bc6ba6610d01->eb6BfE16d93814Caf26D92092D5a4052();
+        $ipTV_db->query("SELECT * FROM `streams` t1 INNER JOIN `streams_sys` t2 ON t2.stream_id = t1.id AND t2.server_id = '%d' WHERE t1.id = '%d'", SERVER_ID, $b6497ba71489783c3747f19debe893a4);
+        if ($ipTV_db->num_rows() > 0) {
+            $de8b98affa55c7e6bfe327d372e15fc9 = $ipTV_db->get_row();
             if (!($de8b98affa55c7e6bfe327d372e15fc9["delay_minutes"] == 0 || $de8b98affa55c7e6bfe327d372e15fc9["parent_id"] != 0)) {
                 $c56e34a2166b612653a19b0811c9865d = file_exists(STREAMS_PATH . $b6497ba71489783c3747f19debe893a4 . "_.pid") ? intval(file_get_contents(STREAMS_PATH . $b6497ba71489783c3747f19debe893a4 . "_.pid")) : $de8b98affa55c7e6bfe327d372e15fc9["pid"];
                 $ca22c9bc834231cac92b743eedc0c504 = STREAMS_PATH . $b6497ba71489783c3747f19debe893a4 . "_.m3u8";
                 $C8d3c577e00f73ecaaed3c2da9396679 = DELAY_STREAM . $b6497ba71489783c3747f19debe893a4 . "_.m3u8";
                 $a6a9e800e5cf1da868221886194703ae = DELAY_STREAM . $b6497ba71489783c3747f19debe893a4 . "_.m3u8_old";
                 $ba62003ce025cbe715e83990ce635b6b = $de8b98affa55c7e6bfe327d372e15fc9["delay_pid"];
-                $F30ccc8fd3427f97ca35bc6ba6610d01->query("UPDATE `streams_sys` SET delay_pid = '%d' WHERE stream_id = '%d' AND server_id = '%d'", getmypid(), $b6497ba71489783c3747f19debe893a4, SERVER_ID);
-                $F30ccc8fd3427f97ca35bc6ba6610d01->a9c27319Ddf640f296201c75A1EF3EEb();
+                $ipTV_db->query("UPDATE `streams_sys` SET delay_pid = '%d' WHERE stream_id = '%d' AND server_id = '%d'", getmypid(), $b6497ba71489783c3747f19debe893a4, SERVER_ID);
+                $ipTV_db->close_mysql();
                 $f717c07ce786907dfaf9448114e02731 = $de8b98affa55c7e6bfe327d372e15fc9["delay_minutes"] + 5;
                 shell_exec("find " . DELAY_STREAM . $b6497ba71489783c3747f19debe893a4 . "_*" . " -type f -cmin +" . $f717c07ce786907dfaf9448114e02731 . " -delete");
                 $ccff6f4fe01aee1cecf7259199d15e9f = [];
-                $ccff6f4fe01aee1cecf7259199d15e9f = ["vars" => ["#EXTM3U" => "", "#EXT-X-VERSION" => 3, "#EXT-X-MEDIA-SEQUENCE" => "0", "#EXT-X-ALLOW-CACHE" => "YES", "#EXT-X-TARGETDURATION" => E2d73953A5089B9C7983838F61F23Acf::$SegmentsSettings["seg_time"]], "segments" => []];
-                $E886613d3e0b0e8d281253732ef24727 = intval(e2D73953A5089B9c7983838f61F23acF::$SegmentsSettings["seg_list_size"]);
+                $ccff6f4fe01aee1cecf7259199d15e9f = ["vars" => ["#EXTM3U" => "", "#EXT-X-VERSION" => 3, "#EXT-X-MEDIA-SEQUENCE" => "0", "#EXT-X-ALLOW-CACHE" => "YES", "#EXT-X-TARGETDURATION" => ipTV_lib::$SegmentsSettings["seg_time"]], "segments" => []];
+                $E886613d3e0b0e8d281253732ef24727 = intval(ipTV_lib::$SegmentsSettings["seg_list_size"]);
                 $bb4a67416b70ff55ca93b290b0705128 = "";
                 $Ac4a2d0eeb4ebb52f33538ad6cdc23c9 = [];
                 if (file_exists($a6a9e800e5cf1da868221886194703ae)) {
@@ -32,7 +32,7 @@ if ($argc) {
                 }
                 $Db2e000d2fbff7c6df8056ad8ce9769e = 0;
                 $C54156077cee450d7a4f8b987d7ceb57 = md5(file_get_contents($C8d3c577e00f73ecaaed3c2da9396679));
-                while (!(F1Ca094152763c79018e9F1893EF1E48::A1ECF5d2a93474B12e622361C656b958($c56e34a2166b612653a19b0811c9865d, $b6497ba71489783c3747f19debe893a4) && file_exists($C8d3c577e00f73ecaaed3c2da9396679))) {
+                while (!(ipTV_streaming::A1ECF5d2a93474B12e622361C656b958($c56e34a2166b612653a19b0811c9865d, $b6497ba71489783c3747f19debe893a4) && file_exists($C8d3c577e00f73ecaaed3c2da9396679))) {
                     if ($C54156077cee450d7a4f8b987d7ceb57 != $Db2e000d2fbff7c6df8056ad8ce9769e) {
                         $ccff6f4fe01aee1cecf7259199d15e9f["segments"] = f8d8aF0A1ba89854B8a7c9D312EeaB00($C8d3c577e00f73ecaaed3c2da9396679, $Ac4a2d0eeb4ebb52f33538ad6cdc23c9, $E886613d3e0b0e8d281253732ef24727);
                         if (!empty($ccff6f4fe01aee1cecf7259199d15e9f["segments"])) {
@@ -71,15 +71,13 @@ if ($argc) {
 } else {
     exit(0);
 }
-function b7955eC1907Ec8D0CC60A84414AFc192($a2e202e93e67e28b3b104efeeeb40a00)
-{
+function b7955eC1907Ec8D0CC60A84414AFc192($a2e202e93e67e28b3b104efeeeb40a00) {
     global $b6497ba71489783c3747f19debe893a4;
     if (file_exists(STREAMS_PATH . $b6497ba71489783c3747f19debe893a4 . "_" . $a2e202e93e67e28b3b104efeeeb40a00 . ".ts")) {
         unlink(STREAMS_PATH . $b6497ba71489783c3747f19debe893a4 . "_" . $a2e202e93e67e28b3b104efeeeb40a00 . ".ts");
     }
 }
-function F8d8af0a1bA89854B8a7c9D312EeAb00($C8d3c577e00f73ecaaed3c2da9396679, &$Ac4a2d0eeb4ebb52f33538ad6cdc23c9, $E886613d3e0b0e8d281253732ef24727)
-{
+function F8d8af0a1bA89854B8a7c9D312EeAb00($C8d3c577e00f73ecaaed3c2da9396679, &$Ac4a2d0eeb4ebb52f33538ad6cdc23c9, $E886613d3e0b0e8d281253732ef24727) {
     $Ae3016c45dd59a9b881c39a8dfeb6f6f = [];
     if (!empty($Ac4a2d0eeb4ebb52f33538ad6cdc23c9)) {
         $db1a1d30221664cd3c46599738310edf = array_shift($Ac4a2d0eeb4ebb52f33538ad6cdc23c9);
@@ -96,8 +94,7 @@ function F8d8af0a1bA89854B8a7c9D312EeAb00($C8d3c577e00f73ecaaed3c2da9396679, &$A
     }
     return $Ae3016c45dd59a9b881c39a8dfeb6f6f;
 }
-function e43fDB8fef3fd9eE6aE1D0395cc5D11F($f0d5508533eaf6452b2b014beae1cc7c, $bbf03db42d5f3d788c0f9e1b528c9b5c = 0)
-{
+function e43fDB8fef3fd9eE6aE1D0395cc5D11F($f0d5508533eaf6452b2b014beae1cc7c, $bbf03db42d5f3d788c0f9e1b528c9b5c = 0) {
     $Ae3016c45dd59a9b881c39a8dfeb6f6f = [];
     if (file_exists($f0d5508533eaf6452b2b014beae1cc7c)) {
         $b4ad7225f6375fe5d757d3c7147fb034 = fopen($f0d5508533eaf6452b2b014beae1cc7c, "r");
@@ -118,8 +115,7 @@ function e43fDB8fef3fd9eE6aE1D0395cc5D11F($f0d5508533eaf6452b2b014beae1cc7c, $bb
     }
     return $Ae3016c45dd59a9b881c39a8dfeb6f6f;
 }
-function F73D76C4daB261d8598bF64151a7f495($b6497ba71489783c3747f19debe893a4)
-{
+function F73D76C4daB261d8598bF64151a7f495($b6497ba71489783c3747f19debe893a4) {
     clearstatcache(true);
     if (file_exists("/home/xtreamcodes/iptv_xtream_codes/streams/" . $b6497ba71489783c3747f19debe893a4 . ".monitor_delay")) {
         $ef4f0599712515333103265dafb029f7 = intval(file_get_contents("/home/xtreamcodes/iptv_xtream_codes/streams/" . $b6497ba71489783c3747f19debe893a4 . ".monitor_delay"));
@@ -136,8 +132,7 @@ function F73D76C4daB261d8598bF64151a7f495($b6497ba71489783c3747f19debe893a4)
     }
     file_put_contents("/home/xtreamcodes/iptv_xtream_codes/streams/" . $b6497ba71489783c3747f19debe893a4 . ".monitor_delay", getmypid());
 }
-function e94c0e63eB1903A17e9D5D293Cc2Fc9C($Ac4a2d0eeb4ebb52f33538ad6cdc23c9)
-{
+function e94c0e63eB1903A17e9D5D293Cc2Fc9C($Ac4a2d0eeb4ebb52f33538ad6cdc23c9) {
     global $a6a9e800e5cf1da868221886194703ae;
     if (!empty($Ac4a2d0eeb4ebb52f33538ad6cdc23c9)) {
         $Ecf4751835141bfcce480ec62720b500 = "";
@@ -149,5 +144,3 @@ function e94c0e63eB1903A17e9D5D293Cc2Fc9C($Ac4a2d0eeb4ebb52f33538ad6cdc23c9)
         unlink($a6a9e800e5cf1da868221886194703ae);
     }
 }
-
-?>

@@ -4,7 +4,7 @@ if ($argc) {
     require str_replace("\\", "/", dirname($argv[0])) . "/../wwwdir/init.php";
     shell_exec("kill \$(ps aux | grep watchdog_data | grep -v grep | grep -v " . getmypid() . " | awk '{print \$2}')");
     while (false) {
-        if ($F30ccc8fd3427f97ca35bc6ba6610d01->query("UPDATE `streaming_servers` SET `watchdog_data` = '%s' WHERE `id` = '%d'", json_encode(C2e1Ca22613b17bf832806eB2f8E484c(), JSON_PARTIAL_OUTPUT_ON_ERROR), SERVER_ID)) {
+        if ($ipTV_db->query("UPDATE `streaming_servers` SET `watchdog_data` = '%s' WHERE `id` = '%d'", json_encode(C2e1Ca22613b17bf832806eB2f8E484c(), JSON_PARTIAL_OUTPUT_ON_ERROR), SERVER_ID)) {
             sleep(2);
         }
     }

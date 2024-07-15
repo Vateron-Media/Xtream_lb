@@ -1,7 +1,5 @@
 <?php
-
-class CB367Ff73bf6c43C6b176770e3ADCDd3
-{
+class CB367Ff73bf6c43C6b176770e3ADCDd3 {
     private $binaryFormatMajorVersion;
     private $binaryFormatMinorVersion;
     private $buildEpoch;
@@ -13,8 +11,7 @@ class CB367Ff73bf6c43C6b176770e3ADCDd3
     private $nodeCount;
     private $recordSize;
     private $searchTreeSize;
-    public function __construct($A917cfa0f27208d0c0649f999e3f24a3)
-    {
+    public function __construct($A917cfa0f27208d0c0649f999e3f24a3) {
         $this->binaryFormatMajorVersion = $A917cfa0f27208d0c0649f999e3f24a3["binary_format_major_version"];
         $this->binaryFormatMinorVersion = $A917cfa0f27208d0c0649f999e3f24a3["binary_format_minor_version"];
         $this->buildEpoch = $A917cfa0f27208d0c0649f999e3f24a3["build_epoch"];
@@ -27,8 +24,7 @@ class CB367Ff73bf6c43C6b176770e3ADCDd3
         $this->nodeByteSize = $this->recordSize / 4;
         $this->searchTreeSize = $this->nodeCount * $this->nodeByteSize;
     }
-    public function __get($ecd0d66f263e08daf7b731e770eae6b6)
-    {
+    public function __get($ecd0d66f263e08daf7b731e770eae6b6) {
         return $this->{$ecd0d66f263e08daf7b731e770eae6b6};
     }
 }

@@ -18,7 +18,7 @@ if ($argc) {
         foreach ($De933f63e54551ecc5d95bc6360ca4f3 as $a5114834954ccc2198ffda7cc909b92d) {
             unlink(CLOSE_OPEN_CONS_PATH . $a5114834954ccc2198ffda7cc909b92d);
         }
-        if ($F30ccc8fd3427f97ca35bc6ba6610d01->query("DELETE FROM `user_activity_now` WHERE `activity_id` IN (" . implode(",", $De933f63e54551ecc5d95bc6360ca4f3) . ")") !== false) {
+        if ($ipTV_db->query("DELETE FROM `user_activity_now` WHERE `activity_id` IN (" . implode(",", $De933f63e54551ecc5d95bc6360ca4f3) . ")") !== false) {
         }
     } else {
         usleep(4000);
@@ -26,5 +26,3 @@ if ($argc) {
 } else {
     exit(0);
 }
-
-?>
