@@ -5,7 +5,6 @@ define("MAIN_DIR", "/home/xtreamcodes/");
 define("IPTV_ROOT_PATH", str_replace("\\", "/", dirname(__FILE__)) . "/");
 define("IPTV_INCLUDES_PATH", IPTV_ROOT_PATH . "includes" . "/");
 define("IPTV_TEMPLATES_PATH", IPTV_ROOT_PATH . "templates" . "/");
-require MAIN_DIR . "iptv_xtream_codes/xfirewall.php";
 @ini_set("user_agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:9.0) Gecko/20100101 Firefox/9.0");
 define("IN_SCRIPT", true);
 define("SCRIPT_VERSION", "2.9.0");
