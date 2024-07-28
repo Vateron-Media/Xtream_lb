@@ -18,7 +18,7 @@ if (ipTV_lib::$request["call"] == "play_done") {
     http_response_code(200);
     die;
 }
-if (empty(ipTV_lib::$request["username"]) && empty(ipTV_lib::$request["password"]) && in_array(ipTV_lib::$request["addr"], ipTV_streaming::e83C60ae0B93a4Aae6A66a6F64fCa8B6())) {
+if (empty(ipTV_lib::$request["username"]) && empty(ipTV_lib::$request["password"]) && in_array(ipTV_lib::$request["addr"], ipTV_streaming::getAllowedIPs())) {
     http_response_code(200);
     die;
 }
@@ -88,7 +88,7 @@ if ($fbf1d0a58fcc040ff00728a277a5f306 = ipTV_streaming::d909b0d1a6fFfdCDB838046F
     $edb14c7cf85a4e59ae887506c408a3df = ipTV_streaming::f9edf299be4280cC9900D81d8355fd29($b6497ba71489783c3747f19debe893a4, SERVER_ID);
     $f0d5508533eaf6452b2b014beae1cc7c = STREAMS_PATH . $b6497ba71489783c3747f19debe893a4 . "_.m3u8";
     if (!ipTV_streaming::ps_running($edb14c7cf85a4e59ae887506c408a3df["server"]["pid"], FFMPEG_PATH) && $edb14c7cf85a4e59ae887506c408a3df["info"]["on_demand"] == 1) {
-        ipTV_stream::ccE5281DdFb1F4c0d820841761f78170($b6497ba71489783c3747f19debe893a4);
+        ipTV_stream::startMonitor($b6497ba71489783c3747f19debe893a4);
         sleep(5);
     }
     if ($fbf1d0a58fcc040ff00728a277a5f306["max_connections"] == 0 || $fbf1d0a58fcc040ff00728a277a5f306["active_cons"] < $fbf1d0a58fcc040ff00728a277a5f306["max_connections"]) {

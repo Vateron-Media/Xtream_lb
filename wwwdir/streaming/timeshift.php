@@ -8,7 +8,7 @@ if (!isset(ipTV_lib::$request["token"])) {
     die("Missing parameters.");
 }
 $dc5791fad6da6f9dd96b83b988be0cb8 = str_replace(" ", "+", ipTV_lib::$request["token"]);
-$c9ef80acc950f0adcb13d24415dbc633 = json_decode(F08cC5C567Cd66B30a2A1f399445489c(base64_decode($dc5791fad6da6f9dd96b83b988be0cb8), md5(ipTV_lib::$settings["crypt_load_balancing"])), true);
+$c9ef80acc950f0adcb13d24415dbc633 = json_decode(decrypt_config(base64_decode($dc5791fad6da6f9dd96b83b988be0cb8), md5(ipTV_lib::$settings["crypt_load_balancing"])), true);
 if (!is_array($c9ef80acc950f0adcb13d24415dbc633)) {
     http_response_code(401);
     die("ERROR.");
@@ -357,7 +357,7 @@ function shutdown() {
     global $ipTV_db, $b93df8c85c6b9c6b3e155555619bbe8e, $ac61d2c064f4f23b7222db53fc6ef6a8, $d8d36e593ec0bd7cae9e37c890b536d4, $A2e2d8cf048bd6ddcdccd0cb732f9fec, $b6497ba71489783c3747f19debe893a4, $f1bbf25f8a2aa075b59695b2d749ee5b, $b7eaa095f27405cf78a432ce6504dae0, $a915d7b641af262a730cfcf433966ebd, $ccd2e0619bfa39a78e869e4f48fcc7c6, $e8bde7e627ad9d9d70c6010cc669eb60, $e23c0ff03f3a73b2d73762f346bfe2a8;
     $ipTV_db->close_mysql();
     if ($b93df8c85c6b9c6b3e155555619bbe8e !== false) {
-        ipTV_streaming::e01C6247dC62e1eDe6dA6671b6ADbb8D($b93df8c85c6b9c6b3e155555619bbe8e);
+        ipTV_streaming::CloseAndTransfer($b93df8c85c6b9c6b3e155555619bbe8e);
         ipTV_streaming::C9ccC76c9d6b7E44c6d4a7a6c7191Eb5(SERVER_ID, $d8d36e593ec0bd7cae9e37c890b536d4, $b6497ba71489783c3747f19debe893a4, $e23c0ff03f3a73b2d73762f346bfe2a8, $f1bbf25f8a2aa075b59695b2d749ee5b, $b7eaa095f27405cf78a432ce6504dae0, $A2e2d8cf048bd6ddcdccd0cb732f9fec, $a915d7b641af262a730cfcf433966ebd, $ccd2e0619bfa39a78e869e4f48fcc7c6, $e8bde7e627ad9d9d70c6010cc669eb60);
         if (file_exists($ac61d2c064f4f23b7222db53fc6ef6a8)) {
             unlink($ac61d2c064f4f23b7222db53fc6ef6a8);

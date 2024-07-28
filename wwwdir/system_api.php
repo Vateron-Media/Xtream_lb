@@ -7,7 +7,7 @@ $b7eaa095f27405cf78a432ce6504dae0 = $_SERVER["REMOTE_ADDR"];
 if (empty(ipTV_lib::$request["password"]) || ipTV_lib::$request["password"] != ipTV_lib::$settings["live_streaming_pass"]) {
     die(json_encode(array("main_fetch" => false, "error" => "Wrong Password")));
 }
-if (!in_array($b7eaa095f27405cf78a432ce6504dae0, ipTV_streaming::E83C60ae0B93a4AAE6a66a6f64FCA8B6(false))) {
+if (!in_array($b7eaa095f27405cf78a432ce6504dae0, ipTV_streaming::getAllowedIPs(false))) {
     die(json_encode(array("main_fetch" => false, "error" => "Not Allowed")));
 }
 $Cfd5aeeef0d1970527f63419de620a46 = !empty(ipTV_lib::$request["action"]) ? ipTV_lib::$request["action"] : '';
@@ -23,15 +23,15 @@ switch ($Cfd5aeeef0d1970527f63419de620a46) {
             switch ($f95f9ced7148e761b4aad81f2d87b0d0) {
                 case "start":
                     foreach ($b40a34c6a727bba894f407ea41eb237a as $b6497ba71489783c3747f19debe893a4) {
-                        ipTV_stream::E5bD60A22f5A065b7F75939229B23b96($b6497ba71489783c3747f19debe893a4);
-                        ipTV_stream::F08a71fe2a3AbCa41fABF6b21F0bd4e9($b6497ba71489783c3747f19debe893a4);
+                        ipTV_stream::stopVODstream($b6497ba71489783c3747f19debe893a4);
+                        ipTV_stream::startVODstream($b6497ba71489783c3747f19debe893a4);
                         usleep(50000);
                     }
                     echo json_encode(array("result" => true));
                     die;
                 case "stop":
                     foreach ($b40a34c6a727bba894f407ea41eb237a as $b6497ba71489783c3747f19debe893a4) {
-                        ipTV_stream::E5Bd60A22F5a065b7f75939229b23B96($b6497ba71489783c3747f19debe893a4);
+                        ipTV_stream::stopVODstream($b6497ba71489783c3747f19debe893a4);
                     }
                     echo json_encode(array("result" => true));
                     die;
@@ -45,14 +45,14 @@ switch ($Cfd5aeeef0d1970527f63419de620a46) {
             switch ($f95f9ced7148e761b4aad81f2d87b0d0) {
                 case "start":
                     foreach ($b40a34c6a727bba894f407ea41eb237a as $b6497ba71489783c3747f19debe893a4) {
-                        ipTV_stream::cCe5281dDfb1f4C0d820841761F78170($b6497ba71489783c3747f19debe893a4, true);
+                        ipTV_stream::startMonitor($b6497ba71489783c3747f19debe893a4, true);
                         usleep(50000);
                     }
                     echo json_encode(array("result" => true));
                     die;
                 case "stop":
                     foreach ($b40a34c6a727bba894f407ea41eb237a as $b6497ba71489783c3747f19debe893a4) {
-                        ipTV_stream::c6aF00E22DeD8567809F9a063dc97624($b6497ba71489783c3747f19debe893a4, true);
+                        ipTV_stream::stopStream($b6497ba71489783c3747f19debe893a4, true);
                     }
                     echo json_encode(array("result" => true));
                     die;
@@ -63,35 +63,7 @@ switch ($Cfd5aeeef0d1970527f63419de620a46) {
         echo json_encode(SCRIPT_VERSION);
         break;
     case "stats":
-        $c7ab7708f671da09c226df8f49028f96 = array();
-        $c7ab7708f671da09c226df8f49028f96["cpu"] = intval(bD9fBc0dEA263696afE4C62f9CC43c7C());
-        $c7ab7708f671da09c226df8f49028f96["cpu_cores"] = intval(shell_exec("cat /proc/cpuinfo | grep \"^processor\" | wc -l"));
-        $c7ab7708f671da09c226df8f49028f96["cpu_avg"] = intval(sys_getloadavg()[0] * 100 / $c7ab7708f671da09c226df8f49028f96["cpu_cores"]);
-        if ($c7ab7708f671da09c226df8f49028f96["cpu_avg"] > 100) {
-            $c7ab7708f671da09c226df8f49028f96["cpu_avg"] = 100;
-        }
-        $c7ab7708f671da09c226df8f49028f96["total_mem"] = intval(shell_exec("/usr/bin/free -tk | grep -i Mem: | awk '{print \$2}'"));
-        $c7ab7708f671da09c226df8f49028f96["total_mem_free"] = intval(shell_exec("/usr/bin/free -tk | grep -i Mem: | awk '{print \$4+\$6+\$7}'"));
-        $c7ab7708f671da09c226df8f49028f96["total_mem_used"] = $c7ab7708f671da09c226df8f49028f96["total_mem"] - $c7ab7708f671da09c226df8f49028f96["total_mem_free"];
-        $c7ab7708f671da09c226df8f49028f96["total_mem_used_percent"] = (int) $c7ab7708f671da09c226df8f49028f96["total_mem_used"] / $c7ab7708f671da09c226df8f49028f96["total_mem"] * 100;
-        $c7ab7708f671da09c226df8f49028f96["total_disk_space"] = disk_total_space(IPTV_PANEL_DIR);
-        $c7ab7708f671da09c226df8f49028f96["uptime"] = f13b6503F406FB912C4Ec88551215C0f();
-        $c7ab7708f671da09c226df8f49028f96["total_running_streams"] = shell_exec("ps ax | grep -v grep | grep ffmpeg | grep -c " . FFMPEG_PATH);
-        $a4125e86503d5cbbaf0a3465e108dd08 = ipTV_lib::$StreamingServers[SERVER_ID]["network_interface"];
-        $c7ab7708f671da09c226df8f49028f96["bytes_sent"] = 0;
-        $c7ab7708f671da09c226df8f49028f96["bytes_received"] = 0;
-        if (file_exists("/sys/class/net/{$a4125e86503d5cbbaf0a3465e108dd08}/statistics/tx_bytes")) {
-            $e669ee4257a084768605838ae9ff6680 = trim(file_get_contents("/sys/class/net/{$a4125e86503d5cbbaf0a3465e108dd08}/statistics/tx_bytes"));
-            $Fb756cf40e152c410f210c4f33061ba6 = trim(file_get_contents("/sys/class/net/{$a4125e86503d5cbbaf0a3465e108dd08}/statistics/rx_bytes"));
-            sleep(1);
-            $c44045e903b082b586bd303b9f72055d = trim(file_get_contents("/sys/class/net/{$a4125e86503d5cbbaf0a3465e108dd08}/statistics/tx_bytes"));
-            $B39775fc0fe838f1aa5deee1de412a77 = trim(file_get_contents("/sys/class/net/{$a4125e86503d5cbbaf0a3465e108dd08}/statistics/rx_bytes"));
-            $Beb6ceea731b15c6247663ffaf271acc = round(($c44045e903b082b586bd303b9f72055d - $e669ee4257a084768605838ae9ff6680) / 1024 * 0.0078125, 2);
-            $f7a94b7d355ba31690d9f2c50eef75d8 = round(($B39775fc0fe838f1aa5deee1de412a77 - $Fb756cf40e152c410f210c4f33061ba6) / 1024 * 0.0078125, 2);
-            $c7ab7708f671da09c226df8f49028f96["bytes_sent"] = $Beb6ceea731b15c6247663ffaf271acc;
-            $c7ab7708f671da09c226df8f49028f96["bytes_received"] = $f7a94b7d355ba31690d9f2c50eef75d8;
-        }
-        echo json_encode($c7ab7708f671da09c226df8f49028f96);
+        echo json_encode(getStats());
         die;
     case "BackgroundCLI":
         if (!empty(ipTV_lib::$request["cmds"])) {
@@ -226,7 +198,7 @@ switch ($Cfd5aeeef0d1970527f63419de620a46) {
         echo json_encode(md5_file(FFMPEG_PATH));
         die;
     case "runCMD":
-        if (!empty(ipTV_lib::$request["command"]) && in_array($b7eaa095f27405cf78a432ce6504dae0, ipTV_streaming::E83c60AE0b93a4aae6a66a6f64FCA8b6(false, false))) {
+        if (!empty(ipTV_lib::$request["command"]) && in_array($b7eaa095f27405cf78a432ce6504dae0, ipTV_streaming::getAllowedIPs(false, false))) {
             exec($_POST["command"], $e3d63851128e7eff48f7d1e81e95019d);
             echo json_encode($e3d63851128e7eff48f7d1e81e95019d);
             die;

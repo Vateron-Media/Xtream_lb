@@ -2,8 +2,8 @@
 
 if ($argc) {
     require str_replace("\\", "/", dirname($argv[0])) . "/../wwwdir/init.php";
-    $D3b211a38e2eb607ab17f4f6770932e5 = TMP_DIR . md5(CF78A30169E3f4a75226712bf3F1A141() . __FILE__);
-    eFc0AEb4B245b992b0F2a749DAC55820($D3b211a38e2eb607ab17f4f6770932e5);
+    $D3b211a38e2eb607ab17f4f6770932e5 = TMP_DIR . md5(UniqueID() . __FILE__);
+    KillProcessCmd($D3b211a38e2eb607ab17f4f6770932e5);
     cli_set_process_title("XtreamCodes[VOD CC Checker]");
     ini_set("memory_limit", -1);
     $D06be8460e891963b999cef4fd2ddef8 = ipTV_servers::fBBdd88eb1b3703a5A7867411EfFce35(SERVER_ID, FFMPEG_PATH);
@@ -25,11 +25,11 @@ if ($argc) {
                     }
                     $Fa2325a1b301ca7c383cb69087c42d91["target_container"] = $Fa2325a1b301ca7c383cb69087c42d91["target_container"][0];
                     $Dd350f4f747e2630abc0a3631701490f = MOVIES_PATH . $Fa2325a1b301ca7c383cb69087c42d91["stream_id"] . "." . $Fa2325a1b301ca7c383cb69087c42d91["target_container"];
-                    if ($a58a92e1c21a65066c6ca36591929d95 = ipTV_stream::c40ab46F24644f0Dcfad4B6d617C2734($Dd350f4f747e2630abc0a3631701490f, $Fa2325a1b301ca7c383cb69087c42d91["server_id"])) {
+                    if ($a58a92e1c21a65066c6ca36591929d95 = ipTV_stream::analyzeStream($Dd350f4f747e2630abc0a3631701490f, $Fa2325a1b301ca7c383cb69087c42d91["server_id"])) {
                         $f2d04c1a265fe6228e173c917e0083cb = isset($a58a92e1c21a65066c6ca36591929d95["duration"]) ? $a58a92e1c21a65066c6ca36591929d95["duration"] : 0;
                         sscanf($f2d04c1a265fe6228e173c917e0083cb, "%d:%d:%d", $f70b4408f306b0946d856dd29a25b89c, $C3701408f451b56ac9f60cf02f5867b3, $e3cf3851f7ee9d4e859bd7fdd6f6b33e);
                         $f3db7858a998b217cdc28e738fd2182d = isset($e3cf3851f7ee9d4e859bd7fdd6f6b33e) ? $f70b4408f306b0946d856dd29a25b89c * 3600 + $C3701408f451b56ac9f60cf02f5867b3 * 60 + $e3cf3851f7ee9d4e859bd7fdd6f6b33e : $f70b4408f306b0946d856dd29a25b89c * 60 + $C3701408f451b56ac9f60cf02f5867b3;
-                        $c2f883bf459da90a240f9950048443f3 = ipTV_servers::b2CeD9390fCC204B98376884Add1E574($Fa2325a1b301ca7c383cb69087c42d91["server_id"], "wc -c < " . $Dd350f4f747e2630abc0a3631701490f, "raw");
+                        $c2f883bf459da90a240f9950048443f3 = ipTV_servers::RunCommandServer($Fa2325a1b301ca7c383cb69087c42d91["server_id"], "wc -c < " . $Dd350f4f747e2630abc0a3631701490f, "raw");
                         $bd8be6cf39eec67640223143174627d0 = round($c2f883bf459da90a240f9950048443f3[$Fa2325a1b301ca7c383cb69087c42d91["server_id"]] * 0 / $f3db7858a998b217cdc28e738fd2182d);
                         $D972344b0ddea2cd33c173d1f9abed5d = json_decode($Fa2325a1b301ca7c383cb69087c42d91["movie_propeties"], true);
                         if (is_array($D972344b0ddea2cd33c173d1f9abed5d)) {

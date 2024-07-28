@@ -104,9 +104,9 @@ function e43fDB8fef3fd9eE6aE1D0395cc5D11F($f0d5508533eaf6452b2b014beae1cc7c, $bb
                 if (stristr($Df3643b77de72fea7002c5acff85b896, "EXTINF")) {
                     list($e779a7ffdb69a3c605e2fccb290d9495, $e3cf3851f7ee9d4e859bd7fdd6f6b33e) = explode(":", $Df3643b77de72fea7002c5acff85b896);
                     $e3cf3851f7ee9d4e859bd7fdd6f6b33e = rtrim($e3cf3851f7ee9d4e859bd7fdd6f6b33e, ",");
-                    $F9c8a291792f79d13ff4c34f35ce49af = trim(fgets($b4ad7225f6375fe5d757d3c7147fb034));
-                    if (file_exists(DELAY_STREAM . $F9c8a291792f79d13ff4c34f35ce49af)) {
-                        $Ae3016c45dd59a9b881c39a8dfeb6f6f[] = ["seconds" => $e3cf3851f7ee9d4e859bd7fdd6f6b33e, "file" => $F9c8a291792f79d13ff4c34f35ce49af];
+                    $segmentFile = trim(fgets($b4ad7225f6375fe5d757d3c7147fb034));
+                    if (file_exists(DELAY_STREAM . $segmentFile)) {
+                        $Ae3016c45dd59a9b881c39a8dfeb6f6f[] = ["seconds" => $e3cf3851f7ee9d4e859bd7fdd6f6b33e, "file" => $segmentFile];
                     }
                 }
             }

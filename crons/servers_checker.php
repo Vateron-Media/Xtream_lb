@@ -2,8 +2,8 @@
 
 if ($argc) {
     require str_replace("\\", "/", dirname($argv[0])) . "/../wwwdir/init.php";
-    $D3b211a38e2eb607ab17f4f6770932e5 = TMP_DIR . md5(cf78a30169e3F4a75226712Bf3f1A141() . __FILE__);
-    EFc0AEb4b245b992B0F2a749dac55820($D3b211a38e2eb607ab17f4f6770932e5);
+    $D3b211a38e2eb607ab17f4f6770932e5 = TMP_DIR . md5(UniqueID() . __FILE__);
+    KillProcessCmd($D3b211a38e2eb607ab17f4f6770932e5);
     echo "File: " . $D3b211a38e2eb607ab17f4f6770932e5 . "\n";
     $a07da7f3de622b494d0320c93f523183 = intval(trim(shell_exec("ps aux | grep signal_receiver | grep -v grep | wc -l")));
     if ($a07da7f3de622b494d0320c93f523183 == 0) {
@@ -67,10 +67,6 @@ if ($argc) {
         if (ipTV_lib::$StreamingServers[SERVER_ID]["status"] == 2) {
             $ipTV_db->query("UPDATE `streaming_servers` SET `status` = 1 WHERE `id` = '%d'", SERVER_ID);
         }
-    }
-    if (!(file_exists(GEOIP2_FILENAME) && 86400 > time() - filemtime(GEOIP2_FILENAME))) {
-        passthru("wget --no-check-certificate --user-agent \"Mozilla/5.0 (Windows NT 10.0; WOW64; rv:46.0) Gecko/20100101 Firefox/46.0\" --timeout=40 \"http://downloads.xtream-codes.com/v2/GeoLite2.mmdb\" -O \"" . GEOIP2_FILENAME . "\" -q 2>/dev/null");
-        touch(GEOIP2_FILENAME);
     }
     @unlink($D3b211a38e2eb607ab17f4f6770932e5);
 } else {

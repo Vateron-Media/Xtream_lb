@@ -10,7 +10,7 @@ if (empty(ipTV_lib::$request["stream"]) || empty(ipTV_lib::$request["password"])
     http_response_code(401);
     die;
 }
-if (!in_array($b7eaa095f27405cf78a432ce6504dae0, ipTV_streaming::E83C60AE0b93A4aAe6a66a6F64fCa8b6(true))) {
+if (!in_array($b7eaa095f27405cf78a432ce6504dae0, ipTV_streaming::getAllowedIPs(true))) {
     http_response_code(401);
     die;
 }
