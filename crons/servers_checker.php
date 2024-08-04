@@ -9,10 +9,6 @@ if ($argc) {
     if ($a07da7f3de622b494d0320c93f523183 == 0) {
         shell_exec(PHP_BIN . " " . IPTV_PANEL_DIR . "tools/signal_receiver.php > /dev/null 2>/dev/null &");
     }
-    $Bf59bc81ced001428fafff9d684b3e5d = intval(trim(shell_exec("ps aux | grep pipe_reader | grep -v grep | wc -l")));
-    if ($Bf59bc81ced001428fafff9d684b3e5d == 0) {
-        shell_exec(PHP_BIN . " " . IPTV_PANEL_DIR . "tools/pipe_reader.php > /dev/null 2>/dev/null &");
-    }
     $eb9a31bf0ac157ee09adf2a6213fcd27 = intval(trim(shell_exec("ps aux | grep watchdog_data | grep -v grep | wc -l")));
     if ($eb9a31bf0ac157ee09adf2a6213fcd27 == 0) {
         shell_exec(PHP_BIN . " " . IPTV_PANEL_DIR . "tools/watchdog_data.php > /dev/null 2>/dev/null &");
