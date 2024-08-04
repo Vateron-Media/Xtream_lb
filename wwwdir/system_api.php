@@ -95,7 +95,7 @@ switch ($Cfd5aeeef0d1970527f63419de620a46) {
         if ($A55a933b4891f0c929e21dfcb504268d < 1000000000) {
             $F87e977674a0d6a794801fd5c8031396 = 1;
         }
-        $Edff73993ebb6bfdf68448d86c285540 = disk_free_space("/home/xtreamcodes/iptv_xtream_codes/streams");
+        $Edff73993ebb6bfdf68448d86c285540 = disk_free_space("/home/xtreamcodes/streams");
         if ($Edff73993ebb6bfdf68448d86c285540 < 100000000) {
             $Edff73993ebb6bfdf68448d86c285540 = 1;
         }

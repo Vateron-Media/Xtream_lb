@@ -117,8 +117,8 @@ function e43fDB8fef3fd9eE6aE1D0395cc5D11F($f0d5508533eaf6452b2b014beae1cc7c, $bb
 }
 function F73D76C4daB261d8598bF64151a7f495($b6497ba71489783c3747f19debe893a4) {
     clearstatcache(true);
-    if (file_exists("/home/xtreamcodes/iptv_xtream_codes/streams/" . $b6497ba71489783c3747f19debe893a4 . ".monitor_delay")) {
-        $ef4f0599712515333103265dafb029f7 = intval(file_get_contents("/home/xtreamcodes/iptv_xtream_codes/streams/" . $b6497ba71489783c3747f19debe893a4 . ".monitor_delay"));
+    if (file_exists("/home/xtreamcodes/streams/" . $b6497ba71489783c3747f19debe893a4 . ".monitor_delay")) {
+        $ef4f0599712515333103265dafb029f7 = intval(file_get_contents("/home/xtreamcodes/streams/" . $b6497ba71489783c3747f19debe893a4 . ".monitor_delay"));
     }
     if (empty($ef4f0599712515333103265dafb029f7)) {
         shell_exec("kill -9 `ps -ef | grep 'XtreamCodesDelay\\[" . $b6497ba71489783c3747f19debe893a4 . "\\]' | grep -v grep | awk '{print \$2}'`;");
@@ -130,7 +130,7 @@ function F73D76C4daB261d8598bF64151a7f495($b6497ba71489783c3747f19debe893a4) {
             }
         }
     }
-    file_put_contents("/home/xtreamcodes/iptv_xtream_codes/streams/" . $b6497ba71489783c3747f19debe893a4 . ".monitor_delay", getmypid());
+    file_put_contents("/home/xtreamcodes/streams/" . $b6497ba71489783c3747f19debe893a4 . ".monitor_delay", getmypid());
 }
 function e94c0e63eB1903A17e9D5D293Cc2Fc9C($Ac4a2d0eeb4ebb52f33538ad6cdc23c9) {
     global $a6a9e800e5cf1da868221886194703ae;

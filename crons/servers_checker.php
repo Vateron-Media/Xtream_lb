@@ -7,11 +7,11 @@ if ($argc) {
     echo "File: " . $D3b211a38e2eb607ab17f4f6770932e5 . "\n";
     $a07da7f3de622b494d0320c93f523183 = intval(trim(shell_exec("ps aux | grep signal_receiver | grep -v grep | wc -l")));
     if ($a07da7f3de622b494d0320c93f523183 == 0) {
-        shell_exec(PHP_BIN . " " . IPTV_PANEL_DIR . "tools/signal_receiver.php > /dev/null 2>/dev/null &");
+        shell_exec(PHP_BIN . " " . MAIN_DIR . "tools/signal_receiver.php > /dev/null 2>/dev/null &");
     }
     $eb9a31bf0ac157ee09adf2a6213fcd27 = intval(trim(shell_exec("ps aux | grep watchdog_data | grep -v grep | wc -l")));
     if ($eb9a31bf0ac157ee09adf2a6213fcd27 == 0) {
-        shell_exec(PHP_BIN . " " . IPTV_PANEL_DIR . "tools/watchdog_data.php > /dev/null 2>/dev/null &");
+        shell_exec(PHP_BIN . " " . MAIN_DIR . "tools/watchdog_data.php > /dev/null 2>/dev/null &");
     }
     $E8aba7524598d052fbd174c5a0e1cb52 = ipTV_servers::C9F95DF7FAFb411701ded135f62E3bB5(MAIN_SERVER_ID, ipTV_lib::$StreamingServers[MAIN_SERVER_ID]["api_url_ip"] . "&action=getDiff", ["main_time" => time()], 5, 5);
     if ($E8aba7524598d052fbd174c5a0e1cb52 !== false && is_numeric($E8aba7524598d052fbd174c5a0e1cb52)) {

@@ -19,8 +19,8 @@ $userAutoDisconnect = A78bf8D35765Be2408c50712Ce7A43Ad::$settings['user_auto_kic
 $userConnection = array();
 $Bcf87c9b8f60adb6d7364a2c5c48f8d8 = f0bb8dBEaB7fb0ECcCc0a73980dBF47A('open');
 $conList = explode('
-', shell_exec('find /home/xtreamcodes/iptv_xtream_codes/tmp/ -maxdepth 1 -name "*.con" -print0 | xargs -0 grep "" -H'));
-shell_exec('rm -f /home/xtreamcodes/iptv_xtream_codes/tmp/*.con');
+', shell_exec('find /home/xtreamcodes/tmp/ -maxdepth 1 -name "*.con" -print0 | xargs -0 grep "" -H'));
+shell_exec('rm -f /home/xtreamcodes/tmp/*.con');
 foreach ($Bcf87c9b8f60adb6d7364a2c5c48f8d8 as $E38668abaa324e464e266fb7b7e784b1 => $E80aae019385d9c9558555fb07017028) {
     $totalUserConnection = count($E80aae019385d9c9558555fb07017028);
     foreach ($E80aae019385d9c9558555fb07017028 as $E7cca48cfca85fc445419a32d7d8f973 => $user_activity) {

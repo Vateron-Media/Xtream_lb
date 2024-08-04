@@ -2,31 +2,30 @@
 error_reporting(0);
 ini_set("display_errors", 0);
 @ini_set("user_agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:9.0) Gecko/20100101 Firefox/9.0");
-define("MOVIES_PATH", IPTV_PANEL_DIR . "movies/");
+define("MOVIES_PATH", MAIN_DIR . "movies/");
 
 // FOLDERS
 define('MAIN_DIR', '/home/xtreamcodes/');
 define('IPTV_ROOT_PATH', str_replace('\\', '/', dirname(__FILE__)) . '/');
 define('IPTV_INCLUDES_PATH', IPTV_ROOT_PATH . 'includes' . '/');
 define('IPTV_TEMPLATES_PATH', IPTV_ROOT_PATH . 'templates' . '/');
-define('IPTV_PANEL_DIR', MAIN_DIR . 'iptv_xtream_codes/');
-define('STREAMS_PATH', IPTV_PANEL_DIR . 'streams/');
-define('MOVIES_IMAGES', IPTV_PANEL_DIR . 'wwwdir/images/');
+define('STREAMS_PATH', MAIN_DIR . 'streams/');
+define('MOVIES_IMAGES', MAIN_DIR . 'wwwdir/images/');
 define('ENIGMA2_PLUGIN_DIR', MOVIES_IMAGES . 'enigma2/');
-define('CREATED_CHANNELS', IPTV_PANEL_DIR . 'created_channels/');
-define('CRON_PATH', IPTV_PANEL_DIR . 'crons/');
-define('ASYNC_DIR', IPTV_PANEL_DIR . 'async_incs/');
-define('TOOLS_PATH', IPTV_PANEL_DIR . 'tools/');
-define('IPTV_CLIENT_AREA', IPTV_PANEL_DIR . 'wwwdir/client_area/');
-define('BIN_PATH', IPTV_PANEL_DIR . 'bin/');
-define('TV_ARCHIVE', IPTV_PANEL_DIR . 'tv_archive/');
-define('DELAY_STREAM', IPTV_PANEL_DIR . 'delay/');
-define('SIGNALS_PATH', IPTV_PANEL_DIR . 'signals/');
+define('CREATED_CHANNELS', MAIN_DIR . 'created_channels/');
+define('CRON_PATH', MAIN_DIR . 'crons/');
+define('ASYNC_DIR', MAIN_DIR . 'async_incs/');
+define('TOOLS_PATH', MAIN_DIR . 'tools/');
+define('IPTV_CLIENT_AREA', MAIN_DIR . 'wwwdir/client_area/');
+define('BIN_PATH', MAIN_DIR . 'bin/');
+define('TV_ARCHIVE', MAIN_DIR . 'tv_archive/');
+define('DELAY_STREAM', MAIN_DIR . 'delay/');
+define('SIGNALS_PATH', MAIN_DIR . 'signals/');
 define('IPTV_CLIENT_AREA_TEMPLATES_PATH', IPTV_CLIENT_AREA . 'templates/');
 // -------------------
 
 // BINARIES FILE
-define('PHP_BIN', '/home/xtreamcodes/iptv_xtream_codes/php/bin/php');
+define('PHP_BIN', '/home/xtreamcodes/php/bin/php');
 define('FFMPEG_PATH', file_exists(BIN_PATH . 'ffmpeg') ? BIN_PATH . 'ffmpeg' : '/usr/bin/ffmpeg');
 define('FFPROBE_PATH', file_exists(BIN_PATH . 'ffprobe') ? BIN_PATH . 'ffprobe' : '/usr/bin/ffprobe');
 define('YOUTUBE_PATH', BIN_PATH . 'youtube');
@@ -35,14 +34,14 @@ define('GEOIP2ISP_FILENAME', BIN_PATH . 'maxmind/GeoLite2-ISP.mmdb');
 // -------------------
 
 // TEMP FOLDERS
-define('TMP_PATH', IPTV_PANEL_DIR . 'tmp/');
+define('TMP_PATH', MAIN_DIR . 'tmp/');
 define('CACHE_TMP_PATH', TMP_PATH . 'cache/');
 define('CONS_TMP_PATH', TMP_PATH . 'opened_cons/');
 define('LOGS_TMP_PATH', TMP_PATH . 'logs/');
 // -------------------
 
 //CONTENT FOLDERS
-define('CONTENT_PATH', IPTV_PANEL_DIR . 'content/');
+define('CONTENT_PATH', MAIN_DIR . 'content/');
 define('VOD_PATH', CONTENT_PATH . 'vod/');
 // -------------------
 
@@ -76,8 +75,8 @@ include IPTV_INCLUDES_PATH . "geo/Decoder.php";
 include IPTV_INCLUDES_PATH . "geo/Util.php";
 include IPTV_INCLUDES_PATH . "geo/Metadata.php";
 $_INFO = array();
-if (file_exists(IPTV_PANEL_DIR . "config")) {
-    $_INFO = json_decode(decrypt_config(base64_decode(file_get_contents(IPTV_PANEL_DIR . "config")), CONFIG_CRYPT_KEY), true);
+if (file_exists(MAIN_DIR . "config")) {
+    $_INFO = json_decode(decrypt_config(base64_decode(file_get_contents(MAIN_DIR . "config")), CONFIG_CRYPT_KEY), true);
     define("SERVER_ID", $_INFO["server_id"]);
     define("MAIN_SERVER_ID", $_INFO["main_server_id"]);
 } else {

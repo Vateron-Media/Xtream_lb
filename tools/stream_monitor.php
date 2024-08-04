@@ -161,8 +161,8 @@ if ($argc) {
 }
 function F73D76C4dAB261d8598bf64151A7f495($b6497ba71489783c3747f19debe893a4) {
     clearstatcache(true);
-    if (file_exists("/home/xtreamcodes/iptv_xtream_codes/streams/" . $b6497ba71489783c3747f19debe893a4 . ".monitor")) {
-        $ef4f0599712515333103265dafb029f7 = intval(file_get_contents("/home/xtreamcodes/iptv_xtream_codes/streams/" . $b6497ba71489783c3747f19debe893a4 . ".monitor"));
+    if (file_exists("/home/xtreamcodes/streams/" . $b6497ba71489783c3747f19debe893a4 . ".monitor")) {
+        $ef4f0599712515333103265dafb029f7 = intval(file_get_contents("/home/xtreamcodes/streams/" . $b6497ba71489783c3747f19debe893a4 . ".monitor"));
     }
     if (empty($ef4f0599712515333103265dafb029f7)) {
         shell_exec("kill -9 `ps -ef | grep 'XtreamCodes\\[" . $b6497ba71489783c3747f19debe893a4 . "\\]' | grep -v grep | awk '{print \$2}'`;");
@@ -174,5 +174,5 @@ function F73D76C4dAB261d8598bf64151A7f495($b6497ba71489783c3747f19debe893a4) {
             }
         }
     }
-    file_put_contents("/home/xtreamcodes/iptv_xtream_codes/streams/" . $b6497ba71489783c3747f19debe893a4 . ".monitor", getmypid());
+    file_put_contents("/home/xtreamcodes/streams/" . $b6497ba71489783c3747f19debe893a4 . ".monitor", getmypid());
 }
