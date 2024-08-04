@@ -3,9 +3,9 @@
 set_time_limit(0);
 if ($argc) {
     require str_replace("\\", "/", dirname($argv[0])) . "/../wwwdir/init.php";
-    $D3b211a38e2eb607ab17f4f6770932e5 = TMP_DIR . md5(UniqueID() . __FILE__);
+    $D3b211a38e2eb607ab17f4f6770932e5 = TMP_PATH . md5(UniqueID() . __FILE__);
     KillProcessCmd($D3b211a38e2eb607ab17f4f6770932e5);
-    $E6ecbe8e89c77744a256939f9ba4dbee = TMP_DIR . "offline_cons";
+    $E6ecbe8e89c77744a256939f9ba4dbee = TMP_PATH . "offline_cons";
     if (ipTV_lib::$settings["save_closed_connection"] != 0) {
         $e86143ae714b5db9373cfb584f8aaf70 = "";
         if (file_exists($E6ecbe8e89c77744a256939f9ba4dbee)) {

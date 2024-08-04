@@ -120,7 +120,7 @@ function UniqueID() {
     return substr(md5(ipTV_lib::$settings["unique_id"]), 0, 15);
 }
 function crontab_refresh() {
-    if (!file_exists(TMP_DIR . 'crontab')) {
+    if (!file_exists(TMP_PATH . 'crontab')) {
         $rJobs = array();
         $crons = scandir(CRON_PATH);
         foreach ($crons as $cron) {
@@ -141,7 +141,7 @@ function crontab_refresh() {
         fclose($rHandle);
         shell_exec('crontab -u 	xtreamcodes ' . $rTempName);
         @unlink($rTempName);
-        file_put_contents(TMP_DIR . 'crontab', 1);
+        file_put_contents(TMP_PATH . 'crontab', 1);
         return true;
     } else {
         return false;

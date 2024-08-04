@@ -39,7 +39,7 @@ class ipTV_lib {
         crontab_refresh();
     }
     public static function SimpleWebGet($url, $save_cache = false) {
-        if (file_exists(TMP_DIR . md5($url)) && time() - filemtime(TMP_DIR . md5($url)) <= 300) {
+        if (file_exists(TMP_PATH . md5($url)) && time() - filemtime(TMP_PATH . md5($url)) <= 300) {
             return false;
         }
         $ch = curl_init();
@@ -54,11 +54,11 @@ class ipTV_lib {
         $http_code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
         if ($http_code != 200) {
-            file_put_contents(TMP_DIR . md5($url), 0);
+            file_put_contents(TMP_PATH . md5($url), 0);
             return false;
         }
-        if (file_exists(TMP_DIR . md5($url))) {
-            unlink(TMP_DIR . md5($url));
+        if (file_exists(TMP_PATH . md5($url))) {
+            unlink(TMP_PATH . md5($url));
         }
         return trim($res);
     }

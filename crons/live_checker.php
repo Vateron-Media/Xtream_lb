@@ -3,7 +3,7 @@
 if ($argc) {
     require str_replace("\\", "/", dirname($argv[0])) . "/../wwwdir/init.php";
     cli_set_process_title("XtreamCodes[Live Checker]");
-    $D3b211a38e2eb607ab17f4f6770932e5 = TMP_DIR . md5(UniqueID() . __FILE__);
+    $D3b211a38e2eb607ab17f4f6770932e5 = TMP_PATH . md5(UniqueID() . __FILE__);
     KillProcessCmd($D3b211a38e2eb607ab17f4f6770932e5);
     $b40a34c6a727bba894f407ea41eb237a = [];
     $ipTV_db->query("SELECT\n                          t2.stream_display_name,\n                          t1.stream_id,\n                          t1.monitor_pid,\n                          t1.on_demand,\n                          t1.server_stream_id,\n                          t1.pid,\n                          clients.online_clients\n                        FROM\n                          `streams_sys` t1\n                        INNER JOIN `streams` t2 ON t2.id = t1.stream_id AND t2.direct_source = 0\n                        INNER JOIN `streams_types` t3 ON t3.type_id = t2.type\n                        LEFT JOIN\n                          (\n                          SELECT\n                            stream_id,\n                            COUNT(*) as online_clients\n                          FROM\n                            `user_activity_now`\n                          WHERE `server_id` = '%d'\n                          GROUP BY\n                            stream_id\n                        ) AS clients\n                        ON\n                          clients.stream_id = t1.stream_id\n                        WHERE\n                          (\n                            t1.pid IS NOT NULL OR t1.stream_status <> 0 OR t1.to_analyze = 1\n                          ) AND t1.server_id = '%d' AND t3.live = 1", SERVER_ID, SERVER_ID);

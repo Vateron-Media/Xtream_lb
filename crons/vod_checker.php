@@ -2,7 +2,7 @@
 
 if ($argc) {
     require str_replace("\\", "/", dirname($argv[0])) . "/../wwwdir/init.php";
-    $D3b211a38e2eb607ab17f4f6770932e5 = TMP_DIR . md5(UniqueID() . __FILE__);
+    $D3b211a38e2eb607ab17f4f6770932e5 = TMP_PATH . md5(UniqueID() . __FILE__);
     KillProcessCmd($D3b211a38e2eb607ab17f4f6770932e5);
     cli_set_process_title("XtreamCodes[VOD CC Checker]");
     ini_set("memory_limit", -1);

@@ -3,7 +3,7 @@
 set_time_limit(0);
 if ($argc) {
     require str_replace("\\", "/", dirname($argv[0])) . "/../wwwdir/init.php";
-    $D3b211a38e2eb607ab17f4f6770932e5 = TMP_DIR . md5(UniqueID() . __FILE__);
+    $D3b211a38e2eb607ab17f4f6770932e5 = TMP_PATH . md5(UniqueID() . __FILE__);
     KillProcessCmd($D3b211a38e2eb607ab17f4f6770932e5);
     $Bc90810ba7aa9dba3da32be473481ebe = ["the user-agent option is deprecated", "Last message repeated", "deprecated", "Packets poorly interleaved"];
     if ($A7cd68109a3d420b829e6d9425875c6d = opendir(STREAMS_PATH)) {

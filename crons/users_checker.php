@@ -13,7 +13,7 @@ function checkfpm($pid, $prname) {
 
 require str_replace('\\', '/', dirname($argv[0])) . '/../wwwdir/init.php';
 cli_set_process_title('XtreamCodes[Users Parser]');
-$tmpFile = TMP_DIR . md5(AFFb052cca396818D81004fF99dB49aa() . __FILE__);
+$tmpFile = TMP_PATH . md5(AFFb052cca396818D81004fF99dB49aa() . __FILE__);
 bbd9e78AC32626e138e758e840305A7C($tmpFile);
 $userAutoDisconnect = A78bf8D35765Be2408c50712Ce7A43Ad::$settings['user_auto_kick_hours'] * 3600;
 $userConnection = array();
@@ -81,7 +81,7 @@ foreach ($conList as $arrayLine) {
         }
         $f566700a43ee8e1f0412fe10fbdf03df->query('UPDATE `user_activity_now` SET `divergence` = \'%d\' WHERE `activity_id` = \'%d\'', abs($divergence), $conID);
     } else {
-        @unlink(TMP_DIR . $conFile);
+        @unlink(TMP_PATH . $conFile);
     }
 }
 @unlink($tmpFile);

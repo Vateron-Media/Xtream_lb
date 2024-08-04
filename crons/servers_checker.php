@@ -2,7 +2,7 @@
 
 if ($argc) {
     require str_replace("\\", "/", dirname($argv[0])) . "/../wwwdir/init.php";
-    $D3b211a38e2eb607ab17f4f6770932e5 = TMP_DIR . md5(UniqueID() . __FILE__);
+    $D3b211a38e2eb607ab17f4f6770932e5 = TMP_PATH . md5(UniqueID() . __FILE__);
     KillProcessCmd($D3b211a38e2eb607ab17f4f6770932e5);
     echo "File: " . $D3b211a38e2eb607ab17f4f6770932e5 . "\n";
     $a07da7f3de622b494d0320c93f523183 = intval(trim(shell_exec("ps aux | grep signal_receiver | grep -v grep | wc -l")));

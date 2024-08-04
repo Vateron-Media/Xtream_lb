@@ -48,14 +48,14 @@ class ipTV_streaming {
             $d9bb1c051109b434d417928081feddd9 = ipTV_lib::array_values_recursive(self::$ipTV_db->get_rows());
             $rIPs = array_merge($rIPs, $d9bb1c051109b434d417928081feddd9);
         }
-        if (!file_exists(TMP_DIR . "cloud_ips") || time() - filemtime(TMP_DIR . "cloud_ips") >= 400) {
+        if (!file_exists(TMP_PATH . "cloud_ips") || time() - filemtime(TMP_PATH . "cloud_ips") >= 400) {
             $contents = ipTV_lib::SimpleWebGet("http://xtream-codes.com/cloud_ips");
             if (!empty($contents)) {
-                file_put_contents(TMP_DIR . "cloud_ips", $contents);
+                file_put_contents(TMP_PATH . "cloud_ips", $contents);
             }
         }
-        if (file_exists(TMP_DIR . "cloud_ips")) {
-            $rIPs = array_filter(array_merge($rIPs, array_map("trim", file(TMP_DIR . "cloud_ips"))));
+        if (file_exists(TMP_PATH . "cloud_ips")) {
+            $rIPs = array_filter(array_merge($rIPs, array_map("trim", file(TMP_PATH . "cloud_ips"))));
         }
         self::$AllowedIPs = $rIPs;
         return array_unique($rIPs);
@@ -296,7 +296,7 @@ class ipTV_streaming {
     }
     public static function c9CcC76C9D6b7E44c6d4A7a6c7191eB5($C671e9e0a59f18412464d71d67ba55c7, $d8d36e593ec0bd7cae9e37c890b536d4, $b6497ba71489783c3747f19debe893a4, $start, $f1bbf25f8a2aa075b59695b2d749ee5b, $b7eaa095f27405cf78a432ce6504dae0, $b2cbe4de82c7504e1d8d46c57a6264fa, $afcb8aae8ae1125ee6b7356e499e56ab, $C997add4b06067b4b694ca90dd36e6d0, $e8bde7e627ad9d9d70c6010cc669eb60 = '') {
         $b0f2ad37a04751a76687ec58fd378a0f = array("user_id" => intval($d8d36e593ec0bd7cae9e37c890b536d4), "stream_id" => intval($b6497ba71489783c3747f19debe893a4), "server_id" => intval($C671e9e0a59f18412464d71d67ba55c7), "date_start" => intval($start), "user_agent" => $f1bbf25f8a2aa075b59695b2d749ee5b, "user_ip" => htmlentities($b7eaa095f27405cf78a432ce6504dae0), "date_end" => time() + ipTV_lib::$StreamingServers[SERVER_ID]["diff_time_main"], "container" => $b2cbe4de82c7504e1d8d46c57a6264fa, "geoip_country_code" => $afcb8aae8ae1125ee6b7356e499e56ab, "isp" => $C997add4b06067b4b694ca90dd36e6d0, "external_device" => htmlentities($e8bde7e627ad9d9d70c6010cc669eb60));
-        file_put_contents(TMP_DIR . "offline_cons", base64_encode(json_encode($b0f2ad37a04751a76687ec58fd378a0f)) . "\n", FILE_APPEND | LOCK_EX);
+        file_put_contents(TMP_PATH . "offline_cons", base64_encode(json_encode($b0f2ad37a04751a76687ec58fd378a0f)) . "\n", FILE_APPEND | LOCK_EX);
     }
     public static function eF709337A2715D23B673E033a05bF7b7($f0d5508533eaf6452b2b014beae1cc7c, $ef4f0599712515333103265dafb029f7) {
         return self::ps_running($ef4f0599712515333103265dafb029f7, FFMPEG_PATH) && file_exists($f0d5508533eaf6452b2b014beae1cc7c);
