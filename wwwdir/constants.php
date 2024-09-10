@@ -9,16 +9,13 @@ define('MAIN_DIR', '/home/xtreamcodes/');
 define('IPTV_ROOT_PATH', str_replace('\\', '/', dirname(__FILE__)) . '/');
 define('IPTV_INCLUDES_PATH', IPTV_ROOT_PATH . 'includes' . '/');
 define('IPTV_TEMPLATES_PATH', IPTV_ROOT_PATH . 'templates' . '/');
-define('STREAMS_PATH', MAIN_DIR . 'streams/');
 define('MOVIES_IMAGES', MAIN_DIR . 'wwwdir/images/');
 define('ENIGMA2_PLUGIN_DIR', MOVIES_IMAGES . 'enigma2/');
-define('CREATED_CHANNELS', MAIN_DIR . 'created_channels/');
 define('CRON_PATH', MAIN_DIR . 'crons/');
 define('ASYNC_DIR', MAIN_DIR . 'async_incs/');
 define('TOOLS_PATH', MAIN_DIR . 'tools/');
 define('IPTV_CLIENT_AREA', MAIN_DIR . 'wwwdir/client_area/');
 define('BIN_PATH', MAIN_DIR . 'bin/');
-define('TV_ARCHIVE', MAIN_DIR . 'tv_archive/');
 define('DELAY_STREAM', MAIN_DIR . 'delay/');
 define('SIGNALS_PATH', MAIN_DIR . 'signals/');
 define("MOVIES_PATH", MAIN_DIR . "movies/");
@@ -43,6 +40,12 @@ define('LOGS_TMP_PATH', TMP_PATH . 'logs/');
 
 //CONTENT FOLDERS
 define('CONTENT_PATH', MAIN_DIR . 'content/');
+define('CREATED_CHANNELS', CONTENT_PATH . 'created_channels/');
+define('DELAY_PATH', CONTENT_PATH . 'delayed/');
+define('EPG_PATH', CONTENT_PATH . 'epg/');
+define('PLAYLIST_PATH', CONTENT_PATH . 'playlists/');
+define('STREAMS_PATH', CONTENT_PATH . 'streams/');
+define('TV_ARCHIVE', CONTENT_PATH . 'tv_archive/');
 define('VOD_PATH', CONTENT_PATH . 'vod/');
 // -------------------
 
@@ -50,7 +53,7 @@ define('VOD_PATH', CONTENT_PATH . 'vod/');
 define('SCRIPT_VERSION', '1.0.0');
 define('IN_SCRIPT', true);
 define('SOFTWARE', 'iptv');
-define('FFMPEG_FONTS_PATH', SIGNALS_PATH . 'free-sans.ttf');
+define('FFMPEG_FONTS_PATH', BIN_PATH . 'free-sans.ttf');
 define("KEY_CRYPT", md5(base64_encode("K76eTItpqxJA4iTmrytrmDo1LTndAG")));
 define('CONFIG_CRYPT_KEY', '5709650b0d7806074842c6de575025b1');
 define('OPENSSL_EXTRA', '5gd46z5s4fg6sd8f4gs6');
