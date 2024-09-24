@@ -7,6 +7,7 @@ class ipTV_db {
     protected $dbpassword;
     protected $dbname;
     protected $dbhost;
+    protected $dbport;
     public $dbh;
     protected $pconnect = false;
     protected $connected = false;

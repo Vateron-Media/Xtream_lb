@@ -178,3 +178,6 @@ function getUptime() {
     $tmp = explode(' ', file_get_contents('/proc/uptime'));
     return secondsToTime(intval($tmp[0]));
 }
+function generateUniqueCode() {
+    return substr(md5(ipTV_lib::$settings['unique_id']), 0, 15);
+}

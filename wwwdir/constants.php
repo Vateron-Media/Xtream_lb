@@ -1,5 +1,5 @@
 <?php
-$showErrors = false;
+$showErrors = true;
 
 @ini_set("user_agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:9.0) Gecko/20100101 Firefox/9.0");
 
@@ -20,10 +20,11 @@ define('DELAY_STREAM', MAIN_DIR . 'delay/');
 define('SIGNALS_PATH', MAIN_DIR . 'signals/');
 define("MOVIES_PATH", MAIN_DIR . "movies/");
 define('IPTV_CLIENT_AREA_TEMPLATES_PATH', IPTV_CLIENT_AREA . 'templates/');
+define('CONFIG_PATH', MAIN_DIR . 'config/');
 // -------------------
 
 // BINARIES FILE
-define('PHP_BIN', '/home/xtreamcodes/php/bin/php');
+define('PHP_BIN', '/home/xtreamcodes/bin/php/bin/php');
 define('FFMPEG_PATH', file_exists(BIN_PATH . 'ffmpeg') ? BIN_PATH . 'ffmpeg' : '/usr/bin/ffmpeg');
 define('FFPROBE_PATH', file_exists(BIN_PATH . 'ffprobe') ? BIN_PATH . 'ffprobe' : '/usr/bin/ffprobe');
 define('YOUTUBE_PATH', BIN_PATH . 'youtube');
@@ -36,6 +37,7 @@ define('TMP_PATH', MAIN_DIR . 'tmp/');
 define('CACHE_TMP_PATH', TMP_PATH . 'cache/');
 define('CONS_TMP_PATH', TMP_PATH . 'opened_cons/');
 define('LOGS_TMP_PATH', TMP_PATH . 'logs/');
+define('CRONS_TMP_PATH', TMP_PATH . 'crons/');
 // -------------------
 
 //CONTENT FOLDERS

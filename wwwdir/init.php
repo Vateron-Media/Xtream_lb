@@ -12,14 +12,15 @@ include IPTV_INCLUDES_PATH . "geo/Util.php";
 include IPTV_INCLUDES_PATH . "geo/Metadata.php";
 
 $_INFO = array();
-if (file_exists(MAIN_DIR . "config")) {
-    $_INFO = json_decode(decrypt_config(base64_decode(file_get_contents(MAIN_DIR . "config")), CONFIG_CRYPT_KEY), true);
-    define("SERVER_ID", $_INFO["server_id"]);
-    define("MAIN_SERVER_ID", $_INFO["main_server_id"]);
+
+if (file_exists(MAIN_DIR . 'config')) {
+    $_INFO = parse_ini_file(CONFIG_PATH . 'config.ini');
+    define('SERVER_ID', $_INFO['server_id']);
 } else {
-    die(json_encode(array("main_fetch" => false, "error" => "Config Not Found")));
+    die(array("main_fetch" => false, "error" => "Config Not Found"));
 }
-$ipTV_db = new ipTV_db($_INFO["host"], $_INFO["db_user"], $_INFO["db_pass"], $_INFO["db_name"], $_INFO["db_port"], empty($_INFO["pconnect"]) ? false : true);
+
+$ipTV_db = new ipTV_db($_INFO["username"], $_INFO["password"], $_INFO["database"], $_INFO["hostname"], $_INFO["port"], empty($_INFO["pconnect"]) ? false : true);
 ipTV_lib::$ipTV_db = &$ipTV_db;
 ipTV_streaming::$ipTV_db = &$ipTV_db;
 ipTV_stream::$ipTV_db = &$ipTV_db;
