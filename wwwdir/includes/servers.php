@@ -1,30 +1,31 @@
 <?php
 class ipTV_servers {
-    public static function RunCommandServer($fb89dffee11f11f52678901f30b4d0af, $F57a44e1d4c2a8809dc8855d84e413c1, $c81742471fbf5fc98e647357de25a9c9 = "array", $E6fd3b84b4b4c3b83ac1286a90bed38a = false) {
+    public static function RunCommandServer($serverIDS, $cmd, $type = 'array') {
         $output = array();
-        if (!is_array($fb89dffee11f11f52678901f30b4d0af)) {
-            $fb89dffee11f11f52678901f30b4d0af = array(intval($fb89dffee11f11f52678901f30b4d0af));
+        if (!is_array($serverIDS)) {
+            $serverIDS = array(intval($serverIDS));
         }
-        if (empty($F57a44e1d4c2a8809dc8855d84e413c1)) {
-            foreach ($fb89dffee11f11f52678901f30b4d0af as $C671e9e0a59f18412464d71d67ba55c7) {
-                $output[$C671e9e0a59f18412464d71d67ba55c7] = '';
+        if (empty($cmd)) {
+            foreach ($serverIDS as $server_id) {
+                $output[$server_id] = '';
             }
             return $output;
         }
-        foreach ($fb89dffee11f11f52678901f30b4d0af as $C671e9e0a59f18412464d71d67ba55c7) {
-            if (!($C671e9e0a59f18412464d71d67ba55c7 == SERVER_ID)) {
-                if (array_key_exists($C671e9e0a59f18412464d71d67ba55c7, ipTV_lib::$StreamingServers)) {
-                    $Beb85f0c05e519f48a14915b66ad155c = self::c9f95df7Fafb411701dED135F62e3bB5($C671e9e0a59f18412464d71d67ba55c7, ipTV_lib::$StreamingServers[$C671e9e0a59f18412464d71d67ba55c7]["api_url_ip"] . "&action=runCMD", array("command" => $F57a44e1d4c2a8809dc8855d84e413c1), $E6fd3b84b4b4c3b83ac1286a90bed38a);
-                    if ($Beb85f0c05e519f48a14915b66ad155c) {
-                        $b77a16302effd0dbdc1ac7d8a1a5d03f = json_decode($Beb85f0c05e519f48a14915b66ad155c, true);
-                        $output[$C671e9e0a59f18412464d71d67ba55c7] = $c81742471fbf5fc98e647357de25a9c9 == "array" ? $b77a16302effd0dbdc1ac7d8a1a5d03f : implode("\n", $b77a16302effd0dbdc1ac7d8a1a5d03f);
-                    } else {
-                        $output[$C671e9e0a59f18412464d71d67ba55c7] = false;
-                    }
+        foreach ($serverIDS as $server_id) {
+            if (!($server_id == SERVER_ID)) {
+                if (!array_key_exists($server_id, ipTV_lib::$StreamingServers)) {
+                    continue;
+                }
+                $esponse = self::serverRequest($server_id, ipTV_lib::$StreamingServers[$server_id]['api_url_ip'] . '&action=runCMD', array('command' => $cmd));
+                if ($esponse) {
+                    $esult = json_decode($esponse, true);
+                    $output[$server_id] = $type == 'array' ? $esult : implode('', $esult);
+                } else {
+                    $output[$server_id] = false;
                 }
             } else {
-                exec($F57a44e1d4c2a8809dc8855d84e413c1, $e3d63851128e7eff48f7d1e81e95019d);
-                $output[$C671e9e0a59f18412464d71d67ba55c7] = $c81742471fbf5fc98e647357de25a9c9 == "array" ? $e3d63851128e7eff48f7d1e81e95019d : implode("\n", $e3d63851128e7eff48f7d1e81e95019d);
+                exec($cmd, $outputCMD);
+                $output[$server_id] = $type == 'array' ? $outputCMD : implode('', $outputCMD);
             }
         }
         return $output;
@@ -33,30 +34,65 @@ class ipTV_servers {
         $command = 'ps ax | grep \'' . basename($ffmpeg_path) . '\' | awk \'{print $1}\'';
         return self::RunCommandServer($serverIDS, $command);
     }
-    static function C9F95DF7FAFB411701deD135F62E3Bb5($C671e9e0a59f18412464d71d67ba55c7, $eda79b6c4381b5cc84816737094d985c, $c0b3691d6dcd1091b396006166beb342 = array(), $Dfaefd52c207802d536c9de37fd410ff = 5, $dcb5d7e42506bc9b88478fdf1c51b3e8 = 20) {
-        $Ced112d15c5a3c9e5ba92478d0228e93 = 1;
-        while ($Ced112d15c5a3c9e5ba92478d0228e93 <= 2) {
-            $C31928bf7a6d860aae9dbe5c5bf9dbf8 = curl_init();
-            curl_setopt($C31928bf7a6d860aae9dbe5c5bf9dbf8, CURLOPT_URL, $eda79b6c4381b5cc84816737094d985c);
-            curl_setopt($C31928bf7a6d860aae9dbe5c5bf9dbf8, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:9.0) Gecko/20100101 Firefox/9.0");
-            curl_setopt($C31928bf7a6d860aae9dbe5c5bf9dbf8, CURLOPT_HEADER, 0);
-            curl_setopt($C31928bf7a6d860aae9dbe5c5bf9dbf8, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($C31928bf7a6d860aae9dbe5c5bf9dbf8, CURLOPT_CONNECTTIMEOUT, $Dfaefd52c207802d536c9de37fd410ff);
-            curl_setopt($C31928bf7a6d860aae9dbe5c5bf9dbf8, CURLOPT_TIMEOUT, $dcb5d7e42506bc9b88478fdf1c51b3e8);
-            curl_setopt($C31928bf7a6d860aae9dbe5c5bf9dbf8, CURLOPT_FOLLOWLOCATION, true);
-            curl_setopt($C31928bf7a6d860aae9dbe5c5bf9dbf8, CURLOPT_SSL_VERIFYHOST, 0);
-            curl_setopt($C31928bf7a6d860aae9dbe5c5bf9dbf8, CURLOPT_SSL_VERIFYPEER, 0);
-            if (!empty($c0b3691d6dcd1091b396006166beb342)) {
-                curl_setopt($C31928bf7a6d860aae9dbe5c5bf9dbf8, CURLOPT_POST, true);
-                curl_setopt($C31928bf7a6d860aae9dbe5c5bf9dbf8, CURLOPT_POSTFIELDS, http_build_query($c0b3691d6dcd1091b396006166beb342));
+    public static function serverRequest($serverID, $rURL, $postData = array()) {
+        if (ipTV_lib::$StreamingServers[$serverID]['server_online']) {
+            $output = false;
+            $i = 1;
+            while ($i <= 2) {
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $rURL);
+                curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:9.0) Gecko/20100101 Firefox/9.0');
+                curl_setopt($ch, CURLOPT_HEADER, 0);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+                curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+                curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
+                curl_setopt($ch, CURLOPT_FORBID_REUSE, true);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+                if (!empty($postData)) {
+                    curl_setopt($ch, CURLOPT_POST, true);
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
+                }
+                $output = curl_exec($ch);
+                $esponseCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                $error = curl_errno($ch);
+                @curl_close($ch);
+                if ($error != 0 || $esponseCode != 200) {
+                    $i++;
+                    break;
+                }
             }
-            $output = @curl_exec($C31928bf7a6d860aae9dbe5c5bf9dbf8);
-            @curl_close($output);
-            if ($output !== false) {
-                return $output;
-            }
-            $Ced112d15c5a3c9e5ba92478d0228e93++;
+            return $output;
         }
         return false;
+    }
+    static function PidsChannels($createdChannelLocation, $pid, $ffmpeg_path) {
+        if (is_null($pid) || !is_numeric($pid) || !array_key_exists($createdChannelLocation, ipTV_lib::$StreamingServers)) {
+            return false;
+        }
+        if ($output = self::isPIDsRunning($createdChannelLocation, array($pid), $ffmpeg_path)) {
+            return $output[$createdChannelLocation][$pid];
+        }
+        return false;
+    }
+    public static function isPIDsRunning($serverIDS, $PIDs, $eXE) {
+        if (!is_array($serverIDS)) {
+            $serverIDS = array(intval($serverIDS));
+        }
+        $PIDs = array_map('intval', $PIDs);
+        $output = array();
+        foreach ($serverIDS as $serverID) {
+            if (array_key_exists($serverID, ipTV_lib::$StreamingServers)) {
+                $esponse = self::serverRequest($serverID, ipTV_lib::$StreamingServers[$serverID]['api_url_ip'] . '&action=pidsAreRunning', array('program' => $eXE, 'pids' => $PIDs));
+                if ($esponse) {
+                    $output[$serverID] = array_map('trim', json_decode($esponse, true));
+                } else {
+                    $output[$serverID] = false;
+                }
+            }
+        }
+        return $output;
     }
 }

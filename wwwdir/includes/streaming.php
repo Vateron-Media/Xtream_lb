@@ -245,19 +245,6 @@ class ipTV_streaming {
         }
         return false;
     }
-    public static function a5C11CFF1B8d4762a64B3b7Cf8862F98($ef4f0599712515333103265dafb029f7, $b6497ba71489783c3747f19debe893a4) {
-        if (empty($ef4f0599712515333103265dafb029f7)) {
-            return false;
-        }
-        clearstatcache(true);
-        if (file_exists("/proc/" . $ef4f0599712515333103265dafb029f7) && is_readable("/proc/" . $ef4f0599712515333103265dafb029f7 . "/exe")) {
-            $A0316410c2d7b66ec51afd1b25e335c7 = trim(file_get_contents("/proc/{$ef4f0599712515333103265dafb029f7}/cmdline"));
-            if ($A0316410c2d7b66ec51afd1b25e335c7 == "XtreamCodesDelay[{$b6497ba71489783c3747f19debe893a4}]") {
-                return true;
-            }
-        }
-        return false;
-    }
     public static function A1ECf5D2a93474B12e622361C656b958($ef4f0599712515333103265dafb029f7, $b6497ba71489783c3747f19debe893a4, $c3bd62458959952cf55b015822fd5a91 = FFMPEG_PATH) {
         if (empty($ef4f0599712515333103265dafb029f7)) {
             return false;
@@ -300,46 +287,6 @@ class ipTV_streaming {
     }
     public static function eF709337A2715D23B673E033a05bF7b7($f0d5508533eaf6452b2b014beae1cc7c, $ef4f0599712515333103265dafb029f7) {
         return self::ps_running($ef4f0599712515333103265dafb029f7, FFMPEG_PATH) && file_exists($f0d5508533eaf6452b2b014beae1cc7c);
-    }
-    public static function db998acd76fCd118B6Cdb4e9edA68580($c81742471fbf5fc98e647357de25a9c9, $dda1e24ed6a529d7aa6528cc838b24b8, $e4690ed58f6569ca3c7894a84e107f6d = null) {
-        clearstatcache();
-        if (!file_exists($dda1e24ed6a529d7aa6528cc838b24b8)) {
-            return false;
-        }
-        switch ($c81742471fbf5fc98e647357de25a9c9) {
-            case "movie":
-                if (is_null($e4690ed58f6569ca3c7894a84e107f6d)) {
-                } else {
-                    sscanf($e4690ed58f6569ca3c7894a84e107f6d, "%d:%d:%d", $f70b4408f306b0946d856dd29a25b89c, $C3701408f451b56ac9f60cf02f5867b3, $e3cf3851f7ee9d4e859bd7fdd6f6b33e);
-                    $f3db7858a998b217cdc28e738fd2182d = isset($e3cf3851f7ee9d4e859bd7fdd6f6b33e) ? $f70b4408f306b0946d856dd29a25b89c * 3600 + $C3701408f451b56ac9f60cf02f5867b3 * 60 + $e3cf3851f7ee9d4e859bd7fdd6f6b33e : $f70b4408f306b0946d856dd29a25b89c * 60 + $C3701408f451b56ac9f60cf02f5867b3;
-                    $bd8be6cf39eec67640223143174627d0 = round(filesize($dda1e24ed6a529d7aa6528cc838b24b8) * 0.008 / $f3db7858a998b217cdc28e738fd2182d);
-                }
-                break;
-            case "live":
-                $b4ad7225f6375fe5d757d3c7147fb034 = fopen($dda1e24ed6a529d7aa6528cc838b24b8, "r");
-                $C916bb1ae29f2a452125275557a10d33 = array();
-                while (!feof($b4ad7225f6375fe5d757d3c7147fb034)) {
-                    $Df3643b77de72fea7002c5acff85b896 = trim(fgets($b4ad7225f6375fe5d757d3c7147fb034));
-                    if (stristr($Df3643b77de72fea7002c5acff85b896, "EXTINF")) {
-                        list($e779a7ffdb69a3c605e2fccb290d9495, $e3cf3851f7ee9d4e859bd7fdd6f6b33e) = explode(":", $Df3643b77de72fea7002c5acff85b896);
-                        $e3cf3851f7ee9d4e859bd7fdd6f6b33e = rtrim($e3cf3851f7ee9d4e859bd7fdd6f6b33e, ",");
-                        if ($e3cf3851f7ee9d4e859bd7fdd6f6b33e <= 0) {
-                            break;
-                        }
-                        $segmentFile = trim(fgets($b4ad7225f6375fe5d757d3c7147fb034));
-                        if (!file_exists(dirname($dda1e24ed6a529d7aa6528cc838b24b8) . "/" . $segmentFile)) {
-                            fclose($b4ad7225f6375fe5d757d3c7147fb034);
-                            return false;
-                        }
-                        $a653546a7a781fe97e3e0ccb25e5e310 = filesize(dirname($dda1e24ed6a529d7aa6528cc838b24b8) . "/" . $segmentFile) * 0.008;
-                        $C916bb1ae29f2a452125275557a10d33[] = $a653546a7a781fe97e3e0ccb25e5e310 / $e3cf3851f7ee9d4e859bd7fdd6f6b33e;
-                    }
-                }
-                fclose($b4ad7225f6375fe5d757d3c7147fb034);
-                $bd8be6cf39eec67640223143174627d0 = count($C916bb1ae29f2a452125275557a10d33) > 0 ? round(array_sum($C916bb1ae29f2a452125275557a10d33) / count($C916bb1ae29f2a452125275557a10d33)) : 0;
-                break;
-        }
-        return $bd8be6cf39eec67640223143174627d0 > 0 ? $bd8be6cf39eec67640223143174627d0 : false;
     }
     public static function getMainID() {
         foreach (ipTV_lib::$StreamingServers as $rServerID => $rServer) {
@@ -566,5 +513,48 @@ class ipTV_streaming {
                 break;
         }
         return $bitrate > 0 ? $bitrate : false;
+    }
+    public static function getUserIP() {
+        return !empty(ipTV_lib::$settings['get_real_ip_client']) && !empty($_SERVER[ipTV_lib::$settings['get_real_ip_client']]) ? $_SERVER[ipTV_lib::$settings['get_real_ip_client']] : $_SERVER['REMOTE_ADDR'];
+    }
+    public static function isDelayRunning($PID, $streamID) {
+        if (empty($PID)) {
+            return false;
+        }
+        clearstatcache(true);
+        if (file_exists('/proc/' . $PID) && is_readable('/proc/' . $PID . '/exe')) {
+            $value = trim(file_get_contents("/proc/{$PID}/cmdline"));
+            if ($value == "XtreamCodesDelay[{$streamID}]") {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static function StreamLog($rStreamID, $rServerID, $rAction, $rSource = '') {
+        if (ipTV_lib::$settings['save_restart_logs'] != 0) {
+            $rData = array('server_id' => $rServerID, 'stream_id' => $rStreamID, 'action' => $rAction, 'source' => $rSource, 'time' => time());
+            file_put_contents(LOGS_TMP_PATH . 'stream_log.log', base64_encode(json_encode($rData)) . "\n", FILE_APPEND);
+        } else {
+            return null;
+        }
+    }
+    public static function GetSegmentsOfPlaylist($playlist, $prebuffer = 0, $segmentDuration = 10) {
+        if (file_exists($playlist)) {
+            $source = file_get_contents($playlist);
+            if (preg_match_all('/(.*?).ts/', $source, $rMatches)) {
+                if (0 < $prebuffer) {
+                    $totalSegments = intval($prebuffer / $segmentDuration);
+                    if (!$totalSegments) {
+                        $totalSegments = 1;
+                    }
+                    return array_slice($rMatches[0], 0 - $totalSegments);
+                }
+                if ($prebuffer == -1) {
+                    return $rMatches[0];
+                }
+                preg_match('/_(.*)\\./', array_pop($rMatches[0]), $currentSegment);
+                return $currentSegment[1];
+            }
+        }
     }
 }

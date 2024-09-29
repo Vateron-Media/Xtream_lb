@@ -103,22 +103,6 @@ function getNetwork($Interface = null) {
     }
     return $Return;
 }
-function KillProcessCmd($file, $time = 600) {
-    if (file_exists($file)) {
-        $pid = trim(file_get_contents($file));
-        if (file_exists("/proc/" . $pid)) {
-            if (time() - filemtime($file) < $time) {
-                die("Running...");
-            }
-            posix_kill($pid, 9);
-        }
-    }
-    file_put_contents($file, getmypid());
-    return false;
-}
-function UniqueID() {
-    return substr(md5(ipTV_lib::$settings["unique_id"]), 0, 15);
-}
 function generateCron() {
     if (!file_exists(TMP_PATH . 'crontab')) {
         $rJobs = array();
@@ -180,4 +164,62 @@ function getUptime() {
 }
 function generateUniqueCode() {
     return substr(md5(ipTV_lib::$settings['unique_id']), 0, 15);
+}
+/** 
+ * Checks for flood attempts based on IP address. 
+ * 
+ * This function checks for flood attempts based on the provided IP address. 
+ * It handles the restriction of flood attempts based on settings and time intervals. 
+ * If the IP is not provided, it retrieves the user's IP address. 
+ * It excludes certain IPs from flood checking based on settings. 
+ * It tracks and limits flood attempts within a specified time interval. 
+ * If the number of requests exceeds the limit, it blocks the IP and logs the attack. 
+ * 
+ * @param string|null $rIP (Optional) The IP address to check for flood attempts. 
+ * @return null|null Returns null if no flood attempt is detected, or a string indicating the block status if the IP is blocked. 
+ */
+function checkFlood($rIP = null) {
+    global $ipTV_db;
+    if (ipTV_lib::$settings['flood_limit'] != 0) {
+        if (!$rIP) {
+            $rIP = ipTV_streaming::getUserIP();
+        }
+        if (!(empty($rIP) || in_array($rIP, ipTV_streaming::getAllowedIPs()))) {
+            $rFloodExclude = array_filter(array_unique(explode(',', ipTV_lib::$settings['flood_ips_exclude'])));
+            if (!in_array($rIP, $rFloodExclude)) {
+                $rIPFile = FLOOD_TMP_PATH . $rIP;
+                if (file_exists($rIPFile)) {
+                    $rFloodRow = json_decode(file_get_contents($rIPFile), true);
+                    $rFloodSeconds = ipTV_lib::$settings['flood_seconds'];
+                    $rFloodLimit = ipTV_lib::$settings['flood_limit'];
+                    if (time() - $rFloodRow['last_request'] <= $rFloodSeconds) {
+                        $rFloodRow['requests']++;
+                        if ($rFloodLimit > $rFloodRow['requests']) {
+                            $rFloodRow['last_request'] = time();
+                            file_put_contents($rIPFile, json_encode($rFloodRow), LOCK_EX);
+                        } else {
+                            if (!in_array($rIP, ipTV_lib::$blockedISP)) {
+                                $ipTV_db->query('INSERT INTO `blocked_ips` (`ip`,`notes`,`date`) VALUES(\'%s\',\'%s\',\'%d\')', $rIP, 'FLOOD ATTACK', time());
+                                touch(FLOOD_TMP_PATH . 'block_' . $rIP);
+                            }
+                            ipTV_lib::unlink_file($rIPFile);
+                            return null;
+                        }
+                    } else {
+                        $rFloodRow['requests'] = 0;
+                        $rFloodRow['last_request'] = time();
+                        file_put_contents($rIPFile, json_encode($rFloodRow), LOCK_EX);
+                    }
+                } else {
+                    file_put_contents($rIPFile, json_encode(array('requests' => 0, 'last_request' => time())), LOCK_EX);
+                }
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    } else {
+        return null;
+    }
 }

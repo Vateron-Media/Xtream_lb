@@ -78,10 +78,17 @@ class ipTV_lib {
         $segments_settings["seg_list_size"] = 6;
         return $segments_settings;
     }
-    public static function getBouquets() {
-        $rCache = self::getCache('bouquets', 60);
-        if (!empty($rCache)) {
-            return $rCache;
+    /** 
+     * Retrieves the list of bouquets with their associated streams, series, channels, movies, and radios. 
+     * 
+     * @return array An array containing the bouquets with their respective streams, series, channels, movies, and radios. 
+     */
+    public static function getBouquets($rForce = false) {
+        if (!$rForce) {
+            $rCache = self::getCache('bouquets', 60);
+            if (!empty($rCache)) {
+                return $rCache;
+            }
         }
         $output = array();
         self::$ipTV_db->query('SELECT *, IF(`bouquet_order` > 0, `bouquet_order`, 999) AS `order` FROM `bouquets` ORDER BY `order` ASC;');
@@ -320,6 +327,8 @@ class ipTV_lib {
             $row["request_port"] = $http_port;
             $row["api_url"] = $server_protocol . "://" . $url . ":" . $http_port . "/system_api.php?password=" . ipTV_lib::$settings["live_streaming_pass"];
             $row["site_url"] = $server_protocol . "://" . $url . ":" . $http_port . "/";
+            $row['http_url'] = 'http://' . $url . ':' . intval($row['http_broadcast_port']) . '/';
+            $row['https_url'] = 'https://' . $url . ':' . intval($row['https_broadcast_port']) . '/';
             $row["rtmp_server"] = "rtmp://" . $url . ":" . $row["rtmp_port"] . "/live/";
             $row["rtmp_mport_url"] = "http://127.0.0.1:31210/";
             $row["api_url_ip"] = $server_protocol . "://" . $row["server_ip"] . ":" . $http_port . "/system_api.php?password=" . ipTV_lib::$settings["live_streaming_pass"];

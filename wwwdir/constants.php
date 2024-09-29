@@ -41,6 +41,7 @@ define('CRONS_TMP_PATH', TMP_PATH . 'crons/');
 define('DIVERGENCE_TMP_PATH', TMP_PATH . 'divergence/');
 define('FLOOD_TMP_PATH', TMP_PATH . 'flood/');
 define('STALKER_TMP_PATH', TMP_PATH . 'stalker/');
+define('SIGNALS_TMP_PATH', TMP_PATH . 'signals/');
 // -------------------
 
 // CACHE FOLDERS
@@ -58,6 +59,7 @@ define('PLAYLIST_PATH', CONTENT_PATH . 'playlists/');
 define('STREAMS_PATH', CONTENT_PATH . 'streams/');
 define('TV_ARCHIVE', CONTENT_PATH . 'tv_archive/');
 define('VOD_PATH', CONTENT_PATH . 'vod/');
+define('CREATED_PATH', CONTENT_PATH . 'created/');
 // -------------------
 
 // CONSTANTS VAR
@@ -70,10 +72,19 @@ define('CONFIG_CRYPT_KEY', '5709650b0d7806074842c6de575025b1');
 define('OPENSSL_EXTRA', '5gd46z5s4fg6sd8f4gs6');
 define('RESTART_TAKE_CACHE', 5);
 define('TOTAL_SAVES_DROP', 6);
+define('MONITOR_CALLS', 3);
 // -------------------
 
 // Temporary variables that should be added to the panel settings
+define('ENABLE_CACHE', true);
 define('CACHE_PLAYLIST', 60);
+define('KILL_ROQUE_FFMPEG', true);
+define('FPS_DELLAY', 600);
+define('PROBE_EXTRA_WAIT', 7);
+define('FFMPEG_WARNINGS', true);
+define('IGNORE_KEYFRAMES', 0);
+define('SEG_DELETE_THRESHOLD', 4);
+
 
 if (!defined("USE_CACHE")) {
     define("USE_CACHE", true);

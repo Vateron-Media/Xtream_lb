@@ -1,234 +1,253 @@
 <?php
+
+register_shutdown_function('shutdown');
 set_time_limit(0);
-require "init.php";
-header("X-Accel-Buffering: no");
-header("Access-Control-Allow-Origin: *");
-$b7eaa095f27405cf78a432ce6504dae0 = $_SERVER["REMOTE_ADDR"];
-if (empty(ipTV_lib::$request["password"]) || ipTV_lib::$request["password"] != ipTV_lib::$settings["live_streaming_pass"]) {
+require 'init.php';
+$rDeny = true;
+global $rDeny;
+
+$log = date('Y-m-d H:i:s') . ' ' . print_r(ipTV_lib::$request, true);
+file_put_contents(__DIR__ . '/log.txt', $log . PHP_EOL, FILE_APPEND);
+
+if (empty(ipTV_lib::$request['password']) || ipTV_lib::$request['password'] != ipTV_lib::$settings['live_streaming_pass']) {
     die(json_encode(array("main_fetch" => false, "error" => "Wrong Password")));
 }
-if (!in_array($b7eaa095f27405cf78a432ce6504dae0, ipTV_streaming::getAllowedIPs(false))) {
+
+unset(ipTV_lib::$request['password']);
+
+if (!in_array($rIP, ipTV_streaming::getAllowedIPs())) {
     die(json_encode(array("main_fetch" => false, "error" => "Not Allowed")));
 }
-$Cfd5aeeef0d1970527f63419de620a46 = !empty(ipTV_lib::$request["action"]) ? ipTV_lib::$request["action"] : '';
-switch ($Cfd5aeeef0d1970527f63419de620a46) {
+
+header('Access-Control-Allow-Origin: *');
+$action = (!empty(ipTV_lib::$request['action']) ? ipTV_lib::$request['action'] : '');
+$rDeny = false;
+
+switch ($action) {
     case "reset_cache":
         $E179fbf94a7c2de093622901d974626c = opcache_reset();
         echo (int) $E179fbf94a7c2de093622901d974626c;
         die;
-    case "vod":
-        if (!empty(ipTV_lib::$request["stream_ids"]) && !empty(ipTV_lib::$request["function"])) {
-            $b40a34c6a727bba894f407ea41eb237a = array_map("intval", ipTV_lib::$request["stream_ids"]);
-            $f95f9ced7148e761b4aad81f2d87b0d0 = ipTV_lib::$request["function"];
-            switch ($f95f9ced7148e761b4aad81f2d87b0d0) {
-                case "start":
-                    foreach ($b40a34c6a727bba894f407ea41eb237a as $b6497ba71489783c3747f19debe893a4) {
-                        ipTV_stream::stopVODstream($b6497ba71489783c3747f19debe893a4);
-                        ipTV_stream::startVODstream($b6497ba71489783c3747f19debe893a4);
+    case 'reload_epg':
+        shell_exec(PHP_BIN . ' ' . CRON_PATH . 'epg.php >/dev/null 2>/dev/null &');
+        break;
+    case 'vod':
+        if (!empty(ipTV_lib::$request['stream_ids']) && !empty(ipTV_lib::$request['function'])) {
+            $streamIDs = array_map('intval', ipTV_lib::$request['stream_ids']);
+            $function = ipTV_lib::$request['function'];
+            switch ($function) {
+                case 'start':
+                    foreach ($streamIDs as $streamID) {
+                        ipTV_stream::stopVODstream($streamID);
+                        ipTV_stream::startVODstream($streamID);
                         usleep(50000);
                     }
-                    echo json_encode(array("result" => true));
-                    die;
-                case "stop":
-                    foreach ($b40a34c6a727bba894f407ea41eb237a as $b6497ba71489783c3747f19debe893a4) {
-                        ipTV_stream::stopVODstream($b6497ba71489783c3747f19debe893a4);
+                    echo json_encode(array('result' => true));
+                    exit();
+                case 'stop':
+                    foreach ($streamIDs as $streamID) {
+                        ipTV_stream::stopVODstream($streamID);
                     }
-                    echo json_encode(array("result" => true));
-                    die;
+                    echo json_encode(array('result' => true));
+                    exit();
+            }
+        }
+    case 'stream':
+        if (!empty(ipTV_lib::$request['stream_ids']) && !empty(ipTV_lib::$request['function'])) {
+            $streamIDs = array_map('intval', ipTV_lib::$request['stream_ids']);
+            $function = ipTV_lib::$request['function'];
+
+            switch ($function) {
+                case 'start':
+                    foreach ($streamIDs as $streamID) {
+                        if (ipTV_stream::startMonitor($streamID, true)) {
+                            usleep(50000);
+                        } else {
+                            echo json_encode(array('result' => false));
+                            exit();
+                        }
+                    }
+                    echo json_encode(array('result' => true));
+                    exit();
+                case 'stop':
+                    foreach ($streamIDs as $streamID) {
+                        ipTV_stream::stopStream($streamID, true);
+                    }
+                    echo json_encode(array('result' => true));
+                    exit();
+                default:
+                    break;
             }
         }
         break;
-    case "stream":
-        if (!empty(ipTV_lib::$request["stream_ids"]) && !empty(ipTV_lib::$request["function"])) {
-            $b40a34c6a727bba894f407ea41eb237a = array_map("intval", ipTV_lib::$request["stream_ids"]);
-            $f95f9ced7148e761b4aad81f2d87b0d0 = ipTV_lib::$request["function"];
-            switch ($f95f9ced7148e761b4aad81f2d87b0d0) {
-                case "start":
-                    foreach ($b40a34c6a727bba894f407ea41eb237a as $b6497ba71489783c3747f19debe893a4) {
-                        ipTV_stream::startMonitor($b6497ba71489783c3747f19debe893a4, true);
-                        usleep(50000);
-                    }
-                    echo json_encode(array("result" => true));
-                    die;
-                case "stop":
-                    foreach ($b40a34c6a727bba894f407ea41eb237a as $b6497ba71489783c3747f19debe893a4) {
-                        ipTV_stream::stopStream($b6497ba71489783c3747f19debe893a4, true);
-                    }
-                    echo json_encode(array("result" => true));
-                    die;
-            }
-        }
-        break;
-    case "printVersion":
-        echo json_encode(SCRIPT_VERSION);
-        break;
-    case "stats":
+    case 'stats':
         echo json_encode(getStats());
-        die;
-    case "BackgroundCLI":
-        if (!empty(ipTV_lib::$request["cmds"])) {
-            $fcd2ccbe58ea867ce1daa2ec43319ea9 = ipTV_lib::$request["cmds"];
+        exit();
+    case 'BackgroundCLI':
+        if (!empty(ipTV_lib::$request['cmds'])) {
+            $cmds = ipTV_lib::$request['cmds'];
             $output = array();
-            foreach ($fcd2ccbe58ea867ce1daa2ec43319ea9 as $Cc2a18fdf76b8e3e115b27f927e5928b => $F57a44e1d4c2a8809dc8855d84e413c1) {
-                if (!is_array($F57a44e1d4c2a8809dc8855d84e413c1)) {
-                    $output[$Cc2a18fdf76b8e3e115b27f927e5928b] = shell_exec($F57a44e1d4c2a8809dc8855d84e413c1);
-                    usleep(ipTV_lib::$settings["stream_start_delay"]);
+            foreach ($cmds as $key => $cmd) {
+                if (!is_array($cmd)) {
+                    $output[$key] = shell_exec($cmd);
+                    usleep(ipTV_lib::$settings['stream_start_delay']);
                 } else {
-                    foreach ($F57a44e1d4c2a8809dc8855d84e413c1 as $c734727db5853925acce6d36ca7f0ea7 => $fd0b595359454f3afbc9283dcc4ac5c9) {
-                        $output[$Cc2a18fdf76b8e3e115b27f927e5928b][$c734727db5853925acce6d36ca7f0ea7] = shell_exec($fd0b595359454f3afbc9283dcc4ac5c9);
-                        usleep(ipTV_lib::$settings["stream_start_delay"]);
+                    foreach ($cmd as $k2 => $cm) {
+                        $output[$key][$k2] = shell_exec($cm);
+                        usleep(ipTV_lib::$settings['stream_start_delay']);
                     }
                 }
             }
             echo json_encode($output);
         }
         die;
-    case "getDiskInfo":
-        $D2a2a66ea319dd94f9a153e1e54d693b = 0;
-        $F87e977674a0d6a794801fd5c8031396 = 0;
-        $Edff73993ebb6bfdf68448d86c285540 = 0;
-        $A55a933b4891f0c929e21dfcb504268d = disk_free_space("/var/lib");
-        if ($A55a933b4891f0c929e21dfcb504268d < 1000000000) {
-            $D2a2a66ea319dd94f9a153e1e54d693b = 1;
-        }
-        $A55a933b4891f0c929e21dfcb504268d = disk_free_space("/home/xtreamcodes");
-        if ($A55a933b4891f0c929e21dfcb504268d < 1000000000) {
-            $F87e977674a0d6a794801fd5c8031396 = 1;
-        }
-        $Edff73993ebb6bfdf68448d86c285540 = disk_free_space("/home/xtreamcodes/streams");
-        if ($Edff73993ebb6bfdf68448d86c285540 < 100000000) {
-            $Edff73993ebb6bfdf68448d86c285540 = 1;
-        }
-        echo json_encode(array("varlib" => $D2a2a66ea319dd94f9a153e1e54d693b, "xtreamcodes" => $F87e977674a0d6a794801fd5c8031396, "ramdisk" => $Edff73993ebb6bfdf68448d86c285540));
-        die;
-    case "getDiff":
-        if (!empty(ipTV_lib::$request["main_time"])) {
-            $Dcfccdb908630a1a734dadddf371b330 = ipTV_lib::$request["main_time"];
-            echo json_encode($Dcfccdb908630a1a734dadddf371b330 - time());
+    case 'getDiff':
+        if (!empty(ipTV_lib::$request['main_time'])) {
+            $main_time = ipTV_lib::$request['main_time'];
+            echo json_encode($main_time - time());
             die;
         }
         break;
-    case "pidsAreRunning":
-        if (!empty(ipTV_lib::$request["pids"]) && is_array(ipTV_lib::$request["pids"]) && !empty(ipTV_lib::$request["program"])) {
-            $C0e8d31ea79ac505afb3adf3b27e209b = array_map("intval", ipTV_lib::$request["pids"]);
-            $c3bd62458959952cf55b015822fd5a91 = ipTV_lib::$request["program"];
-            $output = array();
-            foreach ($C0e8d31ea79ac505afb3adf3b27e209b as $ef4f0599712515333103265dafb029f7) {
-                $output[$ef4f0599712515333103265dafb029f7] = false;
-                if (file_exists("/proc/" . $ef4f0599712515333103265dafb029f7) && is_readable("/proc/" . $ef4f0599712515333103265dafb029f7 . "/exe") && basename(readlink("/proc/" . $ef4f0599712515333103265dafb029f7 . "/exe")) == basename($c3bd62458959952cf55b015822fd5a91)) {
-                    $output[$ef4f0599712515333103265dafb029f7] = true;
-                }
+    case 'pidsAreRunning':
+        if (empty(ipTV_lib::$request['pids']) && !is_array(ipTV_lib::$request['pids']) && empty(ipTV_lib::$request['program'])) {
+            break;
+        }
+
+        $PIDs = array_map('intval', ipTV_lib::$request['pids']);
+        $program = ipTV_lib::$request['program'];
+        $output = array();
+
+        foreach ($PIDs as $rPID) {
+            $output[$rPID] = false;
+
+            if (file_exists('/proc/' . $rPID) && is_readable('/proc/' . $rPID . '/exe') && strpos(basename(readlink('/proc/' . $rPID . '/exe')), basename($program)) === 0) {
+                $output[$rPID] = true;
             }
-            echo json_encode($output);
-            die;
         }
-        break;
-    case "getFile":
-        if (!empty(ipTV_lib::$request["filename"])) {
-            $Bf16c9240a717f40e5629c2ab7355c5e = ipTV_lib::$request["filename"];
-            if (file_exists($Bf16c9240a717f40e5629c2ab7355c5e) && is_readable($Bf16c9240a717f40e5629c2ab7355c5e)) {
-                header("Content-Type: application/octet-stream");
-                $b4ad7225f6375fe5d757d3c7147fb034 = @fopen($Bf16c9240a717f40e5629c2ab7355c5e, "rb");
-                $c2f883bf459da90a240f9950048443f3 = filesize($Bf16c9240a717f40e5629c2ab7355c5e);
-                $adb6fe828c718151845abb8cc50ba1f4 = $c2f883bf459da90a240f9950048443f3;
+        echo json_encode($output);
+        exit();
+    case 'getFile':
+        if (empty(ipTV_lib::$request['filename'])) {
+            break;
+        }
+
+        $filename = ipTV_lib::$request['filename'];
+        if (in_array(strtolower(pathinfo($filename)['extension']), array('log', 'tar.gz', 'gz', 'zip', 'm3u8', 'mp4', 'mkv', 'avi', 'mpg', 'flv', '3gp', 'm4v', 'wmv', 'mov', 'ts', 'srt', 'sub', 'sbv', 'jpg', 'png', 'bmp', 'jpeg', 'gif', 'tif'))) {
+            if (file_exists($filename) && is_readable($filename)) {
+                header('Content-Type: application/octet-stream');
+                $fp = @fopen($filename, 'rb');
+                $size = filesize($filename);
+                $length = $size;
                 $start = 0;
-                $Dfa618a096444a88ace702dece7d9654 = $c2f883bf459da90a240f9950048443f3 - 1;
-                header("Accept-Ranges: 0-{$adb6fe828c718151845abb8cc50ba1f4}");
-                if (isset($_SERVER["HTTP_RANGE"])) {
-                    $e0d1376cc4243595a2ac3f530e229437 = $start;
-                    $e715c54a968c0c022972b99f8095f9b8 = $Dfa618a096444a88ace702dece7d9654;
-                    list(, $e9e34387b8f1113709cd9f6f23ef418d) = explode("=", $_SERVER["HTTP_RANGE"], 2);
-                    if (strpos($e9e34387b8f1113709cd9f6f23ef418d, ",") !== false) {
-                        header("HTTP/1.1 416 Requested Range Not Satisfiable");
-                        header("Content-Range: bytes {$start}-{$Dfa618a096444a88ace702dece7d9654}/{$c2f883bf459da90a240f9950048443f3}");
-                        die;
-                    }
-                    if ($e9e34387b8f1113709cd9f6f23ef418d == "-") {
-                        $e0d1376cc4243595a2ac3f530e229437 = $c2f883bf459da90a240f9950048443f3 - substr($e9e34387b8f1113709cd9f6f23ef418d, 1);
+                $end = $size - 1;
+                header("Accept-Ranges: 0-{$length}");
+                if (isset($_SERVER['HTTP_RANGE'])) {
+                    $rRangeEnd = $end;
+                    list(, $rRange) = explode('=', $_SERVER['HTTP_RANGE'], 2);
+                    if (strpos($rRange, ',') === false) {
+                        if ($rRange == '-') {
+                            $rRangeStart = $size - substr($rRange, 1);
+                        } else {
+                            $rRange = explode('-', $rRange);
+                            $rRangeStart = $rRange[0];
+                            $rRangeEnd = (isset($rRange[1]) && is_numeric($rRange[1]) ? $rRange[1] : $size);
+                        }
+
+                        $rRangeEnd = ($end < $rRangeEnd ? $end : $rRangeEnd);
+
+                        if (!($rRangeEnd < $rRangeStart || $size - 1 < $rRangeStart || $size <= $rRangeEnd)) {
+                            $start = $rRangeStart;
+                            $end = $rRangeEnd;
+                            $length = $end - $start + 1;
+                            fseek($fp, $start);
+                            header('HTTP/1.1 206 Partial Content');
+                        } else {
+                            header('HTTP/1.1 416 Requested Range Not Satisfiable');
+                            header('Content-Range: bytes ' . $start . '-' . $end . '/' . $size);
+
+                            exit();
+                        }
                     } else {
-                        $e9e34387b8f1113709cd9f6f23ef418d = explode("-", $e9e34387b8f1113709cd9f6f23ef418d);
-                        $e0d1376cc4243595a2ac3f530e229437 = $e9e34387b8f1113709cd9f6f23ef418d[0];
-                        $e715c54a968c0c022972b99f8095f9b8 = isset($e9e34387b8f1113709cd9f6f23ef418d[1]) && is_numeric($e9e34387b8f1113709cd9f6f23ef418d[1]) ? $e9e34387b8f1113709cd9f6f23ef418d[1] : $c2f883bf459da90a240f9950048443f3;
+                        header('HTTP/1.1 416 Requested Range Not Satisfiable');
+                        header('Content-Range: bytes ' . $start . '-' . $end . '/' . $size);
+
+                        exit();
                     }
-                    $e715c54a968c0c022972b99f8095f9b8 = $e715c54a968c0c022972b99f8095f9b8 > $Dfa618a096444a88ace702dece7d9654 ? $Dfa618a096444a88ace702dece7d9654 : $e715c54a968c0c022972b99f8095f9b8;
-                    if ($e0d1376cc4243595a2ac3f530e229437 > $e715c54a968c0c022972b99f8095f9b8 || $e0d1376cc4243595a2ac3f530e229437 > $c2f883bf459da90a240f9950048443f3 - 1 || $e715c54a968c0c022972b99f8095f9b8 >= $c2f883bf459da90a240f9950048443f3) {
-                        header("HTTP/1.1 416 Requested Range Not Satisfiable");
-                        header("Content-Range: bytes {$start}-{$Dfa618a096444a88ace702dece7d9654}/{$c2f883bf459da90a240f9950048443f3}");
-                        die;
-                    }
-                    $start = $e0d1376cc4243595a2ac3f530e229437;
-                    $Dfa618a096444a88ace702dece7d9654 = $e715c54a968c0c022972b99f8095f9b8;
-                    $adb6fe828c718151845abb8cc50ba1f4 = $Dfa618a096444a88ace702dece7d9654 - $start + 1;
-                    fseek($b4ad7225f6375fe5d757d3c7147fb034, $start);
-                    header("HTTP/1.1 206 Partial Content");
                 }
-                header("Content-Range: bytes {$start}-{$Dfa618a096444a88ace702dece7d9654}/{$c2f883bf459da90a240f9950048443f3}");
-                header("Content-Length: " . $adb6fe828c718151845abb8cc50ba1f4);
-                while (!feof($b4ad7225f6375fe5d757d3c7147fb034) && ($B2dcc8d8fbd078a3e9963b74037ab315 = ftell($b4ad7225f6375fe5d757d3c7147fb034)) <= $Dfa618a096444a88ace702dece7d9654) {
-                    echo stream_get_line($b4ad7225f6375fe5d757d3c7147fb034, ipTV_lib::$settings["read_buffer_size"]);
+
+                header('Content-Range: bytes ' . $start . '-' . $end . '/' . $size);
+                header('Content-Length: ' . $length);
+
+                while (!feof($fp) && ftell($fp) <= $end) {
+                    echo stream_get_line($fp, (intval(ipTV_lib::$settings['read_buffer_size']) ?: 8192));
                 }
-                fclose($b4ad7225f6375fe5d757d3c7147fb034);
+                fclose($fp);
             }
-            die;
+
+            exit();
         }
-        break;
-    case "viewDir":
-        $bd8eb054299e2677a662b68062a996c4 = urldecode(ipTV_lib::$request["dir"]);
-        if (file_exists($bd8eb054299e2677a662b68062a996c4)) {
-            $Cb3a16fe5eb4f38ed73d164d6706e742 = scandir($bd8eb054299e2677a662b68062a996c4);
-            natcasesort($Cb3a16fe5eb4f38ed73d164d6706e742);
-            if (count($Cb3a16fe5eb4f38ed73d164d6706e742) > 2) {
-                echo "<ul class=\"jqueryFileTree\" style=\"display: none;\">";
-                foreach ($Cb3a16fe5eb4f38ed73d164d6706e742 as $E45cb49615d9ff0c133fcdeaa506ddb6) {
-                    if (file_exists($bd8eb054299e2677a662b68062a996c4 . $E45cb49615d9ff0c133fcdeaa506ddb6) && $E45cb49615d9ff0c133fcdeaa506ddb6 != "." && $E45cb49615d9ff0c133fcdeaa506ddb6 != ".." && is_dir($bd8eb054299e2677a662b68062a996c4 . $E45cb49615d9ff0c133fcdeaa506ddb6) && is_readable($bd8eb054299e2677a662b68062a996c4 . $E45cb49615d9ff0c133fcdeaa506ddb6)) {
-                        echo "<li class=\"directory collapsed\"><a href=\"#\" rel=\"" . htmlentities($bd8eb054299e2677a662b68062a996c4 . $E45cb49615d9ff0c133fcdeaa506ddb6) . "/\">" . htmlentities($E45cb49615d9ff0c133fcdeaa506ddb6) . "</a></li>";
+        exit(json_encode(array('result' => false, 'error' => 'Invalid file extension.')));
+
+    case 'viewDir':
+        $dir = urldecode(ipTV_lib::$request['dir']);
+        if (file_exists($dir)) {
+            $files = scandir($dir);
+            natcasesort($files);
+            if (count($files) > 2) {
+                echo '<ul class="jqueryFileTree" style="display: none;">';
+                foreach ($files as $file) {
+                    if (file_exists($dir . $file) && $file != '.' && $file != '..' && is_dir($dir . $file) && is_readable($dir . $file)) {
+                        echo '<li class="directory collapsed"><a href="#" rel="' . htmlentities($dir . $file) . '/">' . htmlentities($file) . '</a></li>';
                     }
                 }
-                foreach ($Cb3a16fe5eb4f38ed73d164d6706e742 as $E45cb49615d9ff0c133fcdeaa506ddb6) {
-                    if (file_exists($bd8eb054299e2677a662b68062a996c4 . $E45cb49615d9ff0c133fcdeaa506ddb6) && $E45cb49615d9ff0c133fcdeaa506ddb6 != "." && $E45cb49615d9ff0c133fcdeaa506ddb6 != ".." && !is_dir($bd8eb054299e2677a662b68062a996c4 . $E45cb49615d9ff0c133fcdeaa506ddb6) && is_readable($bd8eb054299e2677a662b68062a996c4 . $E45cb49615d9ff0c133fcdeaa506ddb6)) {
-                        $Db28716566e55324bff867484fb6f7e7 = preg_replace("/^.*\\./", '', $E45cb49615d9ff0c133fcdeaa506ddb6);
-                        echo "<li class=\"file ext_{$Db28716566e55324bff867484fb6f7e7}\"><a href=\"#\" rel=\"" . htmlentities($bd8eb054299e2677a662b68062a996c4 . $E45cb49615d9ff0c133fcdeaa506ddb6) . "\">" . htmlentities($E45cb49615d9ff0c133fcdeaa506ddb6) . "</a></li>";
+                foreach ($files as $file) {
+                    if (file_exists($dir . $file) && $file != '.' && $file != '..' && !is_dir($dir . $file) && is_readable($dir . $file)) {
+                        $ext = preg_replace('/^.*\\./', '', $file);
+                        echo "<li class=\"file ext_{$ext}\"><a href=\"#\" rel=\"" . htmlentities($dir . $file) . '">' . htmlentities($file) . '</a></li>';
                     }
                 }
-                echo "</ul>";
+                echo '</ul>';
             }
         }
         die;
-    case "getFFmpegCheckSum":
-        echo json_encode(md5_file(FFMPEG_PATH));
-        die;
-    case "runCMD":
-        if (!empty(ipTV_lib::$request["command"]) && in_array($b7eaa095f27405cf78a432ce6504dae0, ipTV_streaming::getAllowedIPs(false, false))) {
-            exec($_POST["command"], $e3d63851128e7eff48f7d1e81e95019d);
-            echo json_encode($e3d63851128e7eff48f7d1e81e95019d);
+    case 'runCMD':
+        if (!empty(ipTV_lib::$request['command']) && in_array($user_ip, array("127.0.0.1", $_SERVER["SERVER_ADDR"]))) {
+            exec($_POST['command'], $outputCMD);
+            echo json_encode($outputCMD);
             die;
         }
         break;
-    case "view_log":
-        if (!empty(ipTV_lib::$request["stream_id"])) {
-            $b6497ba71489783c3747f19debe893a4 = intval(ipTV_lib::$request["stream_id"]);
-            if (file_exists(STREAMS_PATH . $b6497ba71489783c3747f19debe893a4 . ".errors")) {
-                echo file_get_contents(STREAMS_PATH . $b6497ba71489783c3747f19debe893a4 . ".errors");
-            } else {
-                if (file_exists(MOVIES_PATH . $b6497ba71489783c3747f19debe893a4 . ".errors")) {
-                    echo file_get_contents(MOVIES_PATH . $b6497ba71489783c3747f19debe893a4 . ".errors");
-                }
-            }
-            die;
+    case 'view_log':
+        if (empty(ipTV_lib::$request['stream_id'])) {
+            break;
+        }
+        $streamID = intval(ipTV_lib::$request['stream_id']);
+        if (file_exists(STREAMS_PATH . $streamID . '.errors')) {
+            echo file_get_contents(STREAMS_PATH . $streamID . '.errors');
+        } elseif (file_exists(VOD_PATH . $streamID . '.errors')) {
+            echo file_get_contents(VOD_PATH . $streamID . '.errors');
+        }
+        exit();
+    case 'redirect_connection':
+        if (!empty(ipTV_lib::$request['activity_id']) && !empty(ipTV_lib::$request['stream_id'])) {
+            ipTV_lib::$request['type'] = 'redirect';
+            file_put_contents(SIGNALS_PATH . ipTV_lib::$request['uuid'], json_encode(ipTV_lib::$request));
         }
         break;
-    case "redirect_connection":
-        if (!empty(ipTV_lib::$request["activity_id"]) && !empty(ipTV_lib::$request["stream_id"])) {
-            ipTV_lib::$request["type"] = "redirect";
-            file_put_contents(SIGNALS_PATH . intval(ipTV_lib::$request["activity_id"]), json_encode(ipTV_lib::$request));
-        }
-        break;
-    case "signal_send":
-        if (!empty(ipTV_lib::$request["message"]) && !empty(ipTV_lib::$request["activity_id"])) {
-            ipTV_lib::$request["type"] = "signal";
-            file_put_contents(SIGNALS_PATH . intval(ipTV_lib::$request["activity_id"]), json_encode(ipTV_lib::$request));
+    case 'signal_send':
+        if (!empty(ipTV_lib::$request['message']) && !empty(ipTV_lib::$request['activity_id'])) {
+            ipTV_lib::$request['type'] = 'signal';
+            file_put_contents(SIGNALS_PATH . ipTV_lib::$request['uuid'], json_encode(ipTV_lib::$request));
         }
         break;
     default:
-        die(json_encode(array("main_fetch" => true)));
+        exit(json_encode(array('result' => false)));
+}
+
+function shutdown() {
+    global $rDeny;
+
+    if ($rDeny) {
+        checkFlood();
+    }
 }
