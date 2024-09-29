@@ -119,7 +119,7 @@ function KillProcessCmd($file, $time = 600) {
 function UniqueID() {
     return substr(md5(ipTV_lib::$settings["unique_id"]), 0, 15);
 }
-function crontab_refresh() {
+function generateCron() {
     if (!file_exists(TMP_PATH . 'crontab')) {
         $rJobs = array();
         $crons = scandir(CRON_PATH);

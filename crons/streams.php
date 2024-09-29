@@ -1,54 +1,140 @@
 <?php
+if (posix_getpwuid(posix_geteuid())['name'] == 'xtreamcodes') {
+    if ($argc) {
+        register_shutdown_function('shutdown');
+        require str_replace("\\", "/", dirname($argv[0])) . "/../wwwdir/init.php";
+        cli_set_process_title('XtreamCodes[Live Checker]');
+        $unique_id = CRONS_TMP_PATH . md5(generateUniqueCode() . __FILE__);
+        ipTV_lib::check_cron($unique_id);
+        loadCron();
+    } else {
+        exit(0);
+    }
+} else {
+    exit('Please run as XtreamCodes!' . "\n");
+}
+function loadCron() {
+    global $ipTV_db;
+    $activePIDs = array();
+    $streamIDs = array();
 
-if ($argc) {
-    require str_replace("\\", "/", dirname($argv[0])) . "/../wwwdir/init.php";
-    cli_set_process_title("XtreamCodes[Live Checker]");
-    $D3b211a38e2eb607ab17f4f6770932e5 = TMP_PATH . md5(UniqueID() . __FILE__);
-    KillProcessCmd($D3b211a38e2eb607ab17f4f6770932e5);
-    $b40a34c6a727bba894f407ea41eb237a = [];
-    $ipTV_db->query("SELECT\n                          t2.stream_display_name,\n                          t1.stream_id,\n                          t1.monitor_pid,\n                          t1.on_demand,\n                          t1.server_stream_id,\n                          t1.pid,\n                          clients.online_clients\n                        FROM\n                          `streams_sys` t1\n                        INNER JOIN `streams` t2 ON t2.id = t1.stream_id AND t2.direct_source = 0\n                        INNER JOIN `streams_types` t3 ON t3.type_id = t2.type\n                        LEFT JOIN\n                          (\n                          SELECT\n                            stream_id,\n                            COUNT(*) as online_clients\n                          FROM\n                            `user_activity_now`\n                          WHERE `server_id` = '%d'\n                          GROUP BY\n                            stream_id\n                        ) AS clients\n                        ON\n                          clients.stream_id = t1.stream_id\n                        WHERE\n                          (\n                            t1.pid IS NOT NULL OR t1.stream_status <> 0 OR t1.to_analyze = 1\n                          ) AND t1.server_id = '%d' AND t3.live = 1", SERVER_ID, SERVER_ID);
+    $ipTV_db->query("SELECT t2.stream_display_name, t1.stream_info, t1.stream_status, t1.progress_info, t1.stream_id, t1.monitor_pid, t1.on_demand, t1.server_stream_id, t1.pid, clients.online_clients, t2.tv_archive_pid FROM `streams_servers` t1 INNER JOIN `streams` t2 ON t2.id = t1.stream_id AND t2.direct_source = 0 INNER JOIN `streams_types` t3 ON t3.type_id = t2.type LEFT JOIN (SELECT stream_id, COUNT(*) AS online_clients FROM `lines_live` WHERE `server_id` = '%d' AND `hls_end` = 0 GROUP BY stream_id) AS clients ON clients.stream_id = t1.stream_id WHERE (t1.pid IS NOT NULL OR t1.stream_status <> 0 OR t1.to_analyze = 1) AND t1.server_id = '%d' AND t3.live = 1", SERVER_ID, SERVER_ID);
     if (0 < $ipTV_db->num_rows()) {
-        $Ecab3ed662352e7c91c6e045c57fac60 = $ipTV_db->get_rows();
-        foreach ($Ecab3ed662352e7c91c6e045c57fac60 as $efa7cefd12388102b27fdeb2f9f68219) {
-            $b40a34c6a727bba894f407ea41eb237a[] = $efa7cefd12388102b27fdeb2f9f68219["stream_id"];
-            if (ipTV_streaming::D835C2A9787BA794e7590e06621cfa6B($efa7cefd12388102b27fdeb2f9f68219["monitor_pid"], $efa7cefd12388102b27fdeb2f9f68219["stream_id"])) {
-                if (!($efa7cefd12388102b27fdeb2f9f68219["on_demand"] == 1 && $efa7cefd12388102b27fdeb2f9f68219["online_clients"] == 0)) {
-                    $f0d5508533eaf6452b2b014beae1cc7c = STREAMS_PATH . $efa7cefd12388102b27fdeb2f9f68219["stream_id"] . "_.m3u8";
-                    if (!(ipTV_streaming::A1ECF5D2A93474B12E622361c656B958($efa7cefd12388102b27fdeb2f9f68219["pid"], $efa7cefd12388102b27fdeb2f9f68219["stream_id"]) && file_exists($f0d5508533eaf6452b2b014beae1cc7c))) {
-                    } else {
-                        $E3e8a009e88a10ef5bdfcd4630af0f9f = ipTV_streaming::db998aCd76Fcd118b6cDB4E9eDA68580("live", STREAMS_PATH . $efa7cefd12388102b27fdeb2f9f68219["stream_id"] . "_.m3u8");
-                        $Cf06357624313b73c0a6453ccb618bef = file_exists(STREAMS_PATH . $efa7cefd12388102b27fdeb2f9f68219["stream_id"] . "_.progress") ? json_decode(file_get_contents(STREAMS_PATH . $efa7cefd12388102b27fdeb2f9f68219["stream_id"] . "_.progress"), true) : [];
-                        if (file_exists(STREAMS_PATH . $efa7cefd12388102b27fdeb2f9f68219["stream_id"] . "_.pid")) {
-                            $ef4f0599712515333103265dafb029f7 = intval(file_get_contents(STREAMS_PATH . $efa7cefd12388102b27fdeb2f9f68219["stream_id"] . "_.pid"));
-                        } else {
-                            $ef4f0599712515333103265dafb029f7 = intval(shell_exec("ps aux | grep -v grep | grep '/" . $efa7cefd12388102b27fdeb2f9f68219["stream_id"] . "_.m3u8' | awk '{print \$2}'"));
-                        }
-                        if ($efa7cefd12388102b27fdeb2f9f68219["pid"] != $ef4f0599712515333103265dafb029f7) {
-                            $ipTV_db->query("UPDATE `streams_sys` SET `pid` = '%d',`progress_info` = '%s',`bitrate` = '%d' WHERE `server_stream_id` = '%d'", $ef4f0599712515333103265dafb029f7, json_encode($Cf06357624313b73c0a6453ccb618bef), $E3e8a009e88a10ef5bdfcd4630af0f9f, $efa7cefd12388102b27fdeb2f9f68219["server_stream_id"]);
-                        } else {
-                            $ipTV_db->query("UPDATE `streams_sys` SET `progress_info` = '%s',`bitrate` = '%d' WHERE `server_stream_id` = '%d'", json_encode($Cf06357624313b73c0a6453ccb618bef), $E3e8a009e88a10ef5bdfcd4630af0f9f, $efa7cefd12388102b27fdeb2f9f68219["server_stream_id"]);
-                        }
-                    }
-                } else {
-                    ipTV_stream::stopStream($efa7cefd12388102b27fdeb2f9f68219["stream_id"], true);
+        $streams = $ipTV_db->get_rows();
+        foreach ($streams as $stream) {
+            echo 'Stream ID: ' . $stream["stream_id"] . "\n";
+            $streamIDs[] = $stream["stream_id"];
+            if (ipTV_streaming::CheckMonitorRunning($stream["monitor_pid"], $stream["stream_id"]) || $stream["on_demand"]) {
+                if ($stream["on_demand"] == 1 && $stream["online_clients"] == 0) {
+                    echo 'Stop on-demand stream...' . "\n\n";
+                    ipTV_stream::stopStream($stream["stream_id"], true);
                 }
+                // if ($stream["tv_archive_server_id"] == SERVER_ID || !ipTV_streaming::isArchiveRunning($stream["tv_archive_pid"], $stream["stream_id"])) {
+                //     echo 'Start TV Archive...' . "\n";
+                //     shell_exec(PHP_BIN . ' ' . TOOLS_PATH . 'archive.php ' . intval($stream["stream_id"]) . ' >/dev/null 2>/dev/null & echo $!');
+                // }
+                foreach (glob(STREAMS_PATH . $stream["stream_id"] . '_*.ts.enc') as $File) {
+                    if (!file_exists(rtrim($File, '.enc'))) {
+                        unlink($File);
+                    }
+                }
+                if (file_exists(STREAMS_PATH . $stream["stream_id"] . '_.pid')) {
+                    $PID = intval(file_get_contents(STREAMS_PATH . $stream["stream_id"] . '_.pid'));
+                } else {
+                    $PID = intval(shell_exec("ps aux | grep -v grep | grep '/" . intval($stream["stream_id"]) . "_.m3u8' | awk '{print \$2}'"));
+                }
+                $activePIDs[] = intval($PID);
+                $Playlist = STREAMS_PATH . $stream["stream_id"] . '_.m3u8';
+                if (ipTV_streaming::isStreamRunning($PID, $stream["stream_id"]) && file_exists($Playlist)) {
+                    echo 'Update Stream Information...' . "\n";
+                    $Bitrate = ipTV_streaming::getStreamBitrate('live', STREAMS_PATH . $stream["stream_id"] . '_.m3u8');
+                    if (file_exists(STREAMS_PATH . $stream["stream_id"] . '_.progress')) {
+                        $Progress = file_get_contents(STREAMS_PATH . $stream["stream_id"] . '_.progress');
+                        unlink(STREAMS_PATH . $stream['stream_id'] . '_.progress');
+                        if ($stream['fps_restart']) {
+                            file_put_contents(STREAMS_PATH . $stream['stream_id'] . '_.progress_check', $Progress);
+                        }
+                    } else {
+                        $Progress = $stream['progress_info'];
+                    }
+                    if (file_exists(STREAMS_PATH . $stream['stream_id'] . '_.stream_info')) {
+                        $streamInfo = file_get_contents(STREAMS_PATH . $stream['stream_id'] . '_.stream_info');
+                        unlink(STREAMS_PATH . $stream['stream_id'] . '_.stream_info');
+                    } else {
+                        $streamInfo = $stream['stream_info'];
+                    }
+                    if ($stream['pid'] != $PID) {
+                        $ipTV_db->query("UPDATE `streams_servers` SET `pid` = '%d', `progress_info` = '%s', `stream_info` = '%s', `bitrate` = '%d', WHERE `server_stream_id` = '%d'", $PID, $Progress, $streamInfo, $Bitrate, $stream['server_stream_id']);
+                    } else {
+                        $ipTV_db->query("UPDATE `streams_servers` SET `progress_info` = '%s',`stream_info` = '%s', `bitrate` = '%d' WHERE `server_stream_id` = '%d'", $Progress, $streamInfo, $Bitrate, $stream['server_stream_id']);
+                    }
+                }
+                echo "\n";
             } else {
-                ipTV_stream::startMonitor($efa7cefd12388102b27fdeb2f9f68219["stream_id"]);
+                echo 'Start monitor...' . "\n\n";
+                ipTV_stream::startMonitor($stream['stream_id']);
                 usleep(50000);
             }
         }
     }
-    $ea32ba0f85fe74722f862c56957aec0f = shell_exec("ps aux | grep XtreamCodes");
-    if (preg_match_all("/XtreamCodes\\[(.*)\\]/", $ea32ba0f85fe74722f862c56957aec0f, $f563f11de8fd50b6d6e4071878cbe2de)) {
-        $E7673ebc6521c6950cab99750195bc80 = array_diff($f563f11de8fd50b6d6e4071878cbe2de[1], $b40a34c6a727bba894f407ea41eb237a);
-        foreach ($E7673ebc6521c6950cab99750195bc80 as $b6497ba71489783c3747f19debe893a4) {
-            if (is_numeric($b6497ba71489783c3747f19debe893a4)) {
-                shell_exec("kill -9 `ps -ef | grep '/" . $b6497ba71489783c3747f19debe893a4 . "_.m3u8\\|XtreamCodes\\[" . $b6497ba71489783c3747f19debe893a4 . "\\]' | grep -v grep | awk '{print \$2}'`;");
-                shell_exec("rm -f " . STREAMS_PATH . $b6497ba71489783c3747f19debe893a4 . "_*");
+
+
+    // not checked code
+    // $ipTV_db->query('SELECT `streams`.`id` FROM `streams` LEFT JOIN `streams_servers` ON `streams_servers`.`stream_id` = `streams`.`id` WHERE `streams`.`direct_source` = 1 AND `streams`.`direct_proxy` = 1 AND `streams_servers`.`server_id` = \'%s\' AND `streams_servers`.`pid` > 0;', SERVER_ID);
+    // if (0 < $ipTV_db->num_rows()) {
+    //     foreach ($ipTV_db->get_rows() as $stream) {
+    //         if (file_exists(STREAMS_PATH . $stream['id'] . '.analyse')) {
+    //             $FFProbeOutput = ipTV_stream::analyzeStream(STREAMS_PATH . $stream['id'] . '.analyse', SERVER_ID);
+    //             if ($FFProbeOutput) {
+    //                 $Bitrate = $FFProbeOutput['bitrate'] / 1024;
+    //             }
+    //             echo 'Stream ID: ' . $stream['id'] . "\n";
+    //             echo 'Update Stream Information...' . "\n";
+    //             $ipTV_db->query('UPDATE `streams_servers` SET `bitrate` = '%d', `stream_info` = '%s' WHERE `stream_id` = \'%s\' AND `server_id` = \'%s\'', $Bitrate, json_encode($FFProbeOutput) $stream['id'], SERVER_ID);
+    //         }
+    //         $UUIDs = array();
+    //         $Connections = ipTV_streaming::getConnections(SERVER_ID, null, $stream['id']);
+    //         foreach ($Connections as $Items) {
+    //             foreach ($Items as $Item) {
+    //                 $UUIDs[] = $Item['uuid'];
+    //             }
+    //         }
+    //         if ($Handle = opendir(CONS_TMP_PATH . $stream['id'] . '/')) {
+    //             while (false !== ($Filename = readdir($Handle))) {
+    //                 if ($Filename != '.' && $Filename != '..') {
+    //                     if (!in_array($Filename, $UUIDs)) {
+    //                         unlink(CONS_TMP_PATH . $stream['id'] . '/' . $Filename);
+    //                     }
+    //                 }
+    //             }
+    //             closedir($Handle);
+    //         }
+    //     }
+    // }
+    // not checked code
+
+
+
+    $ipTV_db->query("SELECT `stream_id` FROM `streams_servers` WHERE `on_demand` = 1 AND `server_id` = '%d';", SERVER_ID);
+    $OnDemandIDs = array_keys($ipTV_db->get_rows(true, 'stream_id'));
+    $Processes = shell_exec('ps aux | grep XtreamCodes');
+    if (preg_match_all('/XtreamCodes\\[(.*)\\]/', $Processes, $Matches)) {
+        $Remove = array_diff($Matches[1], $streamIDs);
+        $Remove = array_diff($Remove, $OnDemandIDs);
+        foreach ($Remove as $streamID) {
+            if (is_numeric($streamID)) {
+                echo 'Kill Stream ID: ' . $streamID . "\n";
+                shell_exec("kill -9 `ps -ef | grep '/" . intval($streamID) . "_.m3u8\\|XtreamCodes\\[" . intval($streamID) . "\\]' | grep -v grep | awk '{print \$2}'`;");
+                shell_exec('rm -f ' . STREAMS_PATH . intval($streamID) . '_*');
             }
         }
     }
-    @unlink($D3b211a38e2eb607ab17f4f6770932e5);
-} else {
-    exit(0);
+}
+function shutdown() {
+    global $ipTV_db;
+    global $unique_id;
+    if (is_object($ipTV_db)) {
+        $ipTV_db->close_mysql();
+    }
+    @unlink($unique_id);
 }

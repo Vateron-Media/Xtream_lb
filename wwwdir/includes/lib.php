@@ -7,6 +7,11 @@ class ipTV_lib {
     public static $SegmentsSettings = array();
     public static $MainServerInfo = array();
     public static $Bouquets = array();
+    public static $blockedUA = array();
+    public static $customISP = array();
+    public static $blockedISP = array();
+    public static $blockedIPs = array();
+    public static $categories = array();
     public static function init() {
         global $_INFO;
         if (!empty($_GET)) {
@@ -29,6 +34,11 @@ class ipTV_lib {
         if (FETCH_BOUQUETS) {
             self::$Bouquets = self::getBouquets();
         }
+        self::$blockedUA = self::GetBlockedUserAgents();
+        self::$customISP = self::GetIspAddon();
+        self::$blockedISP = self::getBlockedISP();
+        self::$blockedIPs = self::getBlockedIPs();
+        self::$categories = self::getCategories();
         if (self::$StreamingServers[SERVER_ID]["persistent_connections"] != $_INFO["pconnect"]) {
             $_INFO["pconnect"] = self::$StreamingServers[SERVER_ID]["persistent_connections"];
             if (!empty($_INFO) && is_array($_INFO) && !empty($_INFO["db_user"])) {
@@ -36,7 +46,7 @@ class ipTV_lib {
             }
         }
         self::$SegmentsSettings = self::calculateSegNumbers();
-        crontab_refresh();
+        generateCron();
     }
     public static function SimpleWebGet($url, $save_cache = false) {
         if (file_exists(TMP_PATH . md5($url)) && time() - filemtime(TMP_PATH . md5($url)) <= 300) {
@@ -85,10 +95,27 @@ class ipTV_lib {
         self::setCache('bouquets', $output);
         return $output;
     }
-    public static function getSettings() {
-        $cache = self::getCache('settings', 20);
-        if (!empty($cache)) {
-            return $cache;
+    /**
+     * Retrieves application settings from the database.
+     *
+     * This method first checks if a cached version of the settings is available.
+     * If caching is not forced and a valid cache exists, it returns the cached data.
+     * If caching is disabled or the cache is empty, it queries the database for the 
+     * settings and updates the cache with the retrieved results.
+     *
+     *
+     * @param bool $rForce Optional. If set to true, the method will bypass the cache 
+     *                     and always fetch the settings from the database. Default is false.
+     *
+     * @return array An associative array of settings. Returns an empty array if no 
+     *               settings are found.
+     */
+    public static function getSettings($rForce = false) {
+        if (!$rForce) {
+            $cache = self::getCache('settings', 20);
+            if (!empty($cache)) {
+                return $cache;
+            }
         }
         $output = array();
         self::$ipTV_db->query("SELECT * FROM `settings`");
@@ -97,7 +124,144 @@ class ipTV_lib {
             $output[$key] = $val;
         }
         $output["allow_countries"] = json_decode($output["allow_countries"], true);
+        $output["allowed_stb_types"] = @array_map("strtolower", json_decode($output["allowed_stb_types"], true));
+        $output["stalker_lock_images"] = json_decode($output["stalker_lock_images"], true);
+        $output["use_https"] = json_decode($output["use_https"], true);
+        $output["stalker_container_priority"] = json_decode($output["stalker_container_priority"], true);
+        $output["gen_container_priority"] = json_decode($output["gen_container_priority"], true);
+        if (array_key_exists("bouquet_name", $output)) {
+            $output["bouquet_name"] = str_replace(" ", "_", $output["bouquet_name"]);
+        }
+        $output["api_ips"] = explode(",", $output["api_ips"]);
+        self::setCache('settings', $output);
         return $output;
+    }
+    /**
+     * Retrieves a list of blocked IP addresses from the database.
+     *
+     * This method first checks if a cached version of the blocked IPs is available.
+     * If caching is not forced and a valid cache exists, it returns the cached data.
+     * If caching is disabled or the cache is empty, it queries the database for 
+     * the blocked IPs and updates the cache with the retrieved results.
+     *
+     * @param bool $rForce Optional. If set to true, the method will bypass the cache 
+     *                     and always fetch the blocked IPs from the database. Default is false.
+     *
+     * @return array An array of blocked IP addresses. Returns an empty array if no 
+     *               blocked IPs are found.
+     */
+    public static function getBlockedIPs($rForce = false) {
+        if (!$rForce) {
+            $cache = self::getCache('blocked_ips', 20);
+            if (!empty($cache)) {
+                return $cache;
+            }
+        }
+        $output = array();
+        self::$ipTV_db->query('SELECT `ip` FROM `blocked_ips`');
+        foreach (self::$ipTV_db->get_rows() as $row) {
+            $output[] = $row['ip'];
+        }
+        self::setCache('blocked_ips', $output);
+        return $output;
+    }
+    /** 
+     * Retrieves the list of blocked ISPs from the cache or database. 
+     * 
+     * @return array The list of blocked ISPs with their IDs, ISP names, and blocked status. 
+     */
+    public static function getBlockedISP($rForce = false) {
+        if (!$rForce) {
+            $cache = self::getCache('blocked_isp', 20);
+            if (!empty($cache)) {
+                return $cache;
+            }
+        }
+
+        self::$ipTV_db->query('SELECT id,isp,blocked FROM `blocked_isps`');
+        $output = self::$ipTV_db->get_rows();
+        self::setCache('blocked_isp', $output);
+        return $output;
+    }
+    /**
+     * Retrieves a list of blocked user agents from the database.
+     *
+     * This method checks if a cached version of the blocked user agents is available.
+     * If caching is disabled or the cache is empty, it queries the database for the 
+     * blocked user agents and updates the cache with the retrieved results.
+     *
+     * @param bool $rForce Optional. If set to true, the method will bypass the cache 
+     *                     and always fetch the user agents from the database. Default is false.
+     *
+     * @return array An associative array of blocked user agents, where the keys are 
+     *               the IDs of the user agents and the values are the user agent strings 
+     *               in lowercase. Returns an empty array if no blocked user agents are found.
+     */
+    public static function GetBlockedUserAgents($rForce = false) {
+        if (!$rForce) {
+            $cache = self::getCache('blocked_ua', 20);
+            if (!empty($cache)) {
+                return $cache;
+            }
+        }
+        $output = array();
+        self::$ipTV_db->query("SELECT id,exact_match,LOWER(user_agent) as blocked_ua FROM `blocked_user_agents`");
+        $output = self::$ipTV_db->get_rows(true, "id");
+        self::setCache('blocked_ua', $output);
+        return $output;
+    }
+    public static function GetIspAddon($rForce = false) {
+        if (!$rForce) {
+            $cache = self::getCache('customisp', 60);
+            if (!empty($cache)) {
+                return $cache;
+            }
+        }
+        $output = array();
+        self::$ipTV_db->query("SELECT id,isp,blocked FROM `isp_addon`");
+        $output = self::$ipTV_db->get_rows();
+        self::setCache('customisp', $output);
+        return $output;
+    }
+    /**
+     * Retrieves stream categories from the database.
+     *
+     * This method can retrieve categories based on a specific category type or,
+     * if no type is provided, it fetches all categories. The method first checks 
+     * if a category type is specified and queries the database accordingly. If 
+     * the type is provided, it fetches categories of that type. If no type is 
+     * specified and caching is not forced, it checks for a cached version of the 
+     * categories. If a valid cache exists, it returns the cached data. If caching 
+     * is disabled or the cache is empty, it retrieves all categories from the 
+     * database and updates the cache with the results.
+     *
+     * @param string|null $rType Optional. The type of category to retrieve. If 
+     *                           specified, it limits the results to categories of 
+     *                           that type. Default is null, which retrieves all 
+     *                           categories.
+     * @param bool $rForce Optional. If set to true, the method will bypass the 
+     *                     cache and always fetch the categories from the database. 
+     *                     Default is false.
+     *
+     * @return array An associative array of stream categories, where the keys 
+     *               are the category IDs. Returns an empty array if no categories 
+     *               are found.
+     */
+    public static function getCategories($rType = null, $rForce = false) {
+        if (is_string($rType)) {
+            self::$ipTV_db->query('SELECT t1.* FROM `stream_categories` t1 WHERE t1.category_type = ? GROUP BY t1.id ORDER BY t1.cat_order ASC', $rType);
+            return (0 < self::$ipTV_db->num_rows() ? self::$ipTV_db->get_rows(true, 'id') : array());
+        }
+        if (!$rForce) {
+            $rCache = self::getCache('categories', 20);
+            if (!empty($rCache)) {
+                return $rCache;
+            }
+        }
+        self::$ipTV_db->query('SELECT t1.* FROM `stream_categories` t1 ORDER BY t1.cat_order ASC');
+        $rCategories = (0 < self::$ipTV_db->num_rows() ? self::$ipTV_db->get_rows(true, 'id') : array());
+        self::setCache('categories', $rCategories);
+        return $rCategories;
     }
     /** 
      * Sets the cache data for a given cache key. 
@@ -129,37 +293,46 @@ class ipTV_lib {
         }
         return null;
     }
-    public static function getServers() {
-        $cache = self::getCache('servers', 20);
-        if (!empty($cache)) {
-            return $cache;
+    public static function getServers($rForce = false) {
+        if (!$rForce) {
+            $cache = self::getCache('servers', 20);
+            if (!empty($cache)) {
+                return $cache;
+            }
         }
-        self::$ipTV_db->query("SELECT * FROM `streaming_servers`");
-        $servers = array();
         if (empty($_SERVER["REQUEST_SCHEME"])) {
             $_SERVER["REQUEST_SCHEME"] = "http";
         }
+        self::$ipTV_db->query("SELECT * FROM `streaming_servers`");
+        $servers = array();
+        $server_status = array(1, 3);
         foreach (self::$ipTV_db->get_rows() as $row) {
             if (!empty($row["vpn_ip"]) && inet_pton($row["vpn_ip"]) !== false) {
                 $url = $row["vpn_ip"];
-            } elseif (empty($row["domain_name"])) {
-                $url = $row["server_ip"];
-            } else {
+            } elseif (!empty($row["domain_name"])) {
                 $url = str_replace(array("http://", "/", "https://"), '', $row["domain_name"]);
+            } else {
+                $url = $row["server_ip"];
             }
             $server_protocol = is_array(self::$settings["use_https"]) && in_array($row["id"], self::$settings["use_https"]) ? "https" : "http";
             $http_port = ($server_protocol == 'http' ? intval($row['http_broadcast_port']) : intval($row['https_broadcast_port']));
+            $row["server_protocol"] = $server_protocol;
+            $row["request_port"] = $http_port;
             $row["api_url"] = $server_protocol . "://" . $url . ":" . $http_port . "/system_api.php?password=" . ipTV_lib::$settings["live_streaming_pass"];
             $row["site_url"] = $server_protocol . "://" . $url . ":" . $http_port . "/";
             $row["rtmp_server"] = "rtmp://" . $url . ":" . $row["rtmp_port"] . "/live/";
             $row["rtmp_mport_url"] = "http://127.0.0.1:31210/";
             $row["api_url_ip"] = $server_protocol . "://" . $row["server_ip"] . ":" . $http_port . "/system_api.php?password=" . ipTV_lib::$settings["live_streaming_pass"];
-            $row["api_url_ip_local"] = $server_protocol . "://127.0.0.1:" . $http_port . "/system_api.php?password=" . ipTV_lib::$settings["live_streaming_pass"];
             $row["site_url_ip"] = $server_protocol . "://" . $row["server_ip"] . ":" . $http_port . "/";
             $row["geoip_countries"] = empty($row["geoip_countries"]) ? array() : json_decode($row["geoip_countries"], true);
-            unset($row["ssh_password"], $row["watchdog_data"], $row["last_check_ago"], $row["server_hardware"]);
+            $row["isp_names"] = empty($row["isp_names"]) ? array() : json_decode($row["isp_names"], true);
+            $row["server_online"] = in_array($row["status"], $server_status) && time() - $row["last_check_ago"] <= 90 || SERVER_ID == $row["id"] ? true : false;
+            $row['domains'] = array('protocol' => $server_protocol, 'port' => $http_port, 'urls' => array_filter(array_map('escapeshellcmd', explode(',', $row['domain_name']))));
+            unset($row["ssh_password"], $row["watchdog_data"], $row["last_check_ago"]);
             $servers[intval($row["id"])] = $row;
         }
+        self::setCache('servers', $servers);
+
         return $servers;
     }
     public static function cleanGlobals(&$data, $iteration = 0) {
@@ -249,5 +422,42 @@ class ipTV_lib {
         }
         file_put_contents($rFilename, getmypid());
         return false;
+    }
+    public static function isRunning() {
+        $rNginx = 0;
+        exec('ps -fp $(pgrep -u xtreamcodes)', $rOutput, $rReturnVar);
+        foreach ($rOutput as $rProcess) {
+            $rSplit = explode(' ', preg_replace('!\\s+!', ' ', trim($rProcess)));
+            if ($rSplit[8] == 'nginx:' && $rSplit[9] == 'master') {
+                $rNginx++;
+            }
+        }
+        return $rNginx > 0;
+    }
+    /**
+     * Deletes a file from the filesystem if it exists.
+     *
+     * This function checks if the specified file exists at the given file path. 
+     * If the file exists, it attempts to delete it using the `unlink` function.
+     *
+     * @param string $filePath The path to the file that needs to be deleted.
+     * @return void This function does not return a value. It performs the deletion 
+     *              operation and will not raise an error if the file does not exist.
+     */
+    public static function unlink_file($filePath) {
+        if (file_exists($filePath)) {
+            unlink($filePath);
+        }
+    }
+    public static function confirmIDs($rIDs) {
+        $rReturn = array();
+
+        foreach ($rIDs as $rID) {
+            if (intval($rID) > 0) {
+                $rReturn[] = $rID;
+            }
+        }
+
+        return $rReturn;
     }
 }

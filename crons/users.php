@@ -1,87 +1,213 @@
 <?php
-/*Rev:26.09.18r0*/
-
-set_time_limit(0);
-ini_set('memory_limit', -1);
-if (!@$argc) {
-    die(0);
+if (posix_getpwuid(posix_geteuid())['name'] == 'xtreamcodes') {
+    set_time_limit(0);
+    ini_set('memory_limit', -1);
+    if ($argc) {
+        register_shutdown_function('shutdown');
+        require str_replace('\\', '/', dirname($argv[0])) . '/../wwwdir/init.php';
+        cli_set_process_title('XtreamCodes[Users Parser]');
+        $unique_id = CRONS_TMP_PATH . md5(generateUniqueCode() . __FILE__);
+        ipTV_lib::check_cron($unique_id);
+        $rSync = null;
+        if (ipTV_lib::$StreamingServers[SERVER_ID]['is_main']) {
+            ipTV_lib::$StreamingServers = ipTV_lib::getServers(true);
+            $rPHPPIDs = array();
+            foreach (ipTV_lib::$StreamingServers as $rServer) {
+                $rPHPPIDs[$rServer['id']] = (array_map('intval', json_decode($rServer['php_pids'], true)) ?: array());
+            }
+        }
+        loadCron();
+    } else {
+        exit(0);
+    }
+} else {
+    exit('Please run as XtreamCodes!' . "\n");
 }
+function processDeletions($rDelete, $rDelStream = array()) {
+    global $ipTV_db;
+    $rTime = time();
 
-function checkfpm($pid, $prname) {
-    return shell_exec('ps -p ' . $pid . ' | grep ' . $prname);
+    foreach ($rDelete as $rServerID => $rConnections) {
+        if (0 >= count($rConnections)) {
+        } else {
+            $ipTV_db->query("DELETE FROM `lines_live` WHERE `uuid` IN ('" . implode("','", $rConnections) . "')");
+        }
+    }
+
+    foreach ($rDelete as $rServerID => $rConnections) {
+        if ($rServerID != SERVER_ID) {
+            $rQuery = '';
+            foreach ($rConnections as $rConnection) {
+                $rQuery .= '(' . $rServerID . ',1,' . $rTime . ',' . $ipTV_db->escape(json_encode(array('type' => 'delete_con', 'uuid' => $rConnection))) . '),';
+            }
+            $rQuery = rtrim($rQuery, ',');
+            if (!empty($rQuery)) {
+                $ipTV_db->query('INSERT INTO `signals`(`server_id`, `cache`, `time`, `custom_data`) VALUES ' . $rQuery . ';');
+            }
+        }
+    }
+    foreach ($rDelStream as $rStreamID => $rConnections) {
+        foreach ($rConnections as $rConnection) {
+            ipTV_lib::unlink_file(CONS_TMP_PATH . $rStreamID . '/' . $rConnection);
+        }
+    }
+    return array();
 }
+function loadCron() {
+    global $ipTV_db;
+    global $rPHPPIDs;
+    $rStartTime = time();
+    if (ipTV_lib::$StreamingServers[SERVER_ID]['is_main']) {
+        $rAutoKick = ipTV_lib::$settings['user_auto_kick_hours'] * 3600;
+        $rLiveKeys = $rDelete = $rDeleteStream = array();
 
-require str_replace('\\', '/', dirname($argv[0])) . '/../wwwdir/init.php';
-cli_set_process_title('XtreamCodes[Users Parser]');
-$tmpFile = TMP_PATH . md5(AFFb052cca396818D81004fF99dB49aa() . __FILE__);
-bbd9e78AC32626e138e758e840305A7C($tmpFile);
-$userAutoDisconnect = A78bf8D35765Be2408c50712Ce7A43Ad::$settings['user_auto_kick_hours'] * 3600;
-$userConnection = array();
-$Bcf87c9b8f60adb6d7364a2c5c48f8d8 = f0bb8dBEaB7fb0ECcCc0a73980dBF47A('open');
-$conList = explode('
-', shell_exec('find /home/xtreamcodes/tmp/ -maxdepth 1 -name "*.con" -print0 | xargs -0 grep "" -H'));
-shell_exec('rm -f /home/xtreamcodes/tmp/*.con');
-foreach ($Bcf87c9b8f60adb6d7364a2c5c48f8d8 as $E38668abaa324e464e266fb7b7e784b1 => $E80aae019385d9c9558555fb07017028) {
-    $totalUserConnection = count($E80aae019385d9c9558555fb07017028);
-    foreach ($E80aae019385d9c9558555fb07017028 as $E7cca48cfca85fc445419a32d7d8f973 => $user_activity) {
-        if (!($user_activity['max_connections'] != 0 && $user_activity['max_connections'] < $totalUserConnection)) {
-            if ($user_activity['server_id'] == SERVER_ID) {
-                if (!(!is_null($user_activity['exp_date']) && $user_activity['exp_date'] < time())) {
-                    $duration = time() - $user_activity['date_start'];
-                    if (!($userAutoDisconnect != 0 && $userAutoDisconnect <= $duration && $user_activity['is_restreamer'] == 0)) {
-                        if (!($user_activity['container'] == 'hls')) {
-                            if ($user_activity['container'] != 'rtmp') {
-                                if (Cd89785224751CCa8017139daF9e891e::checkfpm($user_activity['pid'], 'php-fpm')) {
-                                    $userConnection[$user_activity['activity_id']] = intval($user_activity['bitrate'] / 8 * 0.92);
-                                } else {
-                                    echo '[+] Closing Connection (Closed UnExp): ' . $user_activity['activity_id'] . '
-';
-                                    cD89785224751cca8017139DaF9E891E::a1EAe86369aa95A55B4BE332f1E22FE3($user_activity);
+        $rUsers = ipTV_streaming::getConnections((ipTV_lib::$StreamingServers[SERVER_ID]['is_main'] ? null : SERVER_ID));
+
+        $rRestreamerArray = $rMaxConnectionsArray = array();
+        $rUserIDs = ipTV_lib::confirmIDs(array_keys($rUsers));
+        if (0 >= count($rUserIDs)) {
+        } else {
+            $ipTV_db->query('SELECT `id`, `max_connections`, `is_restreamer` FROM `users` WHERE `id` IN (' . implode(',', $rUserIDs) . ');');
+            foreach ($ipTV_db->get_rows() as $rRow) {
+                $rMaxConnectionsArray[$rRow['id']] = $rRow['max_connections'];
+                $rRestreamerArray[$rRow['id']] = $rRow['is_restreamer'];
+            }
+        }
+        foreach ($rUsers as $rUserID => $rConnections) {
+            $rActiveCount = 0;
+            $rMaxConnections = $rMaxConnectionsArray[$rUserID];
+            $rIsRestreamer = ($rRestreamerArray[$rUserID] ?: false);
+            foreach ($rConnections as $rKey => $rConnection) {
+                if ($rConnection['server_id'] == SERVER_ID) {
+                    if (is_null($rConnection['exp_date']) || $rConnection['exp_date'] >= $rStartTime) {
+                        $rTotalTime = $rStartTime - $rConnection['date_start'];
+                        if (!($rAutoKick != 0 && $rAutoKick <= $rTotalTime) || $rIsRestreamer) {
+                            if ($rConnection['container'] == 'hls') {
+                                if (30 <= $rStartTime - $rConnection['hls_last_read'] || $rConnection['hls_end'] == 1) {
+                                    echo 'Close connection: ' . $rConnection['uuid'] . "\n";
+                                    ipTV_streaming::closeConnection($rConnection, false, false);
+
+                                    $rDelete[$rConnection['server_id']][] = $rConnection['uuid'];
+                                    $rDeleteStream[$rConnection['stream_id']] = $rDelete[$rConnection['server_id']];
                                 }
                             } else {
-                                if ((time() - $user_activity['hls_last_read']) <= 60 || $user_activity['hls_end'] == 1) {
-                                    echo '[+] Closing ENDED Con HLS: ' . $user_activity['activity_id'] . '
-';
-                                    cD89785224751CcA8017139daf9e891e::a1EaE86369aa95a55b4BE332f1e22FE3($user_activity);
-                                    $totalUserConnection--;
+                                if ($rConnection['container'] != 'rtmp') {
+                                    if ($rConnection['server_id'] == SERVER_ID) {
+                                        $rIsRunning = ipTV_streaming::isProcessRunning($rConnection['pid'], 'php-fpm');
+                                    } else {
+                                        if ($rConnection['date_start'] <= ipTV_lib::$StreamingServers[$rConnection['server_id']]['last_check_ago'] - 1 && 0 < count($rPHPPIDs[$rConnection['server_id']])) {
+                                            $rIsRunning = in_array(intval($rConnection['pid']), $rPHPPIDs[$rConnection['server_id']]);
+                                        } else {
+                                            $rIsRunning = true;
+                                        }
+                                    }
+                                    if ($rConnection['hls_end'] == 1 && 300 <= $rStartTime - $rConnection['hls_last_read'] && !$rIsRunning) {
+                                        echo 'Close connection: ' . $rConnection['uuid'] . "\n";
+                                        ipTV_streaming::closeConnection($rConnection, false, false);
+
+                                        $rDelete[$rConnection['server_id']][] = $rConnection['uuid'];
+                                        $rDeleteStream[$rConnection['stream_id']] = $rDelete[$rConnection['server_id']];
+                                    }
                                 }
                             }
+                        } else {
+                            echo 'Close connection: ' . $rConnection['uuid'] . "\n";
+                            ipTV_streaming::closeConnection($rConnection, false, false);
+
+                            $rDelete[$rConnection['server_id']][] = $rConnection['uuid'];
+                            $rDeleteStream[$rConnection['stream_id']] = $rDelete[$rConnection['server_id']];
                         }
                     } else {
-                        echo '[+] Closing Connection[KICK TIME ONLINE]: ' . $user_activity['activity_id'] . '
-';
-                        cd89785224751cCA8017139daf9e891E::a1eAe86369aa95A55B4Be332f1e22fe3($user_activity);
-                        $totalUserConnection--;
+                        echo 'Close connection: ' . $rConnection['uuid'] . "\n";
+                        ipTV_streaming::closeConnection($rConnection, false, false);
+
+                        $rDelete[$rConnection['server_id']][] = $rConnection['uuid'];
+                        $rDeleteStream[$rConnection['stream_id']] = $rDelete[$rConnection['server_id']];
                     }
+                }
+                if ($rConnection['hls_end']) {
                 } else {
-                    echo '[+] Closing Connection: ' . $user_activity['activity_id'] . '
-';
-                    cD89785224751CCA8017139daf9e891E::A1EAE86369AA95A55B4be332F1e22Fe3($user_activity);
-                    $totalUserConnection = 0;
+                    $rActiveCount++;
                 }
             }
-        } else {
-            echo '[+] Closing Connection caused max Connections overflow...
-';
-            Cd89785224751CCa8017139daF9e891E::A1Eae86369Aa95a55b4be332f1e22Fe3($user_activity);
-            $totalUserConnection--;
+            if (ipTV_lib::$StreamingServers[SERVER_ID]['is_main'] && 0 < $rMaxConnections && $rMaxConnections < $rActiveCount) {
+                foreach ($rConnections as $rKey => $rConnection) {
+                    if ($rConnection['hls_end']) {
+                    } else {
+                        echo 'Close connection: ' . $rConnection['uuid'] . "\n";
+                        ipTV_streaming::closeConnection($rConnection, false, false);
+
+                        $rDelete[$rConnection['server_id']][] = $rConnection['uuid'];
+                        $rDeleteStream[$rConnection['stream_id']] = $rDelete[$rConnection['server_id']];
+
+                        $rActiveCount--;
+                    }
+                    if ($rActiveCount > $rMaxConnections) {
+                    } else {
+                        break;
+                    }
+                }
+            }
+            if (1000 < count($rDelete)) {
+                $rDelete = processDeletions($rDelete, $rDeleteStream);
+            }
         }
+        if (count($rDelete) > 0) {
+            processDeletions($rDelete, $rDeleteStream);
+        }
+    }
+    $rConnectionSpeeds = glob(DIVERGENCE_TMP_PATH . '*');
+    if (count($rConnectionSpeeds) > 0) {
+        $rBitrates = array();
+        $ipTV_db->query('SELECT `lines_live`.`uuid`, `streams_servers`.`bitrate` FROM `lines_live` LEFT JOIN `streams_servers` ON `lines_live`.`stream_id` = `streams_servers`.`stream_id` AND `lines_live`.`server_id` = `streams_servers`.`server_id` WHERE `lines_live`.`server_id` = \'%s\';', SERVER_ID);
+        foreach ($ipTV_db->get_rows() as $rRow) {
+            $rBitrates[$rRow['uuid']] = intval($rRow['bitrate'] / 8 * 0.92);
+        }
+
+        $rUUIDMap = array();
+        $ipTV_db->query('SELECT `uuid`, `activity_id` FROM `lines_live`;');
+        foreach ($ipTV_db->get_rows() as $rRow) {
+            $rUUIDMap[$rRow['uuid']] = $rRow['activity_id'];
+        }
+
+        $rLiveQuery = $rDivergenceUpdate = array();
+        foreach ($rConnectionSpeeds as $rConnectionSpeed) {
+            if (!empty($rConnectionSpeed)) {
+                $rUUID = basename($rConnectionSpeed);
+                $rAverageSpeed = intval(file_get_contents($rConnectionSpeed));
+                $rDivergence = intval(($rAverageSpeed - $rBitrates[$rUUID]) / $rBitrates[$rUUID] * 100);
+                if ($rDivergence > 0) {
+                    $rDivergence = 0;
+                }
+                $rDivergenceUpdate[] = "('" . $rUUID . "', " . abs($rDivergence) . ')';
+                if (isset($rUUIDMap[$rUUID])) {
+                    $rLiveQuery[] = '(' . $rUUIDMap[$rUUID] . ', ' . abs($rDivergence) . ')';
+                }
+            }
+        }
+        if (count($rDivergenceUpdate) > 0) {
+            $rUpdateQuery = implode(',', $rDivergenceUpdate);
+            $ipTV_db->query('INSERT INTO `lines_divergence`(`uuid`,`divergence`) VALUES ' . $rUpdateQuery . ' ON DUPLICATE KEY UPDATE `divergence`=VALUES(`divergence`);');
+        }
+        if (count($rLiveQuery) > 0) {
+            $rLiveQuery = implode(',', $rLiveQuery);
+            $ipTV_db->query('INSERT INTO `lines_live`(`activity_id`,`divergence`) VALUES ' . $rLiveQuery . ' ON DUPLICATE KEY UPDATE `divergence`=VALUES(`divergence`);');
+        }
+        shell_exec('rm -f ' . DIVERGENCE_TMP_PATH . '*');
+    }
+    if (ipTV_lib::$StreamingServers[SERVER_ID]['is_main']) {
+        $ipTV_db->query('DELETE FROM `lines_divergence` WHERE `uuid` NOT IN (SELECT `uuid` FROM `lines_live`);');
+    }
+    if (ipTV_lib::$StreamingServers[SERVER_ID]['is_main']) {
+        $ipTV_db->query('DELETE FROM `lines_live` WHERE `uuid` IS NULL;');
     }
 }
-foreach ($conList as $arrayLine) {
-    if (empty($arrayLine)) {
-        continue;
-    }
-    list($conFile, $conPid) = explode(':', basename($arrayLine));
-    list($conID, $fextension) = explode('.', $conFile);
-    if (isset($userConnection[$conID])) {
-        $divergence = intval(($conPid - $userConnection[$conID]) / $userConnection[$conID] * 100);
-        if (0 < $divergence) {
-            $divergence = 0;
-        }
-        $f566700a43ee8e1f0412fe10fbdf03df->query('UPDATE `user_activity_now` SET `divergence` = \'%d\' WHERE `activity_id` = \'%d\'', abs($divergence), $conID);
+function shutdown() {
+    global $ipTV_db;
+    global $unique_id;
+    if (!is_object($ipTV_db)) {
     } else {
-        @unlink(TMP_PATH . $conFile);
+        $ipTV_db->close_mysql();
     }
+    @unlink($unique_id);
 }
-@unlink($tmpFile);

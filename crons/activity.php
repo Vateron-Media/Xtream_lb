@@ -1,43 +1,76 @@
 <?php
-
-set_time_limit(0);
-if ($argc) {
-    require str_replace("\\", "/", dirname($argv[0])) . "/../wwwdir/init.php";
-    $D3b211a38e2eb607ab17f4f6770932e5 = TMP_PATH . md5(UniqueID() . __FILE__);
-    KillProcessCmd($D3b211a38e2eb607ab17f4f6770932e5);
-    $E6ecbe8e89c77744a256939f9ba4dbee = TMP_PATH . "offline_cons";
-    if (ipTV_lib::$settings["save_closed_connection"] != 0) {
-        $e86143ae714b5db9373cfb584f8aaf70 = "";
-        if (file_exists($E6ecbe8e89c77744a256939f9ba4dbee)) {
-            f16d3e5b6ae28bdb3e45d1c117ea0f14($E6ecbe8e89c77744a256939f9ba4dbee, $e86143ae714b5db9373cfb584f8aaf70);
-            unlink($E6ecbe8e89c77744a256939f9ba4dbee);
-        }
-        $e86143ae714b5db9373cfb584f8aaf70 = rtrim($e86143ae714b5db9373cfb584f8aaf70, ",");
-        if (!empty($e86143ae714b5db9373cfb584f8aaf70)) {
-            $ipTV_db->simple_query("INSERT INTO `user_activity` (`server_id`,`user_id`,`isp`,`external_device`,`stream_id`,`date_start`,`user_agent`,`user_ip`,`date_end`,`container`,`geoip_country_code`) VALUES " . $e86143ae714b5db9373cfb584f8aaf70);
-        }
+if (posix_getpwuid(posix_geteuid())['name'] == 'xtreamcodes') {
+    set_time_limit(0);
+    if ($argc) {
+        register_shutdown_function('shutdown');
+        require str_replace('\\', '/', dirname($argv[0])) . '/../wwwdir/init.php';
+        cli_set_process_title('XtreamCodes[Activity]');
+        $unique_id = CRONS_TMP_PATH . md5(generateUniqueCode() . __FILE__);
+        ipTV_lib::check_cron($unique_id);
+        loadCron();
     } else {
-        if (file_exists($E6ecbe8e89c77744a256939f9ba4dbee)) {
-            unlink($E6ecbe8e89c77744a256939f9ba4dbee);
-        }
-        exit;
+        exit(0);
     }
 } else {
-    exit(0);
+    exit('Please run as XtreamCodes!' . "\n");
 }
-function F16D3e5B6Ae28bdB3e45d1c117eA0f14($E45cb49615d9ff0c133fcdeaa506ddb6, &$e86143ae714b5db9373cfb584f8aaf70) {
+function loadCron() {
     global $ipTV_db;
-    if (file_exists($E45cb49615d9ff0c133fcdeaa506ddb6)) {
-        $b4ad7225f6375fe5d757d3c7147fb034 = fopen($E45cb49615d9ff0c133fcdeaa506ddb6, "r");
-        while (feof($b4ad7225f6375fe5d757d3c7147fb034)) {
-            $Df3643b77de72fea7002c5acff85b896 = trim(fgets($b4ad7225f6375fe5d757d3c7147fb034));
-            if (!empty($Df3643b77de72fea7002c5acff85b896)) {
-                $Df3643b77de72fea7002c5acff85b896 = json_decode(base64_decode($Df3643b77de72fea7002c5acff85b896), true);
-                $Df3643b77de72fea7002c5acff85b896 = array_map([$ipTV_db, "escape"], $Df3643b77de72fea7002c5acff85b896);
-                $e86143ae714b5db9373cfb584f8aaf70 .= "(" . SERVER_ID . ",'" . $Df3643b77de72fea7002c5acff85b896["user_id"] . "','" . $Df3643b77de72fea7002c5acff85b896["isp"] . "','" . $Df3643b77de72fea7002c5acff85b896["external_device"] . "','" . $Df3643b77de72fea7002c5acff85b896["stream_id"] . "','" . $Df3643b77de72fea7002c5acff85b896["date_start"] . "','" . $Df3643b77de72fea7002c5acff85b896["user_agent"] . "','" . $Df3643b77de72fea7002c5acff85b896["user_ip"] . "','" . $Df3643b77de72fea7002c5acff85b896["date_end"] . "','" . $Df3643b77de72fea7002c5acff85b896["container"] . "','" . $Df3643b77de72fea7002c5acff85b896["geoip_country_code"] . "'),";
+    $rLogFile = LOGS_TMP_PATH . 'activity';
+    $rUpdateQuery = $rQuery = '';
+    $rUpdates = array();
+    $rCount = 0;
+    if (file_exists($rLogFile)) {
+        list($rQuery, $rUpdates, $rCount) = parseLog($rLogFile);
+        unlink($rLogFile);
+    }
+    if ($rCount > 0) {
+        $rQuery = rtrim($rQuery, ',');
+        if (!empty($rQuery)) {
+            if ($ipTV_db->query('INSERT INTO `user_activity` (`server_id`,`user_id`,`isp`,`external_device`,`stream_id`,`date_start`,`user_agent`,`user_ip`,`date_end`,`container`,`geoip_country_code`,`divergence`) VALUES ' . $rQuery)) {
+                $rFirstID = $ipTV_db->last_insert_id();
+                $i = 0;
+                while ($i < $rCount) {
+                    $rUpdateQuery .= '(' . $rUpdates[$i][0] . ',\'' . $ipTV_db->escape($rUpdates[$i][1]) . '\',' . ($rFirstID + $i) . ',' . json_encode($rUpdates[$i][2]) . '),';
+                    $i++;
+                }
             }
         }
-        fclose($b4ad7225f6375fe5d757d3c7147fb034);
     }
-    return $e86143ae714b5db9373cfb584f8aaf70;
+    $rUpdateQuery = rtrim($rUpdateQuery, ',');
+    if (!empty($rUpdateQuery)) {
+        $ipTV_db->query('INSERT INTO `users`(`id`,`last_ip`,`last_activity`,`last_activity_array`) VALUES ' . $rUpdateQuery . ' ON DUPLICATE KEY UPDATE `id`=VALUES(`id`), `last_ip`=VALUES(`last_ip`), `last_activity`=VALUES(`last_activity`), `last_activity_array`=VALUES(`last_activity_array`);');
+    }
+}
+function parseLog($rFile) {
+    global $ipTV_db;
+    $rQuery = '';
+    $rUpdates = array();
+    $rCount = 0;
+    if (file_exists($rFile)) {
+        $rFP = fopen($rFile, 'r');
+        while (!feof($rFP)) {
+            $rLine = trim(fgets($rFP));
+            if (!empty($rLine)) {
+                $rLine = json_decode(base64_decode($rLine), true);
+                if ($rLine['server_id'] && $rLine['user_id'] && $rLine['stream_id'] && $rLine['user_ip']) {
+                    $rUpdates[] = array($rLine['user_id'], $rLine['user_ip'], json_encode(array('date_end' => $rLine['date_end'], 'stream_id' => $rLine['stream_id'])));
+                    $rLine = array_map(array($ipTV_db, 'escape'), $rLine);
+                    $rQuery .= '(' . $rLine['server_id'] . ',' . $rLine['user_id'] . ',\'' . $rLine['isp'] . '\',\'' . $rLine['external_device'] . '\',' . $rLine['stream_id'] . ',' . $rLine['date_start'] . ',\'' . $rLine['user_agent'] . '\',\'' . $rLine['user_ip'] . '\',' . $rLine['date_end'] . ',\'' . $rLine['container'] . '\',\'' . $rLine['geoip_country_code'] . '\',' . $rLine['divergence'] . '),';
+                    $rCount++;
+                }
+                break;
+            }
+        }
+        fclose($rFP);
+    }
+    return array($rQuery, $rUpdates, $rCount);
+}
+function shutdown() {
+    global $ipTV_db;
+    global $unique_id;
+    if (is_object($ipTV_db)) {
+        $ipTV_db->close_mysql();
+    }
+    @unlink($unique_id);
 }

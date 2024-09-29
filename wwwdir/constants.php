@@ -38,6 +38,15 @@ define('CACHE_TMP_PATH', TMP_PATH . 'cache/');
 define('CONS_TMP_PATH', TMP_PATH . 'opened_cons/');
 define('LOGS_TMP_PATH', TMP_PATH . 'logs/');
 define('CRONS_TMP_PATH', TMP_PATH . 'crons/');
+define('DIVERGENCE_TMP_PATH', TMP_PATH . 'divergence/');
+define('FLOOD_TMP_PATH', TMP_PATH . 'flood/');
+define('STALKER_TMP_PATH', TMP_PATH . 'stalker/');
+// -------------------
+
+// CACHE FOLDERS
+define('STREAMS_TMP_PATH', CACHE_TMP_PATH . 'streams/');
+define('USER_TMP_PATH', CACHE_TMP_PATH . 'users/');
+define('SERIES_TMP_PATH', CACHE_TMP_PATH . 'series/');
 // -------------------
 
 //CONTENT FOLDERS
@@ -62,6 +71,9 @@ define('OPENSSL_EXTRA', '5gd46z5s4fg6sd8f4gs6');
 define('RESTART_TAKE_CACHE', 5);
 define('TOTAL_SAVES_DROP', 6);
 // -------------------
+
+// Temporary variables that should be added to the panel settings
+define('CACHE_PLAYLIST', 60);
 
 if (!defined("USE_CACHE")) {
     define("USE_CACHE", true);

@@ -1,63 +1,86 @@
 <?php
 
-if ($argc) {
-    require str_replace("\\", "/", dirname($argv[0])) . "/../wwwdir/init.php";
-    $D3b211a38e2eb607ab17f4f6770932e5 = TMP_PATH . md5(UniqueID() . __FILE__);
-    KillProcessCmd($D3b211a38e2eb607ab17f4f6770932e5);
-    cli_set_process_title("XtreamCodes[VOD CC Checker]");
-    ini_set("memory_limit", -1);
-    $D06be8460e891963b999cef4fd2ddef8 = ipTV_servers::fBBdd88eb1b3703a5A7867411EfFce35(SERVER_ID, FFMPEG_PATH);
-    $ipTV_db->query("SELECT t1.*,t2.* FROM `streams_sys` t1 \n                INNER JOIN `streams` t2 ON t2.id = t1.stream_id AND t2.direct_source = 0\n                INNER JOIN `streams_types` t3 ON t3.type_id = t2.type AND t3.live = 0\n                WHERE (t1.to_analyze = 1 OR t1.stream_status = 2) AND t1.server_id = '%d'", SERVER_ID);
+if (posix_getpwuid(posix_geteuid())['name'] == 'xtreamcodes') {
+    if ($argc) {
+        register_shutdown_function('shutdown');
+        require str_replace('\\', '/', dirname($argv[0])) . '/../wwwdir/init.php';
+        cli_set_process_title('XtreamCodes[VOD CC Checker]');
+        $unique_id = CRONS_TMP_PATH . md5(generateUniqueCode() . __FILE__);
+        ipTV_lib::check_cron($unique_id);
+        ini_set('memory_limit', -1);
+        loadCron();
+    } else {
+        exit(0);
+    }
+} else {
+    exit('Please run as XtreamCodes!' . "\n");
+}
+
+function loadCron() {
+    global $ipTV_db;
+    $ipTV_db->query('SELECT * FROM `streams` t1 INNER JOIN `transcoding_profiles` t2 ON t2.profile_id = t1.transcode_profile_id WHERE t1.type = 3');
     if (0 < $ipTV_db->num_rows()) {
-        $d5f8c5a2322bee76eff752938046634a = $ipTV_db->get_rows();
-        foreach ($d5f8c5a2322bee76eff752938046634a as $Fa2325a1b301ca7c383cb69087c42d91) {
-            echo "[*] Checking Movie " . $Fa2325a1b301ca7c383cb69087c42d91["stream_display_name"] . " ON Server ID " . $Fa2325a1b301ca7c383cb69087c42d91["server_id"] . " \t\t---> ";
-            if ($Fa2325a1b301ca7c383cb69087c42d91["to_analyze"] == 1) {
-                if (!empty($D06be8460e891963b999cef4fd2ddef8[$Fa2325a1b301ca7c383cb69087c42d91["server_id"]]) && in_array($Fa2325a1b301ca7c383cb69087c42d91["pid"], $D06be8460e891963b999cef4fd2ddef8[$Fa2325a1b301ca7c383cb69087c42d91["server_id"]])) {
+        $streams = $ipTV_db->get_rows();
+        foreach ($streams as $stream) {
+            echo "\n\n[*] Checking Stream " . $stream['stream_display_name'] . "\n";
+            ipTV_stream::TranscodeBuild($stream['id']);
+            switch (ipTV_stream::TranscodeBuild($stream['id'])) {
+                case 1:
+                    echo "\tBuild Is Still Going!\n";
+                    break;
+                case 2:
+                    echo "\tBuild Finished\n";
+                    break;
+            }
+        }
+    }
+    $pid = ipTV_servers::getPidFromProcessName(SERVER_ID, FFMPEG_PATH);
+    $ipTV_db->query("SELECT t1.*,t2.* FROM `streams_servers` t1 INNER JOIN `streams` t2 ON t2.id = t1.stream_id AND t2.direct_source = 0 INNER JOIN `streams_types` t3 ON t3.type_id = t2.type AND t3.live = 0 WHERE (t1.to_analyze = 1 OR t1.stream_status = 2) AND t1.server_id = '%d'", SERVER_ID);
+    if (0 < $ipTV_db->num_rows()) {
+        $series_data = $ipTV_db->get_rows();
+        foreach ($series_data as $data) {
+            echo '[*] Checking Movie ' . $data['stream_display_name'] . ' ON Server ID ' . $data['server_id'] . " \t\t---> ";
+            if ($data['to_analyze'] == 1) {
+                if (!empty($pid[$data['server_id']]) && in_array($data['pid'], $pid[$data['server_id']])) {
                     echo "WORKING\n";
                 } else {
                     echo "\n\n\n";
-                    $Ecd19d611581ce12bbdc70025666abf9 = json_decode($Fa2325a1b301ca7c383cb69087c42d91["target_container"], true);
+                    $target_container = json_decode($data['target_container'], true);
                     if (json_last_error() === JSON_ERROR_NONE) {
-                        $Fa2325a1b301ca7c383cb69087c42d91["target_container"] = $Ecd19d611581ce12bbdc70025666abf9;
+                        $data['target_container'] = $target_container;
                     } else {
-                        $Fa2325a1b301ca7c383cb69087c42d91["target_container"] = [$Fa2325a1b301ca7c383cb69087c42d91["target_container"]];
+                        $data['target_container'] = array($data['target_container']);
                     }
-                    $Fa2325a1b301ca7c383cb69087c42d91["target_container"] = $Fa2325a1b301ca7c383cb69087c42d91["target_container"][0];
-                    $Dd350f4f747e2630abc0a3631701490f = MOVIES_PATH . $Fa2325a1b301ca7c383cb69087c42d91["stream_id"] . "." . $Fa2325a1b301ca7c383cb69087c42d91["target_container"];
-                    if ($a58a92e1c21a65066c6ca36591929d95 = ipTV_stream::analyzeStream($Dd350f4f747e2630abc0a3631701490f, $Fa2325a1b301ca7c383cb69087c42d91["server_id"])) {
-                        $f2d04c1a265fe6228e173c917e0083cb = isset($a58a92e1c21a65066c6ca36591929d95["duration"]) ? $a58a92e1c21a65066c6ca36591929d95["duration"] : 0;
-                        sscanf($f2d04c1a265fe6228e173c917e0083cb, "%d:%d:%d", $f70b4408f306b0946d856dd29a25b89c, $C3701408f451b56ac9f60cf02f5867b3, $e3cf3851f7ee9d4e859bd7fdd6f6b33e);
-                        $f3db7858a998b217cdc28e738fd2182d = isset($e3cf3851f7ee9d4e859bd7fdd6f6b33e) ? $f70b4408f306b0946d856dd29a25b89c * 3600 + $C3701408f451b56ac9f60cf02f5867b3 * 60 + $e3cf3851f7ee9d4e859bd7fdd6f6b33e : $f70b4408f306b0946d856dd29a25b89c * 60 + $C3701408f451b56ac9f60cf02f5867b3;
-                        $c2f883bf459da90a240f9950048443f3 = ipTV_servers::RunCommandServer($Fa2325a1b301ca7c383cb69087c42d91["server_id"], "wc -c < " . $Dd350f4f747e2630abc0a3631701490f, "raw");
-                        $bd8be6cf39eec67640223143174627d0 = round($c2f883bf459da90a240f9950048443f3[$Fa2325a1b301ca7c383cb69087c42d91["server_id"]] * 0 / $f3db7858a998b217cdc28e738fd2182d);
-                        $D972344b0ddea2cd33c173d1f9abed5d = json_decode($Fa2325a1b301ca7c383cb69087c42d91["movie_propeties"], true);
-                        if (is_array($D972344b0ddea2cd33c173d1f9abed5d)) {
-                        } else {
-                            $D972344b0ddea2cd33c173d1f9abed5d = [];
+                    $data['target_container'] = $data['target_container'][0];
+                    $fileURL = VOD_PATH . $data['stream_id'] . '.' . $data['target_container'];
+                    if ($stream_info = ipTV_stream::analyzeStream($fileURL, $data['server_id'])) {
+                        $duration = isset($stream_info['duration']) ? $stream_info['duration'] : 0;
+                        sscanf($duration, '%d:%d:%d', $hours, $minutes, $seconds);
+                        $duration_secs = isset($seconds) ? $hours * 3600 + $minutes * 60 + $seconds : $hours * 60 + $minutes;
+                        $resultCommand = ipTV_servers::RunCommandServer($data['server_id'], 'wc -c < ' . $fileURL, 'raw');
+                        $bitrate = round($resultCommand[$data['server_id']] * 0.008 / $duration_secs);
+                        $movie_properties = json_decode($data['movie_properties'], true);
+                        if (!is_array($movie_properties)) {
+                            $movie_properties = array();
                         }
-                        if (isset($D972344b0ddea2cd33c173d1f9abed5d["duration_secs"]) && $f3db7858a998b217cdc28e738fd2182d == $D972344b0ddea2cd33c173d1f9abed5d["duration_secs"]) {
-                        } else {
-                            $D972344b0ddea2cd33c173d1f9abed5d["duration_secs"] = $f3db7858a998b217cdc28e738fd2182d;
-                            $D972344b0ddea2cd33c173d1f9abed5d["duration"] = $f2d04c1a265fe6228e173c917e0083cb;
+                        if (!isset($movie_properties['duration_secs']) && $duration_secs != $movie_properties['duration_secs']) {
+                            $movie_properties['duration_secs'] = $duration_secs;
+                            $movie_properties['duration'] = $duration;
                         }
-                        if (isset($D972344b0ddea2cd33c173d1f9abed5d["video"]) && $a58a92e1c21a65066c6ca36591929d95["codecs"]["video"]["codec_name"] == $D972344b0ddea2cd33c173d1f9abed5d["video"]) {
-                        } else {
-                            $D972344b0ddea2cd33c173d1f9abed5d["video"] = $a58a92e1c21a65066c6ca36591929d95["codecs"]["video"];
+                        if (!isset($movie_properties['video']) && $stream_info['codecs']['video']['codec_name'] != $movie_properties['video']) {
+                            $movie_properties['video'] = $stream_info['codecs']['video'];
                         }
-                        if (isset($D972344b0ddea2cd33c173d1f9abed5d["audio"]) && $a58a92e1c21a65066c6ca36591929d95["codecs"]["audio"]["codec_name"] == $D972344b0ddea2cd33c173d1f9abed5d["audio"]) {
-                        } else {
-                            $D972344b0ddea2cd33c173d1f9abed5d["audio"] = $a58a92e1c21a65066c6ca36591929d95["codecs"]["audio"];
+                        if (!isset($movie_properties['audio']) && $stream_info['codecs']['audio']['codec_name'] != $movie_properties['audio']) {
+                            $movie_properties['audio'] = $stream_info['codecs']['audio'];
                         }
-                        if (isset($D972344b0ddea2cd33c173d1f9abed5d["bitrate"]) && $bd8be6cf39eec67640223143174627d0 == $D972344b0ddea2cd33c173d1f9abed5d["bitrate"]) {
-                        } else {
-                            $D972344b0ddea2cd33c173d1f9abed5d["bitrate"] = $bd8be6cf39eec67640223143174627d0;
+                        if (!isset($movie_properties['bitrate']) && $bitrate != $movie_properties['bitrate']) {
+                            $movie_properties['bitrate'] = $bitrate;
                         }
-                        $ipTV_db->query("UPDATE `streams` SET `movie_propeties` = '%s' WHERE `id` = '%d'", json_encode($D972344b0ddea2cd33c173d1f9abed5d), $Fa2325a1b301ca7c383cb69087c42d91["stream_id"]);
-                        $ipTV_db->query("UPDATE `streams_sys` SET `bitrate` = '%d',`to_analyze` = 0,`stream_status` = 0,`stream_info` = '%s'  WHERE `server_stream_id` = '%d'", $bd8be6cf39eec67640223143174627d0, json_encode($a58a92e1c21a65066c6ca36591929d95), $Fa2325a1b301ca7c383cb69087c42d91["server_stream_id"]);
+                        $ipTV_db->query("UPDATE `streams` SET `movie_properties` = '%s' WHERE `id` = '%d'", json_encode($movie_properties), $data["stream_id"]);
+                        $ipTV_db->query("UPDATE `streams_servers` SET `bitrate` = '%d',`to_analyze` = 0,`stream_status` = 0,`stream_info` = '%s'  WHERE `server_stream_id` = '%d'", $bitrate, json_encode($stream_info), $data["server_stream_id"]);
                         echo "VALID\n";
                     } else {
-                        $ipTV_db->query("UPDATE `streams_sys` SET `to_analyze` = 0,`stream_status` = 1  WHERE `server_stream_id` = '%d'", $Fa2325a1b301ca7c383cb69087c42d91["server_stream_id"]);
+                        $ipTV_db->query("UPDATE `streams_servers` SET `to_analyze` = 0,`stream_status` = 1  WHERE `server_stream_id` = '%d'", $data["server_stream_id"]);
                         echo "BAD MOVIE\n";
                     }
                 }
@@ -66,6 +89,12 @@ if ($argc) {
             }
         }
     }
-} else {
-    exit(0);
+}
+function shutdown() {
+    global $ipTV_db;
+    global $unique_id;
+    if (is_object($ipTV_db)) {
+        $ipTV_db->close_mysql();
+    }
+    @unlink($unique_id);
 }

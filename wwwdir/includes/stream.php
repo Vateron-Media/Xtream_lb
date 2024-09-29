@@ -539,4 +539,61 @@ class ipTV_stream {
         }
         return $URL;
     }
+    /**
+     * Transcodes and builds a stream based on the provided stream ID.
+     *
+     * This function retrieves stream data from the database, transcodes the stream using FFmpeg with specified attributes, creates a new MPEG-TS file, and updates the stream information in the database accordingly.
+     *
+     * @param int $streamID The ID of the stream to transcode and build.
+     * @return int Returns 1 if the stream is successfully transcoded and built, 2 if there are no PIDs for the channel, or 2 if there are no differences in stream sources.
+     */
+    static function TranscodeBuild($streamID) {
+        self::$ipTV_db->query('SELECT * FROM `streams` t1 LEFT JOIN `transcoding_profiles` t3 ON t1.transcode_profile_id = t3.profile_id WHERE t1.`id` = \'%d\'', $streamID);
+        $stream = self::$ipTV_db->get_row();
+        $stream['cchannel_rsources'] = json_decode($stream['cchannel_rsources'], true);
+        $stream['stream_source'] = json_decode($stream['stream_source'], true);
+        $stream['pids_create_channel'] = json_decode($stream['pids_create_channel'], true);
+        $stream['transcode_attributes'] = json_decode($stream['profile_options'], true);
+
+        // Set default audio and video codecs if not present
+        if (!array_key_exists('-acodec', $stream['transcode_attributes'])) {
+            $stream['transcode_attributes']['-acodec'] = 'copy';
+        }
+        if (!array_key_exists('-vcodec', $stream['transcode_attributes'])) {
+            $stream['transcode_attributes']['-vcodec'] = 'copy';
+        }
+
+        // Construct FFmpeg command
+        $ffmpegCommand = FFMPEG_PATH . ' -fflags +genpts -async 1 -y -nostdin -hide_banner -loglevel quiet -i "{INPUT}" ';
+        $ffmpegCommand .= implode(' ', self::parseTranscode($stream['transcode_attributes'])) . ' ';
+        $ffmpegCommand .= '-strict -2 -mpegts_flags +initial_discontinuity -f mpegts "' . CREATED_CHANNELS . $streamID . '_{INPUT_MD5}.ts" >/dev/null 2>/dev/null & jobs -p';
+
+        $result = array_diff($stream['stream_source'], $stream['cchannel_rsources']);
+        $json_string_data = '';
+
+        // Generate JSON string data for stream sources
+        foreach ($stream['stream_source'] as $source) {
+            $json_string_data .= 'file \'' . CREATED_CHANNELS . $streamID . '_' . md5($source) . '.ts\'';
+        }
+        $json_string_data = base64_encode($json_string_data);
+
+        if ((!empty($result) || $stream['stream_source'] !== $stream['cchannel_rsources'])) {
+            foreach ($result as $source) {
+                $stream['pids_create_channel'][] = ipTV_servers::RunCommandServer($stream['created_channel_location'], str_ireplace(array('{INPUT}', '{INPUT_MD5}'), array($source, md5($source)), $ffmpegCommand), 'raw')[$stream['created_channel_location']];
+            }
+            self::$ipTV_db->query('UPDATE `streams` SET pids_create_channel = \'%s\',`cchannel_rsources` = \'%s\' WHERE `id` = \'%d\'', json_encode($stream['pids_create_channel']), json_encode($stream['stream_source']), $streamID);
+            ipTV_servers::RunCommandServer($stream['created_channel_location'], "echo {$json_string_data} | base64 --decode > \"" . CREATED_CHANNELS . $streamID . '_.list"', 'raw');
+            return 1;
+        } else if (!empty($stream['pids_create_channel'])) {
+            foreach ($stream['pids_create_channel'] as $key => $pid) {
+                if (!ipTV_servers::PidsChannels($stream['created_channel_location'], $pid, FFMPEG_PATH)) {
+                    unset($stream['pids_create_channel'][$key]);
+                }
+            }
+            self::$ipTV_db->query('UPDATE `streams` SET pids_create_channel = \'%s\' WHERE `id` = \'%d\'', json_encode($stream['pids_create_channel']), $streamID);
+            return empty($stream['pids_create_channel']) ? 2 : 1;
+        }
+
+        return 2;
+    }
 }

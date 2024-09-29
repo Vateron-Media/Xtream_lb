@@ -29,9 +29,9 @@ class ipTV_servers {
         }
         return $output;
     }
-    static function fbbdd88eB1b3703a5A7867411effcE35($fb89dffee11f11f52678901f30b4d0af, $c3bd62458959952cf55b015822fd5a91) {
-        $Ef314464e8190fb09508a6c9cdedf6f6 = "ps ax | grep '" . basename($c3bd62458959952cf55b015822fd5a91) . "' | awk '{print \$1}'";
-        return self::RunCommandServer($fb89dffee11f11f52678901f30b4d0af, $Ef314464e8190fb09508a6c9cdedf6f6);
+    static function getPidFromProcessName($serverIDS, $ffmpeg_path) {
+        $command = 'ps ax | grep \'' . basename($ffmpeg_path) . '\' | awk \'{print $1}\'';
+        return self::RunCommandServer($serverIDS, $command);
     }
     static function C9F95DF7FAFB411701deD135F62E3Bb5($C671e9e0a59f18412464d71d67ba55c7, $eda79b6c4381b5cc84816737094d985c, $c0b3691d6dcd1091b396006166beb342 = array(), $Dfaefd52c207802d536c9de37fd410ff = 5, $dcb5d7e42506bc9b88478fdf1c51b3e8 = 20) {
         $Ced112d15c5a3c9e5ba92478d0228e93 = 1;
