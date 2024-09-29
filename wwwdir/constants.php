@@ -28,8 +28,9 @@ define('PHP_BIN', '/home/xtreamcodes/bin/php/bin/php');
 define('FFMPEG_PATH', file_exists(BIN_PATH . 'ffmpeg') ? BIN_PATH . 'ffmpeg' : '/usr/bin/ffmpeg');
 define('FFPROBE_PATH', file_exists(BIN_PATH . 'ffprobe') ? BIN_PATH . 'ffprobe' : '/usr/bin/ffprobe');
 define('YOUTUBE_PATH', BIN_PATH . 'youtube');
-define('GEOIP2_FILENAME', BIN_PATH . 'maxmind/GeoLite2-Country.mmdb');
-define('GEOIP2ISP_FILENAME', BIN_PATH . 'maxmind/GeoLite2-ISP.mmdb');
+define('GEOIP2COUNTRY_FILENAME', BIN_PATH . 'maxmind/GeoLite2-Country.mmdb');
+define('GEOIP2ASN_FILENAME', BIN_PATH . 'maxmind/GeoLite2-ASN.mmdb');
+define('GEOIP2CITY_FILENAME', BIN_PATH . 'maxmind/GeoLite2-City.mmdb');
 // -------------------
 
 // TEMP FOLDERS
@@ -84,13 +85,35 @@ define('PROBE_EXTRA_WAIT', 7);
 define('FFMPEG_WARNINGS', true);
 define('IGNORE_KEYFRAMES', 0);
 define('SEG_DELETE_THRESHOLD', 4);
+define('CREATE_EXPIRATION', 5);
+define('ON_DEMAND_WAIT_TIME', 20);
+define('ON_DEMAND_INSTANT_OFF', false);
+define('SEGMENT_WAIT_TIME', 20);
+define('MONITOR_CONNECTION_STATUS', true);
 
+define('CACHE_STREAMS', false);
+define('CACHE_STREAMS_TIME', 10);
 
 if (!defined("USE_CACHE")) {
     define("USE_CACHE", true);
 }
 if (!defined("FETCH_BOUQUETS")) {
     define("FETCH_BOUQUETS", true);
+}
+
+if (!$argc) {
+    $rIP = $_SERVER['REMOTE_ADDR'];
+    if (empty($rIP) || !file_exists(FLOOD_TMP_PATH . 'block_' . $rIP)) {
+        define('HOST', trim(explode(':', $_SERVER['HTTP_HOST'])[0]));
+        if (file_exists(CACHE_TMP_PATH . 'settings')) {
+            $data = file_get_contents(CACHE_TMP_PATH . 'settings');
+            $settings = unserialize($data);
+            $showErrors = (isset($settings['debug_show_errors']) ? $settings['debug_show_errors'] : false);
+        }
+    } else {
+        http_response_code(403);
+        exit();
+    }
 }
 
 define('PHP_ERRORS', $showErrors);

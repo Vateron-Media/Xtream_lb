@@ -1,188 +1,415 @@
 <?php
-class c485c6f9dAf0d851a5FBe1439527a3e8 {
+// @codingStandardsIgnoreLine
+
+class Decoder {
+    /**
+     * @var resource
+     */
     private $fileStream;
+
+    /**
+     * @var int
+     */
     private $pointerBase;
+
+    /**
+     * This is only used for unit testing.
+     *
+     * @var bool
+     */
     private $pointerTestHack;
+
+    /**
+     * @var bool
+     */
     private $switchByteOrder;
-    private $types = array(0 => "extended", 1 => "pointer", 2 => "utf8_string", 3 => "double", 4 => "bytes", 5 => "uint16", 6 => "uint32", 7 => "map", 8 => "int32", 9 => "uint64", 10 => "uint128", 11 => "array", 12 => "container", 13 => "end_marker", 14 => "boolean", 15 => "float");
-    public function __construct($d82efd6e8719757709b6a4f271c2ba87, $b97f28ffca6a1705be82f34c34190c63 = 0, $cfea6bbb32e425aa9041dd95e323ab64 = false) {
-        $this->fileStream = $d82efd6e8719757709b6a4f271c2ba87;
-        $this->pointerBase = $b97f28ffca6a1705be82f34c34190c63;
-        $this->pointerTestHack = $cfea6bbb32e425aa9041dd95e323ab64;
-        $this->switchByteOrder = $this->ae0bDDE412CA42eBc797C976e44d0797();
+
+    private const _EXTENDED = 0;
+    private const _POINTER = 1;
+    private const _UTF8_STRING = 2;
+    private const _DOUBLE = 3;
+    private const _BYTES = 4;
+    private const _UINT16 = 5;
+    private const _UINT32 = 6;
+    private const _MAP = 7;
+    private const _INT32 = 8;
+    private const _UINT64 = 9;
+    private const _UINT128 = 10;
+    private const _ARRAY = 11;
+    // 12 is the container type
+    // 13 is the end marker type
+    private const _BOOLEAN = 14;
+    private const _FLOAT = 15;
+
+    /**
+     * @param resource $fileStream
+     */
+    public function __construct(
+        $fileStream,
+        int $pointerBase = 0,
+        bool $pointerTestHack = false
+    ) {
+        $this->fileStream = $fileStream;
+        $this->pointerBase = $pointerBase;
+
+        $this->pointerTestHack = $pointerTestHack;
+
+        $this->switchByteOrder = $this->isPlatformLittleEndian();
     }
-    public function dA74DDA22ff07ACFe23F4435b739d4c6($cce2738c6256d1c1113cf2149925c3b3) {
-        list(, $e0603b37b1d44f8a9b9da85e2f18e462) = unpack("C", Ddc23aec20310dF645DdEbd5EC6d891f::EEF015C1bf4CD5Bff0a1e707190DcfF3($this->fileStream, $cce2738c6256d1c1113cf2149925c3b3, 1));
-        $cce2738c6256d1c1113cf2149925c3b3++;
-        $c81742471fbf5fc98e647357de25a9c9 = $this->types[$e0603b37b1d44f8a9b9da85e2f18e462 >> 5];
-        if ($c81742471fbf5fc98e647357de25a9c9 === "pointer") {
-            list($cbf9a51bcb83507ceea74282f1f3c84c, $cce2738c6256d1c1113cf2149925c3b3) = $this->E23A32Df43288Fa40464DaEc3a54C8CA($e0603b37b1d44f8a9b9da85e2f18e462, $cce2738c6256d1c1113cf2149925c3b3);
+
+    public function decode(int $offset): array {
+        $ctrlByte = \ord(Util::read($this->fileStream, $offset, 1));
+        ++$offset;
+
+        $type = $ctrlByte >> 5;
+
+        // Pointers are a special case, we don't read the next $size bytes, we
+        // use the size to determine the length of the pointer and then follow
+        // it.
+        if ($type === self::_POINTER) {
+            [$pointer, $offset] = $this->decodePointer($ctrlByte, $offset);
+
+            // for unit testing
             if ($this->pointerTestHack) {
-                return array($cbf9a51bcb83507ceea74282f1f3c84c);
+                return [$pointer];
             }
-            list($b77a16302effd0dbdc1ac7d8a1a5d03f) = $this->DA74Dda22fF07acFE23f4435b739d4c6($cbf9a51bcb83507ceea74282f1f3c84c);
-            return array($b77a16302effd0dbdc1ac7d8a1a5d03f, $cce2738c6256d1c1113cf2149925c3b3);
+
+            [$result] = $this->decode($pointer);
+
+            return [$result, $offset];
         }
-        if ($c81742471fbf5fc98e647357de25a9c9 === "extended") {
-            list(, $B3c3da3b83c5c2c8c8ae9f626e240e22) = unpack("C", DDC23aEC20310Df645dDEBd5Ec6d891F::eEF015C1Bf4Cd5bFf0a1E707190dCff3($this->fileStream, $cce2738c6256d1c1113cf2149925c3b3, 1));
-            $Beb72eb67ada7da5ac78ea9c53451eac = $B3c3da3b83c5c2c8c8ae9f626e240e22 + 7;
-            if ($Beb72eb67ada7da5ac78ea9c53451eac < 8) {
-                throw new e086cF8177E883A39E807d20D8FcbC89("Something went horribly wrong in the decoder. An extended type " . "resolved to a type number < 8 (" . $this->types[$Beb72eb67ada7da5ac78ea9c53451eac] . ")");
+
+        if ($type === self::_EXTENDED) {
+            $nextByte = \ord(Util::read($this->fileStream, $offset, 1));
+
+            $type = $nextByte + 7;
+
+            if ($type < 8) {
+                throw new InvalidDatabaseException(
+                    'Something went horribly wrong in the decoder. An extended type '
+                        . 'resolved to a type number < 8 ('
+                        . $type
+                        . ')'
+                );
             }
-            $c81742471fbf5fc98e647357de25a9c9 = $this->types[$Beb72eb67ada7da5ac78ea9c53451eac];
-            $cce2738c6256d1c1113cf2149925c3b3++;
+
+            ++$offset;
         }
-        list($c2f883bf459da90a240f9950048443f3, $cce2738c6256d1c1113cf2149925c3b3) = $this->BdF406801298c9948aA9B20BB9E3C6E2($e0603b37b1d44f8a9b9da85e2f18e462, $cce2738c6256d1c1113cf2149925c3b3);
-        return $this->B691576cE0B021251E5a97a1FB5D8CE2($c81742471fbf5fc98e647357de25a9c9, $cce2738c6256d1c1113cf2149925c3b3, $c2f883bf459da90a240f9950048443f3);
+
+        [$size, $offset] = $this->sizeFromCtrlByte($ctrlByte, $offset);
+
+        return $this->decodeByType($type, $offset, $size);
     }
-    private function B691576Ce0B021251e5A97a1FB5d8cE2($c81742471fbf5fc98e647357de25a9c9, $cce2738c6256d1c1113cf2149925c3b3, $c2f883bf459da90a240f9950048443f3) {
-        switch ($c81742471fbf5fc98e647357de25a9c9) {
-            case "map":
-                return $this->af8792FA3b03D7cCa5312218e37060EB($c2f883bf459da90a240f9950048443f3, $cce2738c6256d1c1113cf2149925c3b3);
-            case "array":
-                return $this->a6eE38468a98B573A0D6DbD503eB9c85($c2f883bf459da90a240f9950048443f3, $cce2738c6256d1c1113cf2149925c3b3);
-            case "boolean":
-                return array($this->BabCCda73B4f1f2DAd7e39009a328660($c2f883bf459da90a240f9950048443f3), $cce2738c6256d1c1113cf2149925c3b3);
+
+    /**
+     * @param int<0, max> $size
+     */
+    private function decodeByType(int $type, int $offset, int $size): array {
+        switch ($type) {
+            case self::_MAP:
+                return $this->decodeMap($size, $offset);
+
+            case self::_ARRAY:
+                return $this->decodeArray($size, $offset);
+
+            case self::_BOOLEAN:
+                return [$this->decodeBoolean($size), $offset];
         }
-        $C1359ef071af6e57c5c8996447dedf89 = $cce2738c6256d1c1113cf2149925c3b3 + $c2f883bf459da90a240f9950048443f3;
-        $Caa0aa71d18b85a3c3a825a16209b1a7 = DDC23aEc20310df645dDeBD5Ec6d891F::eEf015c1bF4cd5bfF0a1e707190DCfF3($this->fileStream, $cce2738c6256d1c1113cf2149925c3b3, $c2f883bf459da90a240f9950048443f3);
-        switch ($c81742471fbf5fc98e647357de25a9c9) {
-            case "utf8_string":
-                return array($this->AcDB2cde105e70b2d17A2304573aD1C6($Caa0aa71d18b85a3c3a825a16209b1a7), $C1359ef071af6e57c5c8996447dedf89);
-            case "double":
-                $this->bc6eacC2B6513917194E9a150315f94B(8, $c2f883bf459da90a240f9950048443f3);
-                return array($this->Cd697d8b4Ce83555372DDAA5e7B70d35($Caa0aa71d18b85a3c3a825a16209b1a7), $C1359ef071af6e57c5c8996447dedf89);
-            case "float":
-                $this->BC6Eacc2B6513917194e9A150315f94B(4, $c2f883bf459da90a240f9950048443f3);
-                return array($this->cCA97Aa763dD29BCA421dfeB8CA91340($Caa0aa71d18b85a3c3a825a16209b1a7), $C1359ef071af6e57c5c8996447dedf89);
-            case "bytes":
-                return array($Caa0aa71d18b85a3c3a825a16209b1a7, $C1359ef071af6e57c5c8996447dedf89);
-            case "uint16":
-            case "uint32":
-                return array($this->cf4df9f0480C5C0E3283e737EED10b8B($Caa0aa71d18b85a3c3a825a16209b1a7), $C1359ef071af6e57c5c8996447dedf89);
-            case "int32":
-                return array($this->cd135508A19Ac81BfB751523F2C8067f($Caa0aa71d18b85a3c3a825a16209b1a7), $C1359ef071af6e57c5c8996447dedf89);
-            case "uint64":
-            case "uint128":
-                return array($this->b2E6E5c987a6e9776CA2701Adf186883($Caa0aa71d18b85a3c3a825a16209b1a7, $c2f883bf459da90a240f9950048443f3), $C1359ef071af6e57c5c8996447dedf89);
+
+        $newOffset = $offset + $size;
+        $bytes = Util::read($this->fileStream, $offset, $size);
+
+        switch ($type) {
+            case self::_BYTES:
+            case self::_UTF8_STRING:
+                return [$bytes, $newOffset];
+
+            case self::_DOUBLE:
+                $this->verifySize(8, $size);
+
+                return [$this->decodeDouble($bytes), $newOffset];
+
+            case self::_FLOAT:
+                $this->verifySize(4, $size);
+
+                return [$this->decodeFloat($bytes), $newOffset];
+
+            case self::_INT32:
+                return [$this->decodeInt32($bytes, $size), $newOffset];
+
+            case self::_UINT16:
+            case self::_UINT32:
+            case self::_UINT64:
+            case self::_UINT128:
+                return [$this->decodeUint($bytes, $size), $newOffset];
+
             default:
-                throw new e086cF8177e883a39e807D20D8fcbC89("Unknown or unexpected type: " . $c81742471fbf5fc98e647357de25a9c9);
+                throw new InvalidDatabaseException(
+                    'Unknown or unexpected type: ' . $type
+                );
         }
     }
-    private function Bc6eAcc2B6513917194E9A150315F94b($Cb705e5e8def333e2eff28d1800bd9ca, $B00062cd965b27c98f9f233b5afcd38f) {
-        if ($Cb705e5e8def333e2eff28d1800bd9ca !== $B00062cd965b27c98f9f233b5afcd38f) {
-            throw new E086cf8177e883a39E807D20d8fcbc89("The MaxMind DB file's data section contains bad data (unknown data type or corrupt data)");
+
+    private function verifySize(int $expected, int $actual): void {
+        if ($expected !== $actual) {
+            throw new InvalidDatabaseException(
+                "The MaxMind DB file's data section contains bad data (unknown data type or corrupt data)"
+            );
         }
     }
-    private function a6Ee38468A98B573a0d6Dbd503eB9C85($c2f883bf459da90a240f9950048443f3, $cce2738c6256d1c1113cf2149925c3b3) {
-        $fcb78624272a356f23ae5e8471da3ea0 = array();
-        $Ced112d15c5a3c9e5ba92478d0228e93 = 0;
-        while ($Ced112d15c5a3c9e5ba92478d0228e93 < $c2f883bf459da90a240f9950048443f3) {
-            list($b16944a0f2657c5e94a14137db656a79, $cce2738c6256d1c1113cf2149925c3b3) = $this->dA74DdA22fF07ACfE23f4435b739D4c6($cce2738c6256d1c1113cf2149925c3b3);
-            array_push($fcb78624272a356f23ae5e8471da3ea0, $b16944a0f2657c5e94a14137db656a79);
-            $Ced112d15c5a3c9e5ba92478d0228e93++;
+
+    private function decodeArray(int $size, int $offset): array {
+        $array = [];
+
+        for ($i = 0; $i < $size; ++$i) {
+            [$value, $offset] = $this->decode($offset);
+            $array[] = $value;
         }
-        return array($fcb78624272a356f23ae5e8471da3ea0, $cce2738c6256d1c1113cf2149925c3b3);
+
+        return [$array, $offset];
     }
-    private function baBCcda73B4f1f2dAd7E39009A328660($c2f883bf459da90a240f9950048443f3) {
-        return $c2f883bf459da90a240f9950048443f3 === 0 ? false : true;
+
+    private function decodeBoolean(int $size): bool {
+        return $size !== 0;
     }
-    private function Cd697D8B4ce83555372dDAA5E7b70d35($Bdca92d7334c27f5f2b9088b1890c469) {
-        list(, $Fbc386f98b5f0df915b63bbe881bdd81) = unpack("d", $this->f3af039b12c23FB729eEd33e01683C8e($Bdca92d7334c27f5f2b9088b1890c469));
-        return $Fbc386f98b5f0df915b63bbe881bdd81;
-    }
-    private function CCA97aA763Dd29bca421dfEb8CA91340($Bdca92d7334c27f5f2b9088b1890c469) {
-        list(, $B3c6ada767ad0dd62edf699f3ce57ca0) = unpack("f", $this->f3aF039b12C23fB729EEd33E01683c8e($Bdca92d7334c27f5f2b9088b1890c469));
-        return $B3c6ada767ad0dd62edf699f3ce57ca0;
-    }
-    private function CD135508a19Ac81BFB751523f2C8067F($Caa0aa71d18b85a3c3a825a16209b1a7) {
-        $Caa0aa71d18b85a3c3a825a16209b1a7 = $this->efeE079AB8C678fD0928C42bd0446c34($Caa0aa71d18b85a3c3a825a16209b1a7, 4);
-        list(, $a4125e86503d5cbbaf0a3465e108dd08) = unpack("l", $this->f3af039B12c23Fb729eed33e01683c8e($Caa0aa71d18b85a3c3a825a16209b1a7));
-        return $a4125e86503d5cbbaf0a3465e108dd08;
-    }
-    private function aF8792fa3b03D7ccA5312218e37060EB($c2f883bf459da90a240f9950048443f3, $cce2738c6256d1c1113cf2149925c3b3) {
-        $E38fd7fbe299af8baceedcda703b8d71 = array();
-        $Ced112d15c5a3c9e5ba92478d0228e93 = 0;
-        while ($Ced112d15c5a3c9e5ba92478d0228e93 < $c2f883bf459da90a240f9950048443f3) {
-            list($Cc2a18fdf76b8e3e115b27f927e5928b, $cce2738c6256d1c1113cf2149925c3b3) = $this->dA74dDA22fF07acfE23f4435B739D4C6($cce2738c6256d1c1113cf2149925c3b3);
-            list($b16944a0f2657c5e94a14137db656a79, $cce2738c6256d1c1113cf2149925c3b3) = $this->Da74dDa22ff07acFe23F4435B739d4C6($cce2738c6256d1c1113cf2149925c3b3);
-            $E38fd7fbe299af8baceedcda703b8d71[$Cc2a18fdf76b8e3e115b27f927e5928b] = $b16944a0f2657c5e94a14137db656a79;
-            $Ced112d15c5a3c9e5ba92478d0228e93++;
+
+    private function decodeDouble(string $bytes): float {
+        // This assumes IEEE 754 doubles, but most (all?) modern platforms
+        // use them.
+        $rc = unpack('E', $bytes);
+        if ($rc === false) {
+            throw new InvalidDatabaseException(
+                'Could not unpack a double value from the given bytes.'
+            );
         }
-        return array($E38fd7fbe299af8baceedcda703b8d71, $cce2738c6256d1c1113cf2149925c3b3);
+        [, $double] = $rc;
+
+        return $double;
     }
-    private $pointerValueOffset = array(1 => 0, 2 => 2048, 3 => 526336, 4 => 0);
-    private function E23A32df43288FA40464daec3a54C8Ca($e0603b37b1d44f8a9b9da85e2f18e462, $cce2738c6256d1c1113cf2149925c3b3) {
-        $E4bf3ab859f6fceedd542c0bacd0f41f = ($e0603b37b1d44f8a9b9da85e2f18e462 >> 3 & 3) + 1;
-        $Fcf846b3512cb8d6f8d77d39b5ad11f6 = DDc23Aec20310df645DdEbD5eC6D891F::EEF015C1Bf4cD5BFf0A1e707190DCfF3($this->fileStream, $cce2738c6256d1c1113cf2149925c3b3, $E4bf3ab859f6fceedd542c0bacd0f41f);
-        $cce2738c6256d1c1113cf2149925c3b3 = $cce2738c6256d1c1113cf2149925c3b3 + $E4bf3ab859f6fceedd542c0bacd0f41f;
-        $F704bd461553985461f5aacedcbf9f36 = $E4bf3ab859f6fceedd542c0bacd0f41f === 4 ? $Fcf846b3512cb8d6f8d77d39b5ad11f6 : pack("C", $e0603b37b1d44f8a9b9da85e2f18e462 & 7) . $Fcf846b3512cb8d6f8d77d39b5ad11f6;
-        $Eb48f9d652424766984dbf4b21291c53 = $this->CF4DF9F0480C5c0E3283e737EeD10b8b($F704bd461553985461f5aacedcbf9f36);
-        $cbf9a51bcb83507ceea74282f1f3c84c = $Eb48f9d652424766984dbf4b21291c53 + $this->pointerBase + $this->pointerValueOffset[$E4bf3ab859f6fceedd542c0bacd0f41f];
-        return array($cbf9a51bcb83507ceea74282f1f3c84c, $cce2738c6256d1c1113cf2149925c3b3);
+
+    private function decodeFloat(string $bytes): float {
+        // This assumes IEEE 754 floats, but most (all?) modern platforms
+        // use them.
+        $rc = unpack('G', $bytes);
+        if ($rc === false) {
+            throw new InvalidDatabaseException(
+                'Could not unpack a float value from the given bytes.'
+            );
+        }
+        [, $float] = $rc;
+
+        return $float;
     }
-    private function cf4DF9f0480C5c0E3283e737EED10b8B($Caa0aa71d18b85a3c3a825a16209b1a7) {
-        list(, $a4125e86503d5cbbaf0a3465e108dd08) = unpack("N", $this->eFEe079AB8C678fd0928C42bd0446C34($Caa0aa71d18b85a3c3a825a16209b1a7, 4));
-        return $a4125e86503d5cbbaf0a3465e108dd08;
+
+    private function decodeInt32(string $bytes, int $size): int {
+        switch ($size) {
+            case 0:
+                return 0;
+
+            case 1:
+            case 2:
+            case 3:
+                $bytes = str_pad($bytes, 4, "\x00", \STR_PAD_LEFT);
+
+                break;
+
+            case 4:
+                break;
+
+            default:
+                throw new InvalidDatabaseException(
+                    "The MaxMind DB file's data section contains bad data (unknown data type or corrupt data)"
+                );
+        }
+
+        $rc = unpack('l', $this->maybeSwitchByteOrder($bytes));
+        if ($rc === false) {
+            throw new InvalidDatabaseException(
+                'Could not unpack a 32bit integer value from the given bytes.'
+            );
+        }
+        [, $int] = $rc;
+
+        return $int;
     }
-    private function B2E6e5c987a6e9776CA2701aDf186883($Caa0aa71d18b85a3c3a825a16209b1a7, $d45eb59bcc6af5f94a29dabc055e8b9e) {
-        $b64b42e337a37fb6c3760b7c7924aee5 = log(PHP_INT_MAX, 2) / 8;
-        if ($d45eb59bcc6af5f94a29dabc055e8b9e === 0) {
+
+    private function decodeMap(int $size, int $offset): array {
+        $map = [];
+
+        for ($i = 0; $i < $size; ++$i) {
+            [$key, $offset] = $this->decode($offset);
+            [$value, $offset] = $this->decode($offset);
+            $map[$key] = $value;
+        }
+
+        return [$map, $offset];
+    }
+
+    private function decodePointer(int $ctrlByte, int $offset): array {
+        $pointerSize = (($ctrlByte >> 3) & 0x3) + 1;
+
+        $buffer = Util::read($this->fileStream, $offset, $pointerSize);
+        $offset += $pointerSize;
+
+        switch ($pointerSize) {
+            case 1:
+                $packed = \chr($ctrlByte & 0x7) . $buffer;
+                $rc = unpack('n', $packed);
+                if ($rc === false) {
+                    throw new InvalidDatabaseException(
+                        'Could not unpack an unsigned short value from the given bytes (pointerSize is 1).'
+                    );
+                }
+                [, $pointer] = $rc;
+                $pointer += $this->pointerBase;
+
+                break;
+
+            case 2:
+                $packed = "\x00" . \chr($ctrlByte & 0x7) . $buffer;
+                $rc = unpack('N', $packed);
+                if ($rc === false) {
+                    throw new InvalidDatabaseException(
+                        'Could not unpack an unsigned long value from the given bytes (pointerSize is 2).'
+                    );
+                }
+                [, $pointer] = $rc;
+                $pointer += $this->pointerBase + 2048;
+
+                break;
+
+            case 3:
+                $packed = \chr($ctrlByte & 0x7) . $buffer;
+
+                // It is safe to use 'N' here, even on 32 bit machines as the
+                // first bit is 0.
+                $rc = unpack('N', $packed);
+                if ($rc === false) {
+                    throw new InvalidDatabaseException(
+                        'Could not unpack an unsigned long value from the given bytes (pointerSize is 3).'
+                    );
+                }
+                [, $pointer] = $rc;
+                $pointer += $this->pointerBase + 526336;
+
+                break;
+
+            case 4:
+                // We cannot use unpack here as we might overflow on 32 bit
+                // machines
+                $pointerOffset = $this->decodeUint($buffer, $pointerSize);
+
+                $pointerBase = $this->pointerBase;
+
+                if (\PHP_INT_MAX - $pointerBase >= $pointerOffset) {
+                    $pointer = $pointerOffset + $pointerBase;
+                } else {
+                    throw new \RuntimeException(
+                        'The database offset is too large to be represented on your platform.'
+                    );
+                }
+
+                break;
+
+            default:
+                throw new InvalidDatabaseException(
+                    'Unexpected pointer size ' . $pointerSize
+                );
+        }
+
+        return [$pointer, $offset];
+    }
+
+    // @phpstan-ignore-next-line
+    private function decodeUint(string $bytes, int $byteLength) {
+        if ($byteLength === 0) {
             return 0;
         }
-        $b9a8831a486c6b05236f2faf85fccd5a = ceil($d45eb59bcc6af5f94a29dabc055e8b9e / 4);
-        $Ceff12352da6a0dd226fe286f51d2d29 = $b9a8831a486c6b05236f2faf85fccd5a * 4;
-        $C7702ea9699d55feda5b1f4f197483d0 = $this->EFee079aB8c678fd0928C42Bd0446c34($Caa0aa71d18b85a3c3a825a16209b1a7, $Ceff12352da6a0dd226fe286f51d2d29);
-        $Eb48f9d652424766984dbf4b21291c53 = array_merge(unpack("N{$b9a8831a486c6b05236f2faf85fccd5a}", $C7702ea9699d55feda5b1f4f197483d0));
-        $F1b65b35af6a6f08d8f876d81c881d55 = 0;
-        $Bdbe64c679544f87a85a1d325058161f = "4294967296";
-        foreach ($Eb48f9d652424766984dbf4b21291c53 as $Bdbeb2a0e7fa0d58376a3d245bcb8b94) {
-            if ($d45eb59bcc6af5f94a29dabc055e8b9e <= $b64b42e337a37fb6c3760b7c7924aee5) {
-                $F1b65b35af6a6f08d8f876d81c881d55 = ($F1b65b35af6a6f08d8f876d81c881d55 << 32) + $Bdbeb2a0e7fa0d58376a3d245bcb8b94;
+
+        // PHP integers are signed. PHP_INT_SIZE - 1 is the number of
+        // complete bytes that can be converted to an integer. However,
+        // we can convert another byte if the leading bit is zero.
+        $useRealInts = $byteLength <= \PHP_INT_SIZE - 1
+            || ($byteLength === \PHP_INT_SIZE && (\ord($bytes[0]) & 0x80) === 0);
+
+        if ($useRealInts) {
+            $integer = 0;
+            for ($i = 0; $i < $byteLength; ++$i) {
+                $part = \ord($bytes[$i]);
+                $integer = ($integer << 8) + $part;
+            }
+
+            return $integer;
+        }
+
+        // We only use gmp or bcmath if the final value is too big
+        $integerAsString = '0';
+        for ($i = 0; $i < $byteLength; ++$i) {
+            $part = \ord($bytes[$i]);
+
+            if (\extension_loaded('gmp')) {
+                $integerAsString = gmp_strval(gmp_add(gmp_mul($integerAsString, '256'), $part));
+            } elseif (\extension_loaded('bcmath')) {
+                $integerAsString = bcadd(bcmul($integerAsString, '256'), (string) $part);
             } else {
-                if (extension_loaded("gmp")) {
-                    $F1b65b35af6a6f08d8f876d81c881d55 = B58D0405a6135ada67dD191D8f005A6a(c359A2557647260f7a3c323f00f14c23(f2D1e241C90C16168ab0f704Fe9221D5($F1b65b35af6a6f08d8f876d81c881d55, $Bdbe64c679544f87a85a1d325058161f), $Bdbeb2a0e7fa0d58376a3d245bcb8b94));
-                } else {
-                    if (extension_loaded("bcmath")) {
-                        $F1b65b35af6a6f08d8f876d81c881d55 = bcadd(bcmul($F1b65b35af6a6f08d8f876d81c881d55, $Bdbe64c679544f87a85a1d325058161f), $Bdbeb2a0e7fa0d58376a3d245bcb8b94);
-                    } else {
-                        throw new \e8aE15f26E6bdbd1e14664E9757bA733("The gmp or bcmath extension must be installed to read this database.");
-                    }
-                }
+                throw new \RuntimeException(
+                    'The gmp or bcmath extension must be installed to read this database.'
+                );
             }
         }
-        return $F1b65b35af6a6f08d8f876d81c881d55;
+
+        return $integerAsString;
     }
-    private function Acdb2CdE105e70B2d17a2304573Ad1C6($Caa0aa71d18b85a3c3a825a16209b1a7) {
-        return $Caa0aa71d18b85a3c3a825a16209b1a7;
-    }
-    private function bdF406801298c9948aA9B20Bb9E3c6E2($e0603b37b1d44f8a9b9da85e2f18e462, $cce2738c6256d1c1113cf2149925c3b3) {
-        $c2f883bf459da90a240f9950048443f3 = $e0603b37b1d44f8a9b9da85e2f18e462 & 31;
-        $d6251a86a48fa368f62a0fe7499a8a03 = $c2f883bf459da90a240f9950048443f3 < 29 ? 0 : $c2f883bf459da90a240f9950048443f3 - 28;
-        $Caa0aa71d18b85a3c3a825a16209b1a7 = ddc23Aec20310Df645Ddebd5EC6D891f::eEf015C1Bf4Cd5bff0A1E707190dcfF3($this->fileStream, $cce2738c6256d1c1113cf2149925c3b3, $d6251a86a48fa368f62a0fe7499a8a03);
-        $de4a0c978006453997b21dcdf6f25d8e = $this->cf4df9f0480C5C0E3283e737EEd10B8B($Caa0aa71d18b85a3c3a825a16209b1a7);
-        if ($c2f883bf459da90a240f9950048443f3 === 29) {
-            $c2f883bf459da90a240f9950048443f3 = 29 + $de4a0c978006453997b21dcdf6f25d8e;
+
+    private function sizeFromCtrlByte(int $ctrlByte, int $offset): array {
+        $size = $ctrlByte & 0x1F;
+
+        if ($size < 29) {
+            return [$size, $offset];
+        }
+
+        $bytesToRead = $size - 28;
+        $bytes = Util::read($this->fileStream, $offset, $bytesToRead);
+
+        if ($size === 29) {
+            $size = 29 + \ord($bytes);
+        } elseif ($size === 30) {
+            $rc = unpack('n', $bytes);
+            if ($rc === false) {
+                throw new InvalidDatabaseException(
+                    'Could not unpack an unsigned short value from the given bytes.'
+                );
+            }
+            [, $adjust] = $rc;
+            $size = 285 + $adjust;
         } else {
-            if ($c2f883bf459da90a240f9950048443f3 === 30) {
-                $c2f883bf459da90a240f9950048443f3 = 285 + $de4a0c978006453997b21dcdf6f25d8e;
-            } else {
-                if ($c2f883bf459da90a240f9950048443f3 > 30) {
-                    $c2f883bf459da90a240f9950048443f3 = ($de4a0c978006453997b21dcdf6f25d8e & 268435455 >> 32 - 8 * $d6251a86a48fa368f62a0fe7499a8a03) + 65821;
-                }
+            $rc = unpack('N', "\x00" . $bytes);
+            if ($rc === false) {
+                throw new InvalidDatabaseException(
+                    'Could not unpack an unsigned long value from the given bytes.'
+                );
             }
+            [, $adjust] = $rc;
+            $size = $adjust + 65821;
         }
-        return array($c2f883bf459da90a240f9950048443f3, $cce2738c6256d1c1113cf2149925c3b3 + $d6251a86a48fa368f62a0fe7499a8a03);
+
+        return [$size, $offset + $bytesToRead];
     }
-    private function eFEe079AB8C678fd0928C42Bd0446c34($eee1e41165186c8620f2f85b283cc77b, $Eb61af1e5538a8380364b66dd8c2ad39) {
-        return str_pad($eee1e41165186c8620f2f85b283cc77b, $Eb61af1e5538a8380364b66dd8c2ad39, "\0", STR_PAD_LEFT);
+
+    private function maybeSwitchByteOrder(string $bytes): string {
+        return $this->switchByteOrder ? strrev($bytes) : $bytes;
     }
-    private function f3af039b12c23fb729eeD33e01683c8E($Caa0aa71d18b85a3c3a825a16209b1a7) {
-        return $this->switchByteOrder ? strrev($Caa0aa71d18b85a3c3a825a16209b1a7) : $Caa0aa71d18b85a3c3a825a16209b1a7;
-    }
-    private function Ae0bDDE412Ca42ebC797c976e44d0797() {
-        $F0896ee357b57844c9bf9674f2d9d161 = 255;
-        $F704bd461553985461f5aacedcbf9f36 = pack("S", $F0896ee357b57844c9bf9674f2d9d161);
-        return $F0896ee357b57844c9bf9674f2d9d161 === current(unpack("v", $F704bd461553985461f5aacedcbf9f36));
+
+    private function isPlatformLittleEndian(): bool {
+        $testint = 0x00FF;
+        $packed = pack('S', $testint);
+        $rc = unpack('v', $packed);
+        if ($rc === false) {
+            throw new InvalidDatabaseException(
+                'Could not unpack an unsigned short value from the given bytes.'
+            );
+        }
+
+        return $testint === current($rc);
     }
 }

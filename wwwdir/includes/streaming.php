@@ -2,10 +2,6 @@
 class ipTV_streaming {
     public static $ipTV_db;
     public static $AllowedIPs = array();
-    public static function cdB7Ed3e4910A38DAaB7bdEdc40d824F() {
-        self::$ipTV_db->query("SELECT `ip` FROM `rtmp_ips`");
-        return array_merge(array("127.0.0.1"), ipTV_lib::array_values_recursive(self::$ipTV_db->get_rows()));
-    }
     public static function sendSignalFFMPEG($signalData, $segmentFile) {
         if (empty($signalData["xy_offset"])) {
             $x = rand(150, 380);
@@ -165,73 +161,6 @@ class ipTV_streaming {
             return false;
         }
     }
-    public static function b5b64Fc74AAa86445F7C95E69baBdD84($F43e647d100aaa12be0cb16c72d9031b, $b6497ba71489783c3747f19debe893a4 = '', $dc5791fad6da6f9dd96b83b988be0cb8 = '', $Fdc134ea90d233be850c53c1266026d6 = '', $E1dc5da23bfc7433f190ed9488d09204 = '') {
-        if (file_exists($F43e647d100aaa12be0cb16c72d9031b)) {
-            $E4866fec202244d7a3c9f4e24f6ee344 = file_get_contents($F43e647d100aaa12be0cb16c72d9031b);
-            if (preg_match_all("/(.*?)\\.ts/", $E4866fec202244d7a3c9f4e24f6ee344, $f563f11de8fd50b6d6e4071878cbe2de)) {
-                foreach ($f563f11de8fd50b6d6e4071878cbe2de[0] as $a5e686e6c77e9ffdb58ffe6b089d4fad) {
-                    $B31f58220362e7d683b209c0b9237d23 = md5($a5e686e6c77e9ffdb58ffe6b089d4fad . $Fdc134ea90d233be850c53c1266026d6 . ipTV_lib::$settings["crypt_load_balancing"] . filesize(STREAMS_PATH . $a5e686e6c77e9ffdb58ffe6b089d4fad));
-                    $E4866fec202244d7a3c9f4e24f6ee344 = str_replace($a5e686e6c77e9ffdb58ffe6b089d4fad, "/hlsr/{$dc5791fad6da6f9dd96b83b988be0cb8}/{$Fdc134ea90d233be850c53c1266026d6}/{$E1dc5da23bfc7433f190ed9488d09204}/{$b6497ba71489783c3747f19debe893a4}/{$B31f58220362e7d683b209c0b9237d23}/{$a5e686e6c77e9ffdb58ffe6b089d4fad}", $E4866fec202244d7a3c9f4e24f6ee344);
-                }
-                return $E4866fec202244d7a3c9f4e24f6ee344;
-            }
-            return false;
-        }
-    }
-    public static function fd9BceaaE00258EC95E5Ad4d91456864($b0f2ad37a04751a76687ec58fd378a0f, $bb9395b85a921191c7f955bd5041f57f = true) {
-        if (empty($b0f2ad37a04751a76687ec58fd378a0f)) {
-            return false;
-        }
-        if (empty($b0f2ad37a04751a76687ec58fd378a0f["activity_id"])) {
-            self::$ipTV_db->query("SELECT * FROM `user_activity_now` WHERE `activity_id` = '%d'", $b0f2ad37a04751a76687ec58fd378a0f);
-            $b0f2ad37a04751a76687ec58fd378a0f = self::$ipTV_db->get_row();
-        }
-        if (empty($b0f2ad37a04751a76687ec58fd378a0f)) {
-            return false;
-        }
-        if ($b0f2ad37a04751a76687ec58fd378a0f["container"] == "rtmp") {
-            if ($b0f2ad37a04751a76687ec58fd378a0f["server_id"] == SERVER_ID) {
-                shell_exec("wget --timeout=2 -O /dev/null -o /dev/null \"" . ipTV_lib::$StreamingServers[SERVER_ID]["rtmp_mport_url"] . "control/drop/client?clientid={$b0f2ad37a04751a76687ec58fd378a0f["pid"]}\" >/dev/null 2>/dev/null &");
-            } else {
-                self::$ipTV_db->query("INSERT INTO `signals` (`pid`,`server_id`,`rtmp`,`time`) VALUES('%d','%d','%d',UNIX_TIMESTAMP())", $b0f2ad37a04751a76687ec58fd378a0f["pid"], $b0f2ad37a04751a76687ec58fd378a0f["server_id"], 1);
-            }
-        } else {
-            if ($b0f2ad37a04751a76687ec58fd378a0f["container"] == "hls") {
-                if (!$bb9395b85a921191c7f955bd5041f57f) {
-                    self::$ipTV_db->query("UPDATE `user_activity_now` SET `hls_end` = 1 WHERE `activity_id` = '%d'", $b0f2ad37a04751a76687ec58fd378a0f["activity_id"]);
-                }
-            } else {
-                if ($b0f2ad37a04751a76687ec58fd378a0f["server_id"] == SERVER_ID) {
-                    shell_exec("kill -9 {$b0f2ad37a04751a76687ec58fd378a0f["pid"]} >/dev/null 2>/dev/null &");
-                } else {
-                    self::$ipTV_db->query("INSERT INTO `signals` (`pid`,`server_id`,`time`) VALUES('%d','%d',UNIX_TIMESTAMP())", $b0f2ad37a04751a76687ec58fd378a0f["pid"], $b0f2ad37a04751a76687ec58fd378a0f["server_id"]);
-                }
-            }
-        }
-        if ($bb9395b85a921191c7f955bd5041f57f) {
-            self::$ipTV_db->query("DELETE FROM `user_activity_now` WHERE `activity_id` = '%d'", $b0f2ad37a04751a76687ec58fd378a0f["activity_id"]);
-        }
-        self::c9cCC76c9D6b7e44c6D4a7a6c7191EB5($b0f2ad37a04751a76687ec58fd378a0f["server_id"], $b0f2ad37a04751a76687ec58fd378a0f["user_id"], $b0f2ad37a04751a76687ec58fd378a0f["stream_id"], $b0f2ad37a04751a76687ec58fd378a0f["date_start"], $b0f2ad37a04751a76687ec58fd378a0f["user_agent"], $b0f2ad37a04751a76687ec58fd378a0f["user_ip"], $b0f2ad37a04751a76687ec58fd378a0f["container"], $b0f2ad37a04751a76687ec58fd378a0f["geoip_country_code"], $b0f2ad37a04751a76687ec58fd378a0f["isp"], $b0f2ad37a04751a76687ec58fd378a0f["external_device"]);
-        return true;
-    }
-    public static function F9EDF299BE4280CC9900d81d8355fd29($b6497ba71489783c3747f19debe893a4, $C671e9e0a59f18412464d71d67ba55c7) {
-        $output = array();
-        $output["server"] = array();
-        $output["info"] = array();
-        self::$ipTV_db->query("SELECT * FROM `streams` t1\n                                LEFT JOIN `streams_types` t2 ON t2.type_id = t1.type\n                                WHERE t1.`id` = '%d'", $b6497ba71489783c3747f19debe893a4);
-        if (self::$ipTV_db->num_rows() > 0) {
-            $de8b98affa55c7e6bfe327d372e15fc9 = self::$ipTV_db->get_row();
-            $C0d89202f2a1eca312a0eaf802d3b913 = array();
-            if ($de8b98affa55c7e6bfe327d372e15fc9["direct_source"] == 0) {
-                self::$ipTV_db->query("SELECT * FROM `streams_sys` WHERE `stream_id` = '%d' AND `server_id` = '%d'", $b6497ba71489783c3747f19debe893a4, $C671e9e0a59f18412464d71d67ba55c7);
-                if (self::$ipTV_db->num_rows() > 0) {
-                    $output["server"] = self::$ipTV_db->get_row();
-                }
-            }
-            $output["info"] = $de8b98affa55c7e6bfe327d372e15fc9;
-        }
-        return !empty($output) ? $output : false;
-    }
     public static function D835C2a9787ba794E7590e06621cFa6B($ef4f0599712515333103265dafb029f7, $b6497ba71489783c3747f19debe893a4, $c3bd62458959952cf55b015822fd5a91 = PHP_BIN) {
         if (empty($ef4f0599712515333103265dafb029f7)) {
             return false;
@@ -264,19 +193,6 @@ class ipTV_streaming {
         }
         clearstatcache(true);
         if (!(!file_exists("/proc/" . $ef4f0599712515333103265dafb029f7) == basename($c3bd62458959952cf55b015822fd5a91))) {
-            return true;
-        }
-        return false;
-    }
-    public static function CE9736Cb36fC32A1E05Ec062E4E88475($ef4f0599712515333103265dafb029f7) {
-        if (empty($ef4f0599712515333103265dafb029f7)) {
-            return false;
-        }
-        self::$ipTV_db->query("SELECT * FROM `user_activity_now` WHERE `container` = 'rtmp' AND `pid` = '%d' AND `server_id` = '%d'", $ef4f0599712515333103265dafb029f7, SERVER_ID);
-        if (self::$ipTV_db->num_rows() > 0) {
-            $b0f2ad37a04751a76687ec58fd378a0f = self::$ipTV_db->get_row();
-            self::$ipTV_db->query("DELETE FROM `user_activity_now` WHERE `activity_id` = '%d'", $b0f2ad37a04751a76687ec58fd378a0f["activity_id"]);
-            self::C9ccc76C9d6b7e44c6D4a7A6c7191EB5($b0f2ad37a04751a76687ec58fd378a0f["server_id"], $b0f2ad37a04751a76687ec58fd378a0f["user_id"], $b0f2ad37a04751a76687ec58fd378a0f["stream_id"], $b0f2ad37a04751a76687ec58fd378a0f["date_start"], $b0f2ad37a04751a76687ec58fd378a0f["user_agent"], $b0f2ad37a04751a76687ec58fd378a0f["user_ip"], $b0f2ad37a04751a76687ec58fd378a0f["container"], $b0f2ad37a04751a76687ec58fd378a0f["geoip_country_code"], $b0f2ad37a04751a76687ec58fd378a0f["isp"], $b0f2ad37a04751a76687ec58fd378a0f["external_device"]);
             return true;
         }
         return false;
@@ -556,5 +472,503 @@ class ipTV_streaming {
                 return $currentSegment[1];
             }
         }
+    }
+    /** 
+     * Logs client actions to a file if client_logs_save setting is enabled or bypass flag is set to true. 
+     *  
+     * @param int $streamID The ID of the stream. 
+     * @param int $userID The ID of the user performing the action. 
+     * @param string $action The action being performed. 
+     * @param string $IP The IP address of the user. 
+     * @param string $data Additional data to be logged (optional). 
+     * @param bool $bypass Flag to bypass the client_logs_save setting (optional). 
+     * @return void|null 
+     */
+    public static function ClientLog($streamID, $userID, $action, $IP, $data = '', $bypass = false) {
+        if (ipTV_lib::$settings['client_logs_save'] != 0 || $bypass) {
+            $user_agent = (!empty($_SERVER['HTTP_USER_AGENT']) ? htmlentities($_SERVER['HTTP_USER_AGENT']) : '');
+            $data = array('user_id' => $userID, 'stream_id' => $streamID, 'action' => $action, 'query_string' => htmlentities($_SERVER['QUERY_STRING']), 'user_agent' => $user_agent, 'user_ip' => $IP, 'time' => time(), 'extra_data' => $data);
+            file_put_contents(LOGS_TMP_PATH . 'client_request.log', base64_encode(json_encode($data)) . "\n", FILE_APPEND);
+        } else {
+            return null;
+        }
+    }
+    public static function ShowVideo($is_restreamer = 0, $video_id_setting, $video_path_id, $extension = 'ts') {
+        global $showErrors;
+        if ($is_restreamer == 0 && ipTV_lib::$settings[$video_id_setting] == 1) {
+            if ($extension == 'm3u8') {
+                $extm3u = '#EXTM3U
+				#EXT-X-VERSION:3
+				#EXT-X-MEDIA-SEQUENCE:0
+				#EXT-X-ALLOW-CACHE:YES
+				#EXT-X-TARGETDURATION:11
+				#EXTINF:10.0,
+				' . ipTV_lib::$settings[$video_path_id] . '
+				#EXT-X-ENDLIST';
+                header('Content-Type: application/x-mpegurl');
+                header('Content-Length: ' . strlen($extm3u));
+                echo $extm3u;
+                die;
+            } else {
+                header('Content-Type: video/mp2t');
+                readfile(ipTV_lib::$settings[$video_path_id]);
+                die;
+            }
+        }
+        if ($showErrors) {
+            print_r($video_id_setting);
+        } else {
+            http_response_code(403);
+        }
+        die;
+    }
+    public static function validateConnections($userInfo, $IP = null, $userAgent = null) {
+        if ($userInfo['max_connections'] != 0) {
+            if (!empty($userInfo['pair_id'])) {
+                self::closeConnections($userInfo['pair_id'], $userInfo['max_connections'],  $IP, $userAgent);
+            }
+            self::closeConnections($userInfo['id'], $userInfo['max_connections'], $IP, $userAgent);
+        }
+    }
+    public static function closeConnections($userID, $rMaxConnections, $IP = null, $userAgent = null) {
+        self::$ipTV_db->query('SELECT `lines_live`.*, `on_demand` FROM `lines_live` LEFT JOIN `streams_servers` ON `streams_servers`.`stream_id` = `lines_live`.`stream_id` AND `streams_servers`.`server_id` = `lines_live`.`server_id` WHERE `lines_live`.`user_id` = \'%d\' AND `lines_live`.`hls_end` = 0 ORDER BY `lines_live`.`activity_id` ASC', $userID);
+        $rConnectionCount = self::$ipTV_db->num_rows();
+        $rToKill = $rConnectionCount - $rMaxConnections;
+        if ($rToKill > 0) {
+            $rConnections = self::$ipTV_db->get_rows();
+        } else {
+            return null;
+        }
+
+        $IP = self::getUserIP();
+        $rKilled = 0;
+        $rDelSID = $rDelUUID = $IDs = array();
+        if ($IP && $userAgent) {
+            $rKillTypes = array(2, 1, 0);
+        } else {
+            if ($IP) {
+                $rKillTypes = array(1, 0);
+            } else {
+                $rKillTypes = array(0);
+            }
+        }
+        foreach ($rKillTypes as $rKillOwnIP) {
+            $i = 0;
+            while ($i < count($rConnections) && $rKilled < $rToKill) {
+                if ($rKilled != $rToKill) {
+                    if ($rConnections[$i]['pid'] != getmypid()) {
+                        if ($rConnections[$i]['user_ip'] == $IP && $rConnections[$i]['user_agent'] == $userAgent && $rKillOwnIP == 2 || $rConnections[$i]['user_ip'] == $IP && $rKillOwnIP == 1 || $rKillOwnIP == 0) {
+                            if (self::closeConnection($rConnections[$i])) {
+                                $rKilled++;
+                                if ($rConnections[$i]['container'] != 'hls') {
+                                    $IDs[] = intval($rConnections[$i]['activity_id']);
+
+                                    $rDelUUID[] = $rConnections[$i]['uuid'];
+                                    $rDelSID[$rConnections[$i]['stream_id']][] = $rDelUUID;
+                                }
+                                if ($rConnections[$i]['on_demand'] && $rConnections[$i]['server_id'] == SERVER_ID && ON_DEMAND_INSTANT_OFF) {
+                                    self::removeFromQueue($rConnections[$i]['stream_id'], $rConnections[$i]['pid']);
+                                }
+                            }
+                        }
+                    }
+                    $i++;
+                } else {
+                    break;
+                }
+            }
+        }
+        if (!empty($IDs)) {
+            self::$ipTV_db->query('DELETE FROM `lines_live` WHERE `activity_id` IN (' . implode(',', array_map('intval', $IDs)) . ')');
+            foreach ($rDelUUID as $rUUID) {
+                ipTV_lib::unlink_file(CONS_TMP_PATH . $rUUID);
+            }
+            foreach ($rDelSID as $streamID => $rUUIDs) {
+                foreach ($rUUIDs as $rUUID) {
+                    ipTV_lib::unlink_file(CONS_TMP_PATH . $streamID . '/' . $rUUID);
+                }
+            }
+        }
+        return $rKilled;
+    }
+    public static function removeFromQueue($rStreamID, $rPID) {
+        $rActivePIDs = array();
+        foreach ((unserialize(file_get_contents(SIGNALS_TMP_PATH . 'queue_' . intval($rStreamID))) ?: array()) as $rActivePID) {
+            if (self::isProcessRunning($rActivePID, 'php-fpm') && $rPID != $rActivePID) {
+                $rActivePIDs[] = $rActivePID;
+            }
+        }
+        if (0 < count($rActivePIDs)) {
+            file_put_contents(SIGNALS_TMP_PATH . 'queue_' . intval($rStreamID), serialize($rActivePIDs));
+        } else {
+            unlink(SIGNALS_TMP_PATH . 'queue_' . intval($rStreamID));
+        }
+    }
+    public static function generateHLS($rM3U8, $rUsername, $rPassword, $streamID, $rUUID, $IP, $rVideoCodec = 'h264', $rOnDemand = 0, $rServerID = null, $rProxyID = null) {
+        if (file_exists($rM3U8)) {
+            $rSource = file_get_contents($rM3U8);
+            if ($rOnDemand) {
+                $rKeyToken = encryptData($IP . '/' . $streamID, ipTV_lib::$settings['live_streaming_pass'], OPENSSL_EXTRA);
+                $rSource = "#EXTM3U\n#EXT-X-KEY:METHOD=AES-128,URI=\"" . (($rProxyID ? '/' . md5($rProxyID . '_' . $rServerID . '_' . OPENSSL_EXTRA) : '')) . '/key/' . $rKeyToken . '",IV=0x' . bin2hex(file_get_contents(STREAMS_PATH . $streamID . '_.iv')) . "\n" . substr($rSource, 8, strlen($rSource) - 8);
+            }
+            if (preg_match_all('/(.*?)\\.ts/', $rSource, $rMatches)) {
+                foreach ($rMatches[0] as $rMatch) {
+                    $rToken = encryptData($rUsername . '/' . $rPassword . '/' . $IP . '/' . $streamID . '/' . $rMatch . '/' . $rUUID . '/' . SERVER_ID . '/' . $rVideoCodec . '/' . $rOnDemand, ipTV_lib::$settings['live_streaming_pass'], OPENSSL_EXTRA);
+                    $rSource = str_replace($rMatch, (($rProxyID ? '/' . md5($rProxyID . '_' . $rServerID . '_' . OPENSSL_EXTRA) : '')) . '/hls/' . $rToken, $rSource);
+                }
+                return $rSource;
+            }
+        }
+        return false;
+    }
+    public static function getIPInfo($user_ip) {
+        if (!empty($user_ip)) {
+            if (!file_exists(USER_TMP_PATH . md5($user_ip) . '_geo2')) {
+                $geoip_country_code = new Reader(GEOIP2COUNTRY_FILENAME);
+                $rResponse = $geoip_country_code->get($user_ip);
+                $geoip_country_code->close();
+                if ($rResponse) {
+                    file_put_contents(USER_TMP_PATH . md5($user_ip) . '_geo2', json_encode($rResponse));
+                }
+                return $rResponse;
+            }
+            return json_decode(file_get_contents(USER_TMP_PATH . md5($user_ip) . '_geo2'), true);
+        }
+        return false;
+    }
+    public static function GetUserInfo($userID = null, $username = null, $password = null, $getChannelIDs = false,  $getBouquetInfo = false, $IP = '') {
+        $userInfo = null;
+
+        if (empty($password) && empty($userID) && strlen($username) == 32) {
+            self::$ipTV_db->query('SELECT * FROM `users` WHERE `is_mag` = 0 AND `is_e2` = 0 AND `access_token` = \'%s\' AND LENGTH(`access_token`) = 32', $username);
+        } else {
+            if (!empty($username) && !empty($password)) {
+                self::$ipTV_db->query('SELECT `users`.*, `mag_devices`.`token` AS `mag_token` FROM `users` LEFT JOIN `mag_devices` ON `mag_devices`.`user_id` = `users`.`id` WHERE `username` = \'%s\' AND `password` = \'%s\' LIMIT 1', $username, $password);
+            } else {
+                if (!empty($userID)) {
+                    self::$ipTV_db->query('SELECT `users`.*, `mag_devices`.`token` AS `mag_token` FROM `users` LEFT JOIN `mag_devices` ON `mag_devices`.`user_id` = `users`.`id` WHERE `id` = \'%s\'', $userID);
+                } else {
+                    return false;
+                }
+            }
+        }
+        if (self::$ipTV_db->num_rows() > 0) {
+            $userInfo = self::$ipTV_db->get_row();
+        }
+
+        if (!$userInfo) {
+            return false;
+        }
+        if (ipTV_lib::$settings['county_override_1st'] == 1 && empty($userInfo['forced_country']) && !empty($IP) && $userInfo['max_connections'] == 1) {
+            $userInfo['forced_country'] = self::getIPInfo($IP)['registered_country']['iso_code'];
+
+            self::$ipTV_db->query('UPDATE `users` SET `forced_country` = \'%s\' WHERE `id` = \'%s\'', $userInfo['forced_country'], $userInfo['id']);
+        }
+        $userInfo['bouquet'] = json_decode($userInfo['bouquet'], true);
+        $userInfo['allowed_ips'] = @array_filter(@array_map('trim', @json_decode($userInfo['allowed_ips'], true)));
+        $userInfo['allowed_ua'] = @array_filter(@array_map('trim', @json_decode($userInfo['allowed_ua'], true)));
+        if (file_exists(TMP_PATH . 'user_output' . $userInfo["id"])) {
+            $userInfo["output_formats"] = unserialize(file_get_contents(TMP_PATH . "user_output" . $userInfo["id"]));
+        } else {
+            self::$ipTV_db->query("SELECT * FROM `access_output` t1 INNER JOIN `user_output` t2 ON t1.access_output_id = t2.access_output_id WHERE t2.user_id = '%d'", $userInfo["id"]);
+            $userInfo["output_formats"] = self::$ipTV_db->get_rows(true, "output_key");
+            file_put_contents(TMP_PATH . 'user_output' . $userInfo["id"], serialize($userInfo["output_formats"]), LOCK_EX);
+        }
+
+        $userInfo['con_isp_name'] = null;
+        $userInfo['isp_violate'] = 0;
+        $userInfo['isp_is_server'] = 0;
+
+        if (ipTV_lib::$settings['show_isps'] == 1 || !empty($IP)) {
+            $ISPLock = self::getISP($IP);
+            if (is_array($ISPLock)) {
+                if (!empty($ISPLock["isp_info"]["description"])) {
+                    $userInfo["con_isp_name"] = $ISPLock["isp_info"]["description"];
+                    if (ipTV_lib::$settings['block_svp'] == 1) {
+                        $IspIsBlocked = self::checkIspIsBlocked($userInfo["con_isp_name"]);
+                        if ($userInfo["is_restreamer"] == 0 && ipTV_lib::$settings["block_svp"] == 1 && !empty($ISPLock["isp_info"]["is_server"])) {
+                            $userInfo["isp_is_server"] = $ISPLock["isp_info"]["is_server"];
+                        }
+                        if ($userInfo["isp_is_server"] == 1) {
+                            $userInfo["con_isp_type"] = $ISPLock["isp_info"]["type"];
+                        }
+                        if ($IspIsBlocked !== false) {
+                            $userInfo["isp_is_server"] = $IspIsBlocked == 1 ? 1 : 0;
+                            $userInfo["con_isp_type"] = $userInfo["isp_is_server"] == 1 ? "Custom" : null;
+                        }
+                    }
+                }
+            }
+            if (!empty($userInfo['con_isp_name']) && ipTV_lib::$settings['enable_isp_lock'] == 1 && $userInfo['is_stalker'] == 0 && $userInfo['is_isplock'] == 1 && !empty($userInfo['isp_desc']) && strtolower($userInfo['con_isp_name']) != strtolower($userInfo['isp_desc'])) {
+                $userInfo['isp_violate'] = 1;
+            }
+            if ($userInfo['isp_violate'] == 0 && strtolower($userInfo['con_isp_name']) != strtolower($userInfo['isp_desc'])) {
+                self::$ipTV_db->query('UPDATE `users` SET `isp_desc` = \'%s\', `as_number` = \'%s\' WHERE `id` = \'%s\'', $userInfo['con_isp_name'], $userInfo['isp_asn'], $userInfo['id']);
+            }
+        }
+
+        if ($getChannelIDs) {
+            $rLiveIDs = $rVODIDs = $rRadioIDs = $rCategoryIDs = $rChannelIDs = $rSeriesIDs = array();
+            foreach ($userInfo['bouquet'] as $ID) {
+                if (isset(ipTV_lib::$Bouquets[$ID]['streams'])) {
+                    $rChannelIDs = array_merge($rChannelIDs, ipTV_lib::$Bouquets[$ID]['streams']);
+                }
+                if (isset(ipTV_lib::$Bouquets[$ID]['series'])) {
+                    $rSeriesIDs = array_merge($rSeriesIDs, ipTV_lib::$Bouquets[$ID]['series']);
+                }
+                if (isset(ipTV_lib::$Bouquets[$ID]['channels'])) {
+                    $rLiveIDs = array_merge($rLiveIDs, ipTV_lib::$Bouquets[$ID]['channels']);
+                }
+                if (isset(ipTV_lib::$Bouquets[$ID]['movies'])) {
+                    $rVODIDs = array_merge($rVODIDs, ipTV_lib::$Bouquets[$ID]['movies']);
+                }
+                if (isset(ipTV_lib::$Bouquets[$ID]['radios'])) {
+                    $rRadioIDs = array_merge($rRadioIDs, ipTV_lib::$Bouquets[$ID]['radios']);
+                }
+            }
+            $userInfo['channel_ids'] = array_map('intval', array_unique($rChannelIDs));
+            $userInfo['series_ids'] = array_map('intval', array_unique($rSeriesIDs));
+            $userInfo['vod_ids'] = array_map('intval', array_unique($rVODIDs));
+            $userInfo['live_ids'] = array_map('intval', array_unique($rLiveIDs));
+            $userInfo['radio_ids'] = array_map('intval', array_unique($rRadioIDs));
+        }
+        $rAllowedCategories = array();
+        $rCategoryMap = unserialize(file_get_contents(CACHE_TMP_PATH . 'category_map'));
+        foreach ($userInfo['bouquet'] as $ID) {
+            $rAllowedCategories = array_merge($rAllowedCategories, ($rCategoryMap[$ID] ?: array()));
+        }
+        $userInfo['category_ids'] = array_values(array_unique($rAllowedCategories));
+        return $userInfo;
+    }
+    public static function checkIspIsBlocked($con_isp_name) {
+        foreach (ipTV_lib::$customISP as $isp) {
+            if (strtolower($con_isp_name) == strtolower($isp['isp'])) {
+                return $isp['blocked'];
+            }
+        }
+        return false;
+    }
+    public static function getISP($user_ip) {
+        if (!empty($user_ip)) {
+            if (file_exists(USER_TMP_PATH . md5($user_ip) . '_isp')) {
+                return unserialize(file_get_contents(USER_TMP_PATH . md5($user_ip) . '_isp'));
+            }
+            if ((isset($user_ip)) && (filter_var($user_ip, FILTER_VALIDATE_IP))) {
+                $rData = json_decode(file_get_contents("https://db-ip.com/demo/home.php?s=" . $user_ip), True);
+
+                if (strlen($rData["demoInfo"]["isp"]) > 0) {
+                    $json = array(
+                        "isp_info" => array(
+                            "as_number" => $rData["demoInfo"]["asNumber"],
+                            "description" => $rData["demoInfo"]["isp"],
+                            "type" => $rData["demoInfo"]["usageType"],
+                            "ip" => $rData["demoInfo"]["ipAddress"],
+                            "country_code" => $rData["demoInfo"]["countryCode"],
+                            "country_name" => $rData["demoInfo"]["countryName"],
+                            "is_server" => $rData["demoInfo"]["usageType"] != "consumer" ? true : false
+                            // note: if api is not returning correct usagetype, try another isp api source.
+                        )
+                    );
+                    file_put_contents(USER_TMP_PATH . md5($user_ip) . '_isp', serialize($json));
+                }
+            }
+            return $json;
+        }
+        return false;
+    }
+    public static function checkGlobalBlockUA($user_agent) {
+        $user_agent = strtolower($user_agent);
+        $id = false;
+        foreach (ipTV_lib::$blockedUA as $key => $value) {
+            if (($value['exact_match'] == 1)) {
+                if ($value['blocked_ua'] == $user_agent) {
+                    $id = $key;
+                    break;
+                }
+            } else if (stristr($user_agent, $value['blocked_ua'])) {
+                $id = $key;
+            }
+        }
+        if ($id > 0) {
+            self::$ipTV_db->query('UPDATE `blocked_user_agents` SET `attempts_blocked` = `attempts_blocked`+1 WHERE `id` = \'%d\'', $id);
+            die;
+        }
+    }
+    public static function ChannelInfo($streamID, $extension, $userInfo, $rCountryCode, $rUserISP = '', $rType = '') {
+        $rStream = self::getStreamData($streamID);
+        if ($rStream) {
+            $rStream['info']['bouquets'] = $rStream['bouquets'];
+            $rAvailableServers = array();
+            if ($rType == 'archive') {
+                if (0 < $rStream['info']['tv_archive_duration'] && 0 < $rStream['info']['tv_archive_server_id'] && array_key_exists($rStream['info']['tv_archive_server_id'], ipTV_lib::$StreamingServers)) {
+                    $rAvailableServers = array($rStream['info']['tv_archive_server_id']);
+                }
+            } else {
+
+                if ($rStream['info']['direct_source'] == 0) {
+                    foreach (ipTV_lib::$StreamingServers as $rServerID => $serverInfo) {
+                        if (array_key_exists($rServerID, $rStream['servers']) || $serverInfo['server_online'] || $serverInfo['server_type'] == 0) {
+
+                            if (isset($rStream['servers'][$rServerID])) {
+                                if ($rType == 'movie') {
+                                    if ((!empty($rStream['servers'][$rServerID]['pid']) && $rStream['servers'][$rServerID]['to_analyze'] == 0 && $rStream['servers'][$rServerID]['stream_status'] == 0 || $rStream['info']['direct_source'] == 1) && ($rStream['info']['target_container'] == $extension || ($extension = 'srt')) && $serverInfo['timeshift_only'] == 0) {
+                                        $rAvailableServers[] = $rServerID;
+                                    }
+                                } else {
+                                    if (($rStream['servers'][$rServerID]['on_demand'] == 1 && $rStream['servers'][$rServerID]['stream_status'] != 1 || 0 < $rStream['servers'][$rServerID]['pid'] && $rStream['servers'][$rServerID]['stream_status'] == 0) && $rStream['servers'][$rServerID]['to_analyze'] == 0 && (int) $rStream['servers'][$rServerID]['delay_available_at'] <= time() && $serverInfo['timeshift_only'] == 0 || $rStream['info']['direct_source'] == 1) {
+                                        $rAvailableServers[] = $rServerID;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    header('Location: ' . str_replace(' ', '%20', json_decode($rStream['info']['stream_source'], true)[0]));
+                    exit();
+                }
+            }
+            if (!empty($rAvailableServers)) {
+                shuffle($rAvailableServers);
+                $rServerCapacity = self::getCapacity();
+                $rAcceptServers = array();
+                foreach ($rAvailableServers as $rServerID) {
+                    $rOnlineClients = (isset($rServerCapacity[$rServerID]['online_clients']) ? $rServerCapacity[$rServerID]['online_clients'] : 0);
+                    if ($rOnlineClients == 0) {
+                        $rServerCapacity[$rServerID]['capacity'] = 0;
+                    }
+                    $rAcceptServers[$rServerID] = (0 < ipTV_lib::$StreamingServers[$rServerID]['total_clients'] && $rOnlineClients < ipTV_lib::$StreamingServers[$rServerID]['total_clients'] ? $rServerCapacity[$rServerID]['capacity'] : false);
+                }
+                $rAcceptServers = array_filter($rAcceptServers, 'is_numeric');
+                if (empty($rAcceptServers)) {
+                    if ($rType == 'archive') {
+                        return null;
+                    }
+                    return array();
+                }
+                $rKeys = array_keys($rAcceptServers);
+                $rValues = array_values($rAcceptServers);
+                array_multisort($rValues, SORT_ASC, $rKeys, SORT_ASC);
+                $rAcceptServers = array_combine($rKeys, $rValues);
+                if ($extension == 'rtmp' && array_key_exists(SERVER_ID, $rAcceptServers)) {
+                    $rRedirectID = SERVER_ID;
+                } else {
+                    if (isset($userInfo) && $userInfo['force_server_id'] != 0 && array_key_exists($userInfo['force_server_id'], $rAcceptServers)) {
+                        $rRedirectID = $userInfo['force_server_id'];
+                    } else {
+                        $rPriorityServers = array();
+                        foreach (array_keys($rAcceptServers) as $rServerID) {
+                            if (ipTV_lib::$StreamingServers[$rServerID]['enable_geoip'] == 1) {
+                                if (in_array($rCountryCode, ipTV_lib::$StreamingServers[$rServerID]['geoip_countries'])) {
+                                    $rRedirectID = $rServerID;
+                                    break;
+                                }
+                                if (ipTV_lib::$StreamingServers[$rServerID]['geoip_type'] == 'strict') {
+                                    unset($rAcceptServers[$rServerID]);
+                                } else {
+                                    if (isset($rStream) && !ipTV_lib::$settings['ondemand_balance_equal'] && $rStream['servers'][$rServerID]['on_demand']) {
+                                        $rPriorityServers[$rServerID] = (ipTV_lib::$StreamingServers[$rServerID]['geoip_type'] == 'low_priority' ? 3 : 2);
+                                    } else {
+                                        $rPriorityServers[$rServerID] = (ipTV_lib::$StreamingServers[$rServerID]['geoip_type'] == 'low_priority' ? 2 : 1);
+                                    }
+                                }
+                            } else {
+                                if (ipTV_lib::$StreamingServers[$rServerID]['enable_isp'] == 1) {
+                                    if (in_array(strtolower(trim(preg_replace('/[^A-Za-z0-9 ]/', '', $rUserISP))), ipTV_lib::$StreamingServers[$rServerID]['isp_names'])) {
+                                        $rRedirectID = $rServerID;
+                                        break;
+                                    }
+                                    if (ipTV_lib::$StreamingServers[$rServerID]['isp_type'] == 'strict') {
+                                        unset($rAcceptServers[$rServerID]);
+                                    } else {
+                                        if (isset($rStream) && !ipTV_lib::$settings['ondemand_balance_equal'] && $rStream['servers'][$rServerID]['on_demand']) {
+                                            $rPriorityServers[$rServerID] = (ipTV_lib::$StreamingServers[$rServerID]['isp_type'] == 'low_priority' ? 3 : 2);
+                                        } else {
+                                            $rPriorityServers[$rServerID] = (ipTV_lib::$StreamingServers[$rServerID]['isp_type'] == 'low_priority' ? 2 : 1);
+                                        }
+                                    }
+                                } else {
+                                    if (isset($rStream) && !ipTV_lib::$settings['ondemand_balance_equal'] && $rStream['servers'][$rServerID]['on_demand']) {
+                                        $rPriorityServers[$rServerID] = 2;
+                                    } else {
+                                        $rPriorityServers[$rServerID] = 1;
+                                    }
+                                }
+                            }
+                        }
+                        if (!(empty($rPriorityServers) && empty($rRedirectID))) {
+                            $rRedirectID = (empty($rRedirectID) ? array_search(min($rPriorityServers), $rPriorityServers) : $rRedirectID);
+                        } else {
+                            return false;
+                        }
+                    }
+                }
+                if ($rType == 'archive') {
+                    return $rRedirectID;
+                }
+                $rStream['info']['redirect_id'] = $rRedirectID;
+                $fc4c58c5d1cd68d1 = $rRedirectID;
+                return array_merge($rStream['info'], $rStream['servers'][$fc4c58c5d1cd68d1]);
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+    public static function getStreamingURL($rServerID = null, $rForceHTTP = false) {
+        if (!isset($rServerID)) {
+            $rServerID = SERVER_ID;
+        }
+        if ($rForceHTTP) {
+            $rProtocol = 'http';
+        } else {
+            $rProtocol = ipTV_lib::$StreamingServers[$rServerID]['server_protocol'];
+        }
+        $rDomain = null;
+        if (0 < strlen(HOST) && in_array(strtolower(HOST), array_map('strtolower', ipTV_lib::$StreamingServers[$rServerID]['domains']['urls']))) {
+            $rDomain = HOST;
+        } else {
+            if (ipTV_lib::$StreamingServers[$rServerID]['random_ip'] && 0 < count(ipTV_lib::$StreamingServers[$rServerID]['domains']['urls'])) {
+                $rDomain = ipTV_lib::$StreamingServers[$rServerID]['domains']['urls'][array_rand(ipTV_lib::$StreamingServers[$rServerID]['domains']['urls'])];
+            }
+        }
+        if ($rDomain) {
+            $rURL = $rProtocol . '://' . $rDomain . ':' . ipTV_lib::$StreamingServers[$rServerID][$rProtocol . '_broadcast_port'];
+        } else {
+            $rURL = rtrim(ipTV_lib::$StreamingServers[$rServerID][$rProtocol . '_url'], '/');
+        }
+        return $rURL;
+    }
+    public static function getStreamData($streamID) {
+        if (CACHE_STREAMS) {
+            if (file_exists(TMP_PATH . $streamID . "_cacheStream") && time() - filemtime(TMP_PATH . $streamID . "_cacheStream") <= CACHE_STREAMS_TIME) {
+                return unserialize(file_get_contents(TMP_PATH . $streamID . "_cacheStream"));
+            }
+        }
+        $rOutput = array();
+        self::$ipTV_db->query('SELECT * FROM `streams` t1 LEFT JOIN `streams_types` t2 ON t2.type_id = t1.type WHERE t1.`id` = \'%s\'', $streamID);
+        if (self::$ipTV_db->num_rows() > 0) {
+            $rStreamInfo = self::$ipTV_db->get_row();
+            $rServers = array();
+            if ($rStreamInfo['direct_source'] == 0) {
+                self::$ipTV_db->query('SELECT * FROM `streams_servers` WHERE `stream_id` = \'%s\'', $streamID);
+                if (self::$ipTV_db->num_rows() > 0) {
+                    $rServers = self::$ipTV_db->get_rows(true, 'server_id');
+                }
+            }
+            $rOutput['bouquets'] = self::getBouquetMap($streamID);
+            $rOutput['info'] = $rStreamInfo;
+            $rOutput['servers'] = $rServers;
+            if (CACHE_STREAMS) {
+                file_put_contents(TMP_PATH . $streamID . "_cacheStream", serialize($rOutput), LOCK_EX);
+            }
+        }
+        return (!empty($rOutput) ? $rOutput : false);
+    }
+    public static function getBouquetMap($streamID) {
+        $rBouquetMap = unserialize(file_get_contents(CACHE_TMP_PATH . 'bouquet_map'));
+        $rReturn = ($rBouquetMap[$streamID] ?: array());
+        unset($rBouquetMap);
+        return $rReturn;
     }
 }

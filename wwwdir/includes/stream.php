@@ -218,7 +218,7 @@ class ipTV_stream {
                         } else {
                             $stream['stream_info']['transcode_attributes']['-scodec'] = 'copy';
                         }
-                        $rFFMPEG .= implode(' ', self::formatAttributes($stream['stream_info']['transcode_attributes'])) . ' ';
+                        $rFFMPEG .= implode(' ', self::parseTranscode($stream['stream_info']['transcode_attributes'])) . ' ';
                         $rFFMPEG .= $codec;
                     }
                     $rFFMPEG .= ' >/dev/null 2>' . VOD_PATH . intval($streamID) . '.errors & echo $! > ' . VOD_PATH . intval($streamID) . '_.pid';
@@ -572,46 +572,6 @@ class ipTV_stream {
         return $formattedArguments;
     }
     /**
-     * Formats the transcode attributes for use in FFmpeg commands.
-     *
-     * This method processes the input `$transcode_attributes` array, which may contain
-     * both individual attributes and complex filter expressions. It extracts the
-     * filter expressions, formats the attributes, and returns an array of formatted
-     * attributes ready for use in FFmpeg commands.
-     *
-     * @param array $transcode_attributes An array of transcode attributes, which may
-     *                                   include individual attributes and/or complex
-     *                                   filter expressions.
-     * @return array An array of formatted transcode attributes, ready for use in
-     *               FFmpeg commands.
-     */
-    public static function formatAttributes(array $transcode_attributes) {
-        $filter_complex = array();
-        foreach ($transcode_attributes as $k => $attribute) {
-            if (isset($attribute['cmd'])) {
-                $transcode_attributes[$k] = $attribute = $attribute['cmd'];
-            }
-            if (preg_match('/-filter_complex "(.*?)"/', $attribute, $matches)) {
-                $transcode_attributes[$k] = trim(str_replace($matches[0], '', $transcode_attributes[$k]));
-                $filter_complex[] = $matches[1];
-            }
-        }
-        if (!empty($filter_complex)) {
-            $transcode_attributes[] = '-filter_complex "' . implode(',', $filter_complex) . '"';
-        }
-        $formatted_attributes = array();
-        foreach ($transcode_attributes as $k => $attribute) {
-            if (is_numeric($k)) {
-                $formatted_attributes[] = $attribute;
-            } else {
-                $formatted_attributes[] = $k . ' ' . $attribute;
-            }
-        }
-        $formatted_attributes = array_filter($formatted_attributes);
-        uasort($formatted_attributes, array(__CLASS__, 'customOrder'));
-        return array_map('trim', array_values(array_filter($formatted_attributes)));
-    }
-    /**
      * Parses the stream URL and modifies it based on the server protocol.
      *
      * This function takes a stream URL as input, checks the server protocol, and processes the URL accordingly.
@@ -737,5 +697,11 @@ class ipTV_stream {
         $formatted_attributes = array_filter($formatted_attributes);
         uasort($formatted_attributes, array(__CLASS__, 'customOrder'));
         return array_map('trim', array_values(array_filter($formatted_attributes)));
+    }
+    public static function customOrder($a, $b) {
+        if (substr($a, 0, 3) == '-i ') {
+            return -1;
+        }
+        return 1;
     }
 }
