@@ -6,9 +6,6 @@ require 'init.php';
 $rDeny = true;
 global $rDeny;
 
-$log = date('Y-m-d H:i:s') . ' ' . print_r(ipTV_lib::$request, true);
-file_put_contents(__DIR__ . '/log.txt', $log . PHP_EOL, FILE_APPEND);
-
 if (empty(ipTV_lib::$request['password']) || ipTV_lib::$request['password'] != ipTV_lib::$settings['live_streaming_pass']) {
     die(json_encode(array("main_fetch" => false, "error" => "Wrong Password")));
 }
