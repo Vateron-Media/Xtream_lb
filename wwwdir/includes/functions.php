@@ -103,34 +103,6 @@ function getNetwork($Interface = null) {
     }
     return $Return;
 }
-function generateCron() {
-    if (!file_exists(TMP_PATH . 'crontab')) {
-        $rJobs = array();
-        $crons = scandir(CRON_PATH);
-        foreach ($crons as $cron) {
-            $rFullPath = CRON_PATH . $cron;
-            if (pathinfo($rFullPath, PATHINFO_EXTENSION) == 'php' && is_file($rFullPath)) {
-                if ($cron != "epg.php") {
-                    $time = "*/1 * * * *";
-                } else {
-                    $time = "0 1 * * *";
-                }
-                $rJobs[] = $time . ' ' . PHP_BIN . ' ' . $rFullPath . ' # XtreamUI';
-            }
-        }
-        shell_exec('crontab -r');
-        $rTempName = tempnam('/tmp', 'crontab');
-        $rHandle = fopen($rTempName, 'w');
-        fwrite($rHandle, implode("\n", $rJobs) . "\n");
-        fclose($rHandle);
-        shell_exec('crontab -u 	xtreamcodes ' . $rTempName);
-        @unlink($rTempName);
-        file_put_contents(TMP_PATH . 'crontab', 1);
-        return true;
-    } else {
-        return false;
-    }
-}
 function secondsToTime($inputSeconds) {
     $secondsInAMinute = 60;
     $secondsInAnHour = 60 * $secondsInAMinute;
