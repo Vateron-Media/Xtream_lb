@@ -39,12 +39,12 @@ class ipTV_lib {
         self::$blockedISP = self::getBlockedISP();
         self::$blockedIPs = self::getBlockedIPs();
         self::$categories = self::getCategories();
-        if (self::$StreamingServers[SERVER_ID]["persistent_connections"] != $_INFO["pconnect"]) {
-            $_INFO["pconnect"] = self::$StreamingServers[SERVER_ID]["persistent_connections"];
-            if (!empty($_INFO) && is_array($_INFO) && !empty($_INFO["db_user"])) {
-                file_put_contents(MAIN_DIR . "config", base64_encode(decrypt_config(json_encode($_INFO), CONFIG_CRYPT_KEY)), LOCK_EX);
-            }
-        }
+        // if (self::$StreamingServers[SERVER_ID]["persistent_connections"] != $_INFO["pconnect"]) {
+        //     $_INFO["pconnect"] = self::$StreamingServers[SERVER_ID]["persistent_connections"];
+        //     if (!empty($_INFO) && is_array($_INFO) && !empty($_INFO["db_user"])) {
+        //         file_put_contents(MAIN_DIR . "config", base64_encode(decrypt_config(json_encode($_INFO), CONFIG_CRYPT_KEY)), LOCK_EX);
+        //     }
+        // }
         self::$SegmentsSettings = self::calculateSegNumbers();
         self::generateCron();
     }
@@ -152,7 +152,7 @@ class ipTV_lib {
      */
     public static function setSettings(array $settings) {
         foreach ($settings as $key => $value) {
-            self::$ipTV_db->query("UPDATE `settings` SET `value` = ? WHERE `name` = ?", $value, $key);
+            self::$ipTV_db->query("UPDATE `settings` SET `value` = '%s' WHERE `name` = '%s'", $value, $key);
         }
         self::getSettings(true);
     }

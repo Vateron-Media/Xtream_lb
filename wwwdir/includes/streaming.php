@@ -566,7 +566,7 @@ class ipTV_streaming {
                                     $rDelUUID[] = $rConnections[$i]['uuid'];
                                     $rDelSID[$rConnections[$i]['stream_id']][] = $rDelUUID;
                                 }
-                                if ($rConnections[$i]['on_demand'] && $rConnections[$i]['server_id'] == SERVER_ID && ON_DEMAND_INSTANT_OFF) {
+                                if ($rConnections[$i]['on_demand'] && $rConnections[$i]['server_id'] == SERVER_ID && ipTV_lib::$settings["on_demand_instant_off"]) {
                                     self::removeFromQueue($rConnections[$i]['stream_id'], $rConnections[$i]['pid']);
                                 }
                             }

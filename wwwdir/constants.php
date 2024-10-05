@@ -79,24 +79,10 @@ define('MONITOR_CALLS', 3);
 // Temporary variables that should be added to the panel settings
 define('ENABLE_CACHE', true);
 define('CACHE_PLAYLIST', 60);
-define('KILL_ROQUE_FFMPEG', true);
-define('FPS_DELLAY', 600);
-define('PROBE_EXTRA_WAIT', 7);
-define('FFMPEG_WARNINGS', true);
-define('IGNORE_KEYFRAMES', 0);
-define('SEG_DELETE_THRESHOLD', 4);
-define('CREATE_EXPIRATION', 5);
-define('ON_DEMAND_WAIT_TIME', 20);
-define('ON_DEMAND_INSTANT_OFF', false);
-define('SEGMENT_WAIT_TIME', 20);
-define('MONITOR_CONNECTION_STATUS', true);
 
 define('CACHE_STREAMS', false);
 define('CACHE_STREAMS_TIME', 10);
 
-if (!defined("USE_CACHE")) {
-    define("USE_CACHE", true);
-}
 if (!defined("FETCH_BOUQUETS")) {
     define("FETCH_BOUQUETS", true);
 }
