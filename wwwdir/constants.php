@@ -87,6 +87,7 @@ if (!defined("FETCH_BOUQUETS")) {
     define("FETCH_BOUQUETS", true);
 }
 
+global $argc;
 if (!$argc) {
     $rIP = $_SERVER['REMOTE_ADDR'];
     if (empty($rIP) || !file_exists(FLOOD_TMP_PATH . 'block_' . $rIP)) {
