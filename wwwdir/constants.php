@@ -77,7 +77,6 @@ define('MONITOR_CALLS', 3);
 // -------------------
 
 // Temporary variables that should be added to the panel settings
-define('ENABLE_CACHE', true);
 define('CACHE_PLAYLIST', 60);
 
 define('CACHE_STREAMS', false);

@@ -53,7 +53,7 @@ function loadCron() {
                     }
                     $data['target_container'] = $data['target_container'][0];
                     $fileURL = VOD_PATH . $data['stream_id'] . '.' . $data['target_container'];
-                    if ($stream_info = ipTV_stream::analyzeStream($fileURL, $data['server_id'])) {
+                    if ($stream_info = ipTV_stream::probeStream($fileURL) {
                         $duration = isset($stream_info['duration']) ? $stream_info['duration'] : 0;
                         sscanf($duration, '%d:%d:%d', $hours, $minutes, $seconds);
                         $duration_secs = isset($seconds) ? $hours * 3600 + $minutes * 60 + $seconds : $hours * 60 + $minutes;

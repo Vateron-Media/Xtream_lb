@@ -636,26 +636,49 @@ class ipTV_streaming {
         }
         return false;
     }
-    public static function GetUserInfo($userID = null, $username = null, $password = null, $getChannelIDs = false,  $getBouquetInfo = false, $IP = '') {
+    public static function GetUserInfo($userID = null, $username = null, $password = null, $getChannelIDs = false, $getBouquetInfo = false, $IP = '') {
         $userInfo = null;
-
-        if (empty($password) && empty($userID) && strlen($username) == 32) {
-            self::$ipTV_db->query('SELECT * FROM `users` WHERE `is_mag` = 0 AND `is_e2` = 0 AND `access_token` = \'%s\' AND LENGTH(`access_token`) = 32', $username);
-        } else {
-            if (!empty($username) && !empty($password)) {
-                self::$ipTV_db->query('SELECT `users`.*, `mag_devices`.`token` AS `mag_token` FROM `users` LEFT JOIN `mag_devices` ON `mag_devices`.`user_id` = `users`.`id` WHERE `username` = \'%s\' AND `password` = \'%s\' LIMIT 1', $username, $password);
-            } else {
-                if (!empty($userID)) {
-                    self::$ipTV_db->query('SELECT `users`.*, `mag_devices`.`token` AS `mag_token` FROM `users` LEFT JOIN `mag_devices` ON `mag_devices`.`user_id` = `users`.`id` WHERE `id` = \'%s\'', $userID);
+        if (ipTV_lib::$cached) {
+            if (empty($password) && empty($userID) && strlen($username) == 32) {
+                if (ipTV_lib::$settings['case_sensitive_line']) {
+                    $userID = intval(file_get_contents(USER_TMP_PATH . 'user_t_' . $username));
                 } else {
-                    return false;
+                    $userID = intval(file_get_contents(USER_TMP_PATH . 'user_t_' . strtolower($username)));
+                }
+            } else {
+                if (!empty($username) && !empty($password)) {
+                    if (ipTV_lib::$settings['case_sensitive_line']) {
+                        $userID = intval(file_get_contents(USER_TMP_PATH . 'user_c_' . $username . '_' . $password));
+                    } else {
+                        $userID = intval(file_get_contents(USER_TMP_PATH . 'user_c_' . strtolower($username) . '_' . strtolower($password)));
+                    }
+                } else {
+                    if (empty($userID)) {
+                        return false;
+                    }
                 }
             }
+            if ($userID) {
+                $userInfo = unserialize(file_get_contents(USER_TMP_PATH . 'user_i_' . $userID));
+            }
+        } else {
+            if (empty($password) && empty($userID) && strlen($username) == 32) {
+                self::$ipTV_db->query('SELECT * FROM `users` WHERE `is_mag` = 0 AND `is_e2` = 0 AND `access_token` = \'%s\' AND LENGTH(`access_token`) = 32', $username);
+            } else {
+                if (!empty($username) && !empty($password)) {
+                    self::$ipTV_db->query('SELECT `users`.*, `mag_devices`.`token` AS `mag_token` FROM `users` LEFT JOIN `mag_devices` ON `mag_devices`.`user_id` = `users`.`id` WHERE `username` = \'%s\' AND `password` = \'%s\' LIMIT 1', $username, $password);
+                } else {
+                    if (!empty($userID)) {
+                        self::$ipTV_db->query('SELECT `users`.*, `mag_devices`.`token` AS `mag_token` FROM `users` LEFT JOIN `mag_devices` ON `mag_devices`.`user_id` = `users`.`id` WHERE `id` = \'%s\'', $userID);
+                    } else {
+                        return false;
+                    }
+                }
+            }
+            if (self::$ipTV_db->num_rows() > 0) {
+                $userInfo = self::$ipTV_db->get_row();
+            }
         }
-        if (self::$ipTV_db->num_rows() > 0) {
-            $userInfo = self::$ipTV_db->get_row();
-        }
-
         if (!$userInfo) {
             return false;
         }

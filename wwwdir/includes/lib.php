@@ -12,6 +12,7 @@ class ipTV_lib {
     public static $blockedISP = array();
     public static $blockedIPs = array();
     public static $categories = array();
+    public static $cached = null;
     public static function init() {
         global $_INFO;
         if (!empty($_GET)) {
@@ -31,6 +32,7 @@ class ipTV_lib {
         self::$settings = self::getSettings();
         date_default_timezone_set(self::$settings["default_timezone"]);
         self::$StreamingServers = self::getServers();
+        self::$cached = self::$settings["enable_cache"];
         if (FETCH_BOUQUETS) {
             self::$Bouquets = self::getBouquets();
         }
@@ -85,9 +87,9 @@ class ipTV_lib {
      */
     public static function getBouquets($rForce = false) {
         if (!$rForce) {
-            $rCache = self::getCache('bouquets', 60);
-            if (!empty($rCache)) {
-                return $rCache;
+            $cache = self::getCache('bouquets', 60);
+            if (!empty($cache)) {
+                return $cache;
             }
         }
         $output = array();
@@ -273,9 +275,9 @@ class ipTV_lib {
             return (0 < self::$ipTV_db->num_rows() ? self::$ipTV_db->get_rows(true, 'id') : array());
         }
         if (!$rForce) {
-            $rCache = self::getCache('categories', 20);
-            if (!empty($rCache)) {
-                return $rCache;
+            $cache = self::getCache('categories', 20);
+            if (!empty($cache)) {
+                return $cache;
             }
         }
         self::$ipTV_db->query('SELECT t1.* FROM `stream_categories` t1 ORDER BY t1.cat_order ASC');
@@ -306,7 +308,7 @@ class ipTV_lib {
      */
     public static function getCache($cache, $rSeconds = null) {
         if (file_exists(CACHE_TMP_PATH . $cache)) {
-            if (!$rSeconds && time() - filemtime(CACHE_TMP_PATH . $cache) > $rSeconds) {
+            if (!($rSeconds && time() - filemtime(CACHE_TMP_PATH . $cache) >= $rSeconds)) {
                 $data = file_get_contents(CACHE_TMP_PATH . $cache);
                 return unserialize($data);
             }
