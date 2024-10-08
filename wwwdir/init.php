@@ -6,10 +6,6 @@ require IPTV_INCLUDES_PATH . "mysql.php";
 require IPTV_INCLUDES_PATH . "streaming.php";
 require IPTV_INCLUDES_PATH . "servers.php";
 require IPTV_INCLUDES_PATH . "stream.php";
-include IPTV_INCLUDES_PATH . "geo/Reader.php";
-include IPTV_INCLUDES_PATH . "geo/Decoder.php";
-include IPTV_INCLUDES_PATH . "geo/Util.php";
-include IPTV_INCLUDES_PATH . "geo/Metadata.php";
 
 $_INFO = array();
 
