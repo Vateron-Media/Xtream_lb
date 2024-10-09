@@ -156,7 +156,7 @@ function checkFlood($rIP = null) {
         if (!$rIP) {
             $rIP = ipTV_streaming::getUserIP();
         }
-        if (!(empty($rIP) || in_array($rIP, ipTV_streaming::getAllowedIPs()))) {
+        if (!(empty($rIP) || in_array($rIP, ipTV_streaming::$allowedIPs))) {
             $rFloodExclude = array_filter(array_unique(explode(',', ipTV_lib::$settings['flood_ips_exclude'])));
             if (!in_array($rIP, $rFloodExclude)) {
                 $rIPFile = FLOOD_TMP_PATH . $rIP;
@@ -257,7 +257,7 @@ function checkAuthFlood($rUser, $rIP = null) {
             if (!$rIP) {
                 $rIP = ipTV_streaming::getUserIP();
             }
-            if (!(empty($rIP) || in_array($rIP, ipTV_streaming::getAllowedIPs()))) {
+            if (!(empty($rIP) || in_array($rIP, ipTV_streaming::$allowedIPs))) {
                 $rFloodExclude = array_filter(array_unique(explode(',', ipTV_lib::$settings['flood_ips_exclude'])));
                 if (!in_array($rIP, $rFloodExclude)) {
                     $rUserFile = FLOOD_TMP_PATH . intval($rUser['id']) . '_' . $rIP;
@@ -343,7 +343,7 @@ function checkBruteforce($rIP = null, $rMAC = null, $rUsername = null) {
                 if (!$rIP) {
                     $rIP = ipTV_streaming::getUserIP();
                 }
-                if (!(empty($rIP) || in_array($rIP, ipTV_streaming::getAllowedIPs()))) {
+                if (!(empty($rIP) || in_array($rIP, ipTV_streaming::$allowedIPs))) {
                     $rFloodExclude = array_filter(array_unique(explode(',', ipTV_lib::$settings['flood_ips_exclude'])));
                     if (!in_array($rIP, $rFloodExclude)) {
                         $rFloodType = (!is_null($rMAC) ? 'mac' : 'user');
