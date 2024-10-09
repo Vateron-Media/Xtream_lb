@@ -535,7 +535,4 @@ class ipTV_lib {
             return false;
         }
     }
-    public static function setSignal($rKey, $rData) {
-        file_put_contents(SIGNALS_TMP_PATH . 'cache_' . md5($rKey), json_encode(array($rKey, $rData)));
-    }
 }
