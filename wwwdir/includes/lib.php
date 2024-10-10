@@ -320,7 +320,7 @@ class ipTV_lib {
      * @return void 
      */
     public static function setCache($cache, $data) {
-        $serializedData = serialize($data);
+        $serializedData = igbinary_serialize($data);
         if (!file_exists(CACHE_TMP_PATH)) {
             mkdir(CACHE_TMP_PATH);
         }
@@ -337,7 +337,7 @@ class ipTV_lib {
         if (file_exists(CACHE_TMP_PATH . $cache)) {
             if (!($rSeconds && time() - filemtime(CACHE_TMP_PATH . $cache) >= $rSeconds)) {
                 $data = file_get_contents(CACHE_TMP_PATH . $cache);
-                return unserialize($data);
+                return igbinary_unigbinary_serialize($data);
             }
         }
         return null;

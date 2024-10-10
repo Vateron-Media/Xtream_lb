@@ -359,7 +359,7 @@ class ipTV_stream {
             $probeOptions = implode(' ', self::getFormattedStreamArguments($probeArguments, $protocol, 'fetch'));
             $rFetchOptions = implode(' ', self::getFormattedStreamArguments($stream['stream_arguments'], $protocol, 'fetch'));
             if ($rFromCache && file_exists(CACHE_TMP_PATH . md5($source)) && time() - filemtime(CACHE_TMP_PATH . md5($source)) <= 300) {
-                $rFFProbeOutput = unserialize(file_get_contents(CACHE_TMP_PATH . md5($streamSource)));
+                $rFFProbeOutput = igbinary_unigbinary_serialize(file_get_contents(CACHE_TMP_PATH . md5($streamSource)));
                 if ($rFFProbeOutput && (isset($rFFProbeOutput['streams']) || isset($rFFProbeOutput['codecs']))) {
                     echo 'Got stream information via cache' . "\n";
                     break;
@@ -386,7 +386,7 @@ class ipTV_stream {
                 return 0;
             }
             if (!$rFromCache) {
-                file_put_contents(CACHE_TMP_PATH . md5($source), serialize($rFFProbeOutput));
+                file_put_contents(CACHE_TMP_PATH . md5($source), igbinary_serialize($rFFProbeOutput));
             }
         }
         $rExternalPush = json_decode($stream['stream_info']['external_push'], true);
