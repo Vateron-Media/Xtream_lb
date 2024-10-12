@@ -65,7 +65,7 @@ define('VIDEO_PATH', CONTENT_PATH . 'video/');
 // -------------------
 
 // CONSTANTS VAR
-define('SCRIPT_VERSION', '1.0.0');
+define('SCRIPT_VERSION', '1.0.2');
 define('IN_SCRIPT', true);
 define('SOFTWARE', 'iptv');
 define('FFMPEG_FONTS_PATH', BIN_PATH . 'free-sans.ttf');
