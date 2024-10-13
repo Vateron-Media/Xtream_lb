@@ -106,7 +106,7 @@ if ($ipTV_db->num_rows() > 0) {
                     echo $Ecf4751835141bfcce480ec62720b500;
                     $e6e1d835d746daf7d74660d362922634 = 0;
                 }
-                if (!(ipTV_streaming::ps_running($F57960e3620515a273e03803fcd30429["pid"], FFMPEG_PATH) && $e6e1d835d746daf7d74660d362922634 <= $C72e5ac751c165a671cc57aeb3dbc150 && file_exists(STREAMS_PATH . $segmentFile) && is_resource($b4ad7225f6375fe5d757d3c7147fb034))) {
+                if (!(ipTV_streaming::ps_running($F57960e3620515a273e03803fcd30429["pid"], ipTV_lib::$FFMPEG_CPU) && $e6e1d835d746daf7d74660d362922634 <= $C72e5ac751c165a671cc57aeb3dbc150 && file_exists(STREAMS_PATH . $segmentFile) && is_resource($b4ad7225f6375fe5d757d3c7147fb034))) {
                     die;
                 } else {
                     $fae6f311e48c420ee08489911d8efe3a = filesize(STREAMS_PATH . $segmentFile);

@@ -9,7 +9,7 @@ class ipTV_streaming {
         } else {
             list($x, $y) = explode("x", $signalData["xy_offset"]);
         }
-        passthru(FFMPEG_PATH . " -nofix_dts -fflags +igndts -copyts -vsync 0 -nostats -nostdin -hide_banner -loglevel quiet -y -i \"" . STREAMS_PATH . $segmentFile . "\" -filter_complex \"drawtext=fontfile=" . FFMPEG_FONTS_PATH . ":text='{$signalData["message"]}':fontsize={$signalData["font_size"]}:x={$x}:y={$y}:fontcolor={$signalData["font_color"]}\" -map 0 -vcodec libx264 -preset ultrafast -acodec copy -scodec copy -mpegts_flags +initial_discontinuity -mpegts_copyts 1 -f mpegts -");
+        passthru(ipTV_lib::$FFMPEG_CPU . " -nofix_dts -fflags +igndts -copyts -vsync 0 -nostats -nostdin -hide_banner -loglevel quiet -y -i \"" . STREAMS_PATH . $segmentFile . "\" -filter_complex \"drawtext=fontfile=" . FFMPEG_FONTS_PATH . ":text='{$signalData["message"]}':fontsize={$signalData["font_size"]}:x={$x}:y={$y}:fontcolor={$signalData["font_color"]}\" -map 0 -vcodec libx264 -preset ultrafast -acodec copy -scodec copy -mpegts_flags +initial_discontinuity -mpegts_copyts 1 -f mpegts -");
         return true;
     }
     public static function CloseAndTransfer($activity_id) {
@@ -130,7 +130,7 @@ class ipTV_streaming {
         }
         return false;
     }
-    public static function A1ECf5D2a93474B12e622361C656b958($ef4f0599712515333103265dafb029f7, $b6497ba71489783c3747f19debe893a4, $c3bd62458959952cf55b015822fd5a91 = FFMPEG_PATH) {
+    public static function A1ECf5D2a93474B12e622361C656b958($ef4f0599712515333103265dafb029f7, $b6497ba71489783c3747f19debe893a4, $c3bd62458959952cf55b015822fd5a91 = ipTV_lib::$FFMPEG_CPU) {
         if (empty($ef4f0599712515333103265dafb029f7)) {
             return false;
         }
@@ -158,7 +158,7 @@ class ipTV_streaming {
         file_put_contents(TMP_PATH . "offline_cons", base64_encode(json_encode($b0f2ad37a04751a76687ec58fd378a0f)) . "\n", FILE_APPEND | LOCK_EX);
     }
     public static function eF709337A2715D23B673E033a05bF7b7($f0d5508533eaf6452b2b014beae1cc7c, $ef4f0599712515333103265dafb029f7) {
-        return self::ps_running($ef4f0599712515333103265dafb029f7, FFMPEG_PATH) && file_exists($f0d5508533eaf6452b2b014beae1cc7c);
+        return self::ps_running($ef4f0599712515333103265dafb029f7, ipTV_lib::$FFMPEG_CPU) && file_exists($f0d5508533eaf6452b2b014beae1cc7c);
     }
     public static function getMainID() {
         foreach (ipTV_lib::$StreamingServers as $rServerID => $rServer) {
