@@ -21,10 +21,17 @@ $action = (!empty(ipTV_lib::$request['action']) ? ipTV_lib::$request['action'] :
 $rDeny = false;
 
 switch ($action) {
-    case "reset_cache":
-        $E179fbf94a7c2de093622901d974626c = opcache_reset();
-        echo (int) $E179fbf94a7c2de093622901d974626c;
-        die;
+    case 'view_log':
+        if (empty(ipTV_lib::$request['stream_id'])) {
+            break;
+        }
+        $streamID = intval(ipTV_lib::$request['stream_id']);
+        if (file_exists(STREAMS_PATH . $streamID . '.errors')) {
+            echo file_get_contents(STREAMS_PATH . $streamID . '.errors');
+        } elseif (file_exists(VOD_PATH . $streamID . '.errors')) {
+            echo file_get_contents(VOD_PATH . $streamID . '.errors');
+        }
+        exit();
     case 'reload_epg':
         shell_exec(PHP_BIN . ' ' . CRON_PATH . 'epg.php >/dev/null 2>/dev/null &');
         break;
@@ -214,17 +221,6 @@ switch ($action) {
             die;
         }
         break;
-    case 'view_log':
-        if (empty(ipTV_lib::$request['stream_id'])) {
-            break;
-        }
-        $streamID = intval(ipTV_lib::$request['stream_id']);
-        if (file_exists(STREAMS_PATH . $streamID . '.errors')) {
-            echo file_get_contents(STREAMS_PATH . $streamID . '.errors');
-        } elseif (file_exists(VOD_PATH . $streamID . '.errors')) {
-            echo file_get_contents(VOD_PATH . $streamID . '.errors');
-        }
-        exit();
     case 'redirect_connection':
         if (!empty(ipTV_lib::$request['activity_id']) && !empty(ipTV_lib::$request['stream_id'])) {
             ipTV_lib::$request['type'] = 'redirect';

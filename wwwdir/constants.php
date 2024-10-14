@@ -1,31 +1,75 @@
 <?php
-$showErrors = true;
 
-@ini_set("user_agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:9.0) Gecko/20100101 Firefox/9.0");
+$showErrors = false;
 
+$rErrorCodes = array(
+    'API_IP_NOT_ALLOWED' => 'IP is not allowed to access the API.',
+    'ASN_BLOCKED' => 'ASN has been blocked.',
+    'BANNED' => 'Line has been banned.',
+    'BLOCKED_USER_AGENT' => 'User-agent has been blocked.',
+    'DEVICE_NOT_ALLOWED' => 'MAG & Enigma devices are not allowed to access this.',
+    'DISABLED' => 'Line has been disabled.',
+    'DOWNLOAD_LIMIT_REACHED' => 'Reached the simultaneous download limit.',
+    'EMPTY_USER_AGENT' => 'Empty user-agents are disallowed.',
+    'EPG_DISABLED' => 'EPG has been disabled.',
+    'EPG_FILE_MISSING' => 'Cached EPG files are missing.',
+    'EXPIRED' => 'Line has expired.',
+    'FORCED_COUNTRY_INVALID' => 'Country does not match forced country.',
+    'GENERATE_PLAYLIST_FAILED' => 'Playlist failed to generate.',
+    'HLS_DISABLED' => 'HLS has been disabled.',
+    'INVALID_API_PASSWORD' => 'API password is invalid.',
+    'INVALID_CREDENTIALS' => 'Username or password is invalid.',
+    'INVALID_HOST' => 'Domain name not recognised.',
+    'INVALID_STREAM_ID' => "Stream ID doesn't exist.",
+    'INVALID_TYPE_TOKEN' => "Tokens can't be used for this stream type.",
+    'IP_MISMATCH' => 'Current IP doesn’t match initial connection IP.',
+    'ISP_BLOCKED' => 'ISP has been blocked.',
+    'LB_TOKEN_INVALID' => 'AES Token cannot be decrypted.',
+    'LEGACY_EPG_DISABLED' => 'Legacy epg.php access has been disabled.',
+    'LINE_CREATE_FAIL' => 'Line failed to insert into database.',
+    'NO_CREDENTIALS' => 'No credentials have been specified.',
+    'NO_TOKEN_SPECIFIED' => 'No AES encrypted token has been specified.',
+    'NOT_IN_ALLOWED_COUNTRY' => 'Not in allowed country list.',
+    'NOT_IN_ALLOWED_IPS' => 'Not in allowed IP list.',
+    'NOT_IN_ALLOWED_UAS' => 'Not in allowed user-agent list.',
+    'NOT_IN_BOUQUET' => 'Line doesn’t have access to this stream ID.',
+    'RESTREAM_DETECT' => 'Restreaming has been detected.',
+    'STALKER_CHANNEL_MISMATCH' => "Stream ID doesn't match stalker token.",
+    'STALKER_DECRYPT_FAILED' => 'Failed to decrypt stalker token.',
+    'STALKER_INVALID_KEY' => 'Invalid stalker key.',
+    'STALKER_IP_MISMATCH' => "IP doesn't match stalker token.",
+    'STALKER_KEY_EXPIRED' => 'Stalker token has expired.',
+    'TOKEN_ERROR' => 'AES token has incomplete data.',
+    'TOKEN_EXPIRED' => 'AES token has expired.',
+    'TS_DISABLED' => 'MPEG-TS has been disabled.',
+    'USER_ALREADY_CONNECTED' => 'Line already connected on a different IP.',
+    'USER_DISALLOW_EXT' => 'Extension is not in allowed list.',
+    'VOD_DOESNT_EXIST' => "VOD file doesn't exist.",
+    'WAIT_TIME_EXPIRED' => 'Stream start has timed out, failed to start.',
+    'NO_SERVERS_AVAILABLE' => 'No servers are currently available for this stream.'
+);
+
+@ini_set('user_agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:9.0) Gecko/20100101 Firefox/9.0');
+@ini_set('default_socket_timeout', 5);
 
 // FOLDERS
 define('MAIN_DIR', '/home/xtreamcodes/');
 define('IPTV_ROOT_PATH', str_replace('\\', '/', dirname(__FILE__)) . '/');
 define('IPTV_INCLUDES_PATH', IPTV_ROOT_PATH . 'includes' . '/');
 define('IPTV_TEMPLATES_PATH', IPTV_ROOT_PATH . 'templates' . '/');
-define('MOVIES_IMAGES', MAIN_DIR . 'wwwdir/images/');
-define('ENIGMA2_PLUGIN_DIR', MOVIES_IMAGES . 'enigma2/');
 define('CRON_PATH', MAIN_DIR . 'crons/');
 define('ASYNC_DIR', MAIN_DIR . 'async_incs/');
 define('TOOLS_PATH', MAIN_DIR . 'tools/');
 define('IPTV_CLIENT_AREA', MAIN_DIR . 'wwwdir/client_area/');
 define('BIN_PATH', MAIN_DIR . 'bin/');
-define('DELAY_STREAM', MAIN_DIR . 'delay/');
 define('SIGNALS_PATH', MAIN_DIR . 'signals/');
-define("MOVIES_PATH", MAIN_DIR . "movies/");
 define('IPTV_CLIENT_AREA_TEMPLATES_PATH', IPTV_CLIENT_AREA . 'templates/');
 define('CONFIG_PATH', MAIN_DIR . 'config/');
 // -------------------
 
 // BINARIES FILE
 define('PHP_BIN', '/home/xtreamcodes/bin/php/bin/php');
-define('YOUTUBE_PATH', BIN_PATH . 'youtube');
+define('YOUTUBE_PATH', BIN_PATH . 'yt-dlp');
 define('GEOIP2COUNTRY_FILENAME', BIN_PATH . 'maxmind/GeoLite2-Country.mmdb');
 define('GEOIP2ASN_FILENAME', BIN_PATH . 'maxmind/GeoLite2-ASN.mmdb');
 define('GEOIP2CITY_FILENAME', BIN_PATH . 'maxmind/GeoLite2-City.mmdb');
@@ -41,11 +85,11 @@ define('FFPROBE_BIN_44', BIN_PATH . 'ffmpeg_bin/4.4/ffprobe');
 define('TMP_PATH', MAIN_DIR . 'tmp/');
 define('CACHE_TMP_PATH', TMP_PATH . 'cache/');
 define('CONS_TMP_PATH', TMP_PATH . 'opened_cons/');
-define('LOGS_TMP_PATH', TMP_PATH . 'logs/');
-define('CRONS_TMP_PATH', TMP_PATH . 'crons/');
 define('DIVERGENCE_TMP_PATH', TMP_PATH . 'divergence/');
 define('FLOOD_TMP_PATH', TMP_PATH . 'flood/');
 define('STALKER_TMP_PATH', TMP_PATH . 'stalker/');
+define('LOGS_TMP_PATH', TMP_PATH . 'logs/');
+define('CRONS_TMP_PATH', TMP_PATH . 'crons/');
 define('SIGNALS_TMP_PATH', TMP_PATH . 'signals/');
 // -------------------
 
@@ -62,34 +106,31 @@ define('DELAY_PATH', CONTENT_PATH . 'delayed/');
 define('EPG_PATH', CONTENT_PATH . 'epg/');
 define('PLAYLIST_PATH', CONTENT_PATH . 'playlists/');
 define('STREAMS_PATH', CONTENT_PATH . 'streams/');
-define('TV_ARCHIVE', CONTENT_PATH . 'tv_archive/');
+define('ARCHIVE_PATH', CONTENT_PATH . 'tv_archive/');
 define('VOD_PATH', CONTENT_PATH . 'vod/');
 define('CREATED_PATH', CONTENT_PATH . 'created/');
 define('VIDEO_PATH', CONTENT_PATH . 'video/');
 // -------------------
 
 // CONSTANTS VAR
-define('SCRIPT_VERSION', '1.0.2');
-define('IN_SCRIPT', true);
-define('SOFTWARE', 'iptv');
+define('SCRIPT_VERSION', '1.2.4');
 define('FFMPEG_FONTS_PATH', BIN_PATH . 'free-sans.ttf');
-define("KEY_CRYPT", md5(base64_encode("K76eTItpqxJA4iTmrytrmDo1LTndAG")));
-define('CONFIG_CRYPT_KEY', '5709650b0d7806074842c6de575025b1');
 define('OPENSSL_EXTRA', '5gd46z5s4fg6sd8f4gs6');
 define('RESTART_TAKE_CACHE', 5);
-define('TOTAL_SAVES_DROP', 6);
 define('MONITOR_CALLS', 3);
 // -------------------
 
 // Temporary variables that should be added to the panel settings
 define('CACHE_PLAYLIST', 60);
+// -------------------
+
+if (!defined('FETCH_BOUQUETS')) {
+    define('FETCH_BOUQUETS', true);
+}
 
 define('CACHE_STREAMS', false);
 define('CACHE_STREAMS_TIME', 10);
-
-if (!defined("FETCH_BOUQUETS")) {
-    define("FETCH_BOUQUETS", true);
-}
+define('STREAM_TYPE', array('live', 'series', 'movie', 'created_live', 'radio_streams'));
 
 global $argc;
 if (!$argc) {
@@ -98,7 +139,7 @@ if (!$argc) {
         define('HOST', trim(explode(':', $_SERVER['HTTP_HOST'])[0]));
         if (file_exists(CACHE_TMP_PATH . 'settings')) {
             $data = file_get_contents(CACHE_TMP_PATH . 'settings');
-            $settings = igbinary_unigbinary_serialize($data);
+            $settings = igbinary_unserialize($data);
             $showErrors = (isset($settings['debug_show_errors']) ? $settings['debug_show_errors'] : false);
         }
     } else {

@@ -24,7 +24,7 @@ function loadCron() {
     if (defined('CACHE_TMP_PATH')) {
         if ($rStartup && file_exists(CACHE_TMP_PATH . 'settings')) {
             echo 'Checking cache readability...' . "\n";
-            $rSerialize = igbinary_unigbinary_serialize(file_get_contents(CACHE_TMP_PATH . 'settings'));
+            $rSerialize = igbinary_unserialize(file_get_contents(CACHE_TMP_PATH . 'settings'));
             if (!is_array($rSerialize) && !isset($rSerialize['server_name'])) {
                 echo 'Clearing cache...' . "\n\n";
                 foreach (array(STREAMS_TMP_PATH, USER_TMP_PATH, SERIES_TMP_PATH) as $rTmpPath) {
@@ -36,7 +36,7 @@ function loadCron() {
                 exec('sudo rm -rf ' . SIGNALS_PATH . '*');
             }
         }
-        foreach (array(CACHE_TMP_PATH, CONS_TMP_PATH, DIVERGENCE_TMP_PATH, FLOOD_TMP_PATH, STALKER_TMP_PATH, LOGS_TMP_PATH, CRONS_TMP_PATH, STREAMS_TMP_PATH, USER_TMP_PATH, SERIES_TMP_PATH, PLAYLIST_PATH, MOVIES_IMAGES, ENIGMA2_PLUGIN_DIR, EPG_PATH, VOD_PATH) as $rPath) {
+        foreach (array(CACHE_TMP_PATH, CONS_TMP_PATH, DIVERGENCE_TMP_PATH, FLOOD_TMP_PATH, STALKER_TMP_PATH, LOGS_TMP_PATH, CRONS_TMP_PATH, STREAMS_TMP_PATH, USER_TMP_PATH, SERIES_TMP_PATH, PLAYLIST_PATH, EPG_PATH, VOD_PATH) as $rPath) {
             if (!file_exists($rPath)) {
                 mkdir($rPath);
             }

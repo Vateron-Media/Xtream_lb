@@ -62,11 +62,14 @@ class ipTV_db {
         }
         $query = vsprintf($query, $list);
         $this->last_query = $query;
-
         if ($buffered === true) {
             $this->result = mysqli_query($this->dbh, $query, MYSQLI_USE_RESULT);
         } else {
             $this->result = mysqli_query($this->dbh, $query);
+        }
+        if (!$this->result) {
+            ipTV_lib::SaveLog("MySQL Query Failed [" . $query . "]: " . mysqli_error($this->dbh));
+            return false;
         }
         return true;
     }
@@ -128,6 +131,10 @@ class ipTV_db {
     public function simple_query($query) {
         $this->db_connect();
         $this->result = mysqli_query($this->dbh, $query);
+        if (!$this->result) {
+            ipTV_lib::SaveLog("MySQL Query Failed [" . $query . "]: " . mysqli_error($this->dbh));
+            return false;
+        }
         return true;
     }
     public function escape($string) {

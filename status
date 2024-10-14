@@ -72,15 +72,14 @@ if (posix_getpwuid(posix_geteuid())['name'] == 'root') {
 			socket_connect($socket, '8.8.8.8', 80);
 			$name = socket_getsockname($socket, $addr, $port);
 			socket_close($socket);
-			$ipTV_db->query('UPDATE `streaming_servers` SET `server_ip`=\'%s\', `network_interface` = \'auto\' WHERE `id`=\'%s\';', $addr,  SERVER_ID);
+			$ipTV_db->query('UPDATE `streaming_servers` SET `server_ip`=\'%s\', `network_interface` = \'auto\' WHERE `id`=\'%s\';', $addr, SERVER_ID);
 		}
 
-		if (!$rFirstRun || $rServers[SERVER_ID]['is_main']) {
+		if (!$rFirstRun && $rServers[SERVER_ID]['is_main']) {
 			$ipTV_db->query('UPDATE `streaming_servers` SET `is_main` = 0 WHERE `id` <> \'%s\';', SERVER_ID);
 			$ipTV_db->query('UPDATE `streaming_servers` SET `is_main` = 1 WHERE `id` = \'%s\';', SERVER_ID);
 
 			if (stripos(ipTV_lib::$settings['server_name'], 'xtream') !== false || stripos(ipTV_lib::$settings['server_name'], 'zapx') !== false || stripos(ipTV_lib::$settings['server_name'], 'streamcreed') !== false) {
-				$ipTV_db->query("UPDATE `settings` SET `server_name` = 'XtreamCodes';");
 				ipTV_lib::setSettings(["server_name" => "XtreamCodes"]);
 			}
 

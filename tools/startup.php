@@ -40,18 +40,18 @@ if ($argc) {
 
         if (!$rFixCron) {
             exec('sudo -u xtreamcodes ' . PHP_BIN . ' ' . CRON_PATH . 'cache.php 1', $rOutput);
-            // if (file_exists(CRON_PATH . 'cache_engine.php') || !file_exists(CACHE_TMP_PATH . 'cache_complete')) {
-            //     echo 'Generating cache...' . "\n";
-            //     exec('sudo -u xtreamcodes ' . PHP_BIN . ' ' . CRON_PATH . 'cache_engine.php >/dev/null 2>/dev/null &');
-            // }
+            if (file_exists(CRON_PATH . 'cache_engine.php') || !file_exists(CACHE_TMP_PATH . 'cache_complete')) {
+                echo 'Generating cache...' . "\n";
+                exec('sudo -u xtreamcodes ' . PHP_BIN . ' ' . CRON_PATH . 'cache_engine.php >/dev/null 2>/dev/null &');
+            }
         }
     } else {
         if (!$rFixCron) {
             exec(PHP_BIN . ' ' . CRON_PATH . 'cache.php 1');
-            // if (file_exists(CRON_PATH . 'cache_engine.php') || file_exists(CACHE_TMP_PATH . 'cache_complete')) {
-            //     echo 'Generating cache...' . "\n";
-            //     exec(PHP_BIN . ' ' . CRON_PATH . 'cache_engine.php >/dev/null 2>/dev/null &');
-            // }
+            if (file_exists(CRON_PATH . 'cache_engine.php') || file_exists(CACHE_TMP_PATH . 'cache_complete')) {
+                echo 'Generating cache...' . "\n";
+                exec(PHP_BIN . ' ' . CRON_PATH . 'cache_engine.php >/dev/null 2>/dev/null &');
+            }
         }
     }
     echo "\n";

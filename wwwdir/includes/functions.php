@@ -1,13 +1,5 @@
 <?php
 
-function decrypt_config($data, $key) {
-    $index = 0;
-    $output = '';
-    foreach (str_split($data) as $char) {
-        $output .= chr(ord($char) ^ ord($key[$index++ % strlen($key)]));
-    }
-    return $output;
-}
 function getStats() {
     $rJSON = array();
     $rJSON['cpu'] = round(getTotalCPU(), 2);
@@ -59,6 +51,220 @@ function getStats() {
     return $rJSON;
 }
 
+/** 
+ * Checks for flood attempts based on IP address. 
+ * 
+ * This function checks for flood attempts based on the provided IP address. 
+ * It handles the restriction of flood attempts based on settings and time intervals. 
+ * If the IP is not provided, it retrieves the user's IP address. 
+ * It excludes certain IPs from flood checking based on settings. 
+ * It tracks and limits flood attempts within a specified time interval. 
+ * If the number of requests exceeds the limit, it blocks the IP and logs the attack. 
+ * 
+ * @param string|null $rIP (Optional) The IP address to check for flood attempts. 
+ * @return null|null Returns null if no flood attempt is detected, or a string indicating the block status if the IP is blocked. 
+ */
+function checkFlood($rIP = null) {
+    global $ipTV_db;
+    if (ipTV_lib::$settings['flood_limit'] != 0) {
+        if (!$rIP) {
+            $rIP = ipTV_streaming::getUserIP();
+        }
+        if (!(empty($rIP) || in_array($rIP, ipTV_lib::$allowedIPs))) {
+            $rFloodExclude = array_filter(array_unique(explode(',', ipTV_lib::$settings['flood_ips_exclude'])));
+            if (!in_array($rIP, $rFloodExclude)) {
+                $rIPFile = FLOOD_TMP_PATH . $rIP;
+                if (file_exists($rIPFile)) {
+                    $rFloodRow = json_decode(file_get_contents($rIPFile), true);
+                    $rFloodSeconds = ipTV_lib::$settings['flood_seconds'];
+                    $rFloodLimit = ipTV_lib::$settings['flood_limit'];
+                    if (time() - $rFloodRow['last_request'] <= $rFloodSeconds) {
+                        $rFloodRow['requests']++;
+                        if ($rFloodLimit > $rFloodRow['requests']) {
+                            $rFloodRow['last_request'] = time();
+                            file_put_contents($rIPFile, json_encode($rFloodRow), LOCK_EX);
+                        } else {
+                            if (!in_array($rIP, ipTV_lib::$blockedISP)) {
+                                if (ipTV_lib::$cached) {
+                                    ipTV_lib::setSignal('flood_attack/' . $rIP, 1);
+                                } else {
+                                    $ipTV_db->query('INSERT INTO `blocked_ips` (`ip`,`notes`,`date`) VALUES(\'%s\',\'%s\',\'%d\')', $rIP, 'FLOOD ATTACK', time());
+                                }
+                                touch(FLOOD_TMP_PATH . 'block_' . $rIP);
+                            }
+                            ipTV_lib::unlink_file($rIPFile);
+                            return null;
+                        }
+                    } else {
+                        $rFloodRow['requests'] = 0;
+                        $rFloodRow['last_request'] = time();
+                        file_put_contents($rIPFile, json_encode($rFloodRow), LOCK_EX);
+                    }
+                } else {
+                    file_put_contents($rIPFile, json_encode(array('requests' => 0, 'last_request' => time())), LOCK_EX);
+                }
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    } else {
+        return null;
+    }
+}
+/** 
+ * Checks for authentication flood attempts for a user and IP address. 
+ * 
+ * This function checks for authentication flood attempts for a user and optional IP address. 
+ * It verifies if the user is not a restreamer and checks the IP address against allowed IPs and exclusions. 
+ * It tracks and limits authentication flood attempts based on settings and time intervals. 
+ * If the number of attempts exceeds the limit, it blocks further attempts until a specified time. 
+ * 
+ * @param array $rUser The user information containing the ID and restreamer status. 
+ * @param string|null $rIP (Optional) The IP address of the user. 
+ * @return null|null Returns null if no authentication flood attempt is detected, or a string indicating the block status if the user is blocked. 
+ */
+function checkAuthFlood($rUser, $rIP = null) {
+    if (ipTV_lib::$settings['auth_flood_limit'] != 0) {
+        if (!$rUser['is_restreamer']) {
+            if (!$rIP) {
+                $rIP = ipTV_streaming::getUserIP();
+            }
+            if (!(empty($rIP) || in_array($rIP, ipTV_lib::$allowedIPs))) {
+                $rFloodExclude = array_filter(array_unique(explode(',', ipTV_lib::$settings['flood_ips_exclude'])));
+                if (!in_array($rIP, $rFloodExclude)) {
+                    $rUserFile = FLOOD_TMP_PATH . intval($rUser['id']) . '_' . $rIP;
+                    if (file_exists($rUserFile)) {
+                        $rFloodRow = json_decode(file_get_contents($rUserFile), true);
+                        $rFloodSeconds = ipTV_lib::$settings['auth_flood_seconds'];
+                        $rFloodLimit = ipTV_lib::$settings['auth_flood_limit'];
+                        $rFloodRow['attempts'] = truncateAttempts($rFloodRow['attempts'], $rFloodSeconds, true);
+                        if ($rFloodLimit < count($rFloodRow['attempts'])) {
+                            $rFloodRow['block_until'] = time() + intval(ipTV_lib::$settings['auth_flood_seconds']);
+                        }
+                        $rFloodRow['attempts'][] = time();
+                        file_put_contents($rUserFile, json_encode($rFloodRow), LOCK_EX);
+                    } else {
+                        file_put_contents($rUserFile, json_encode(array('attempts' => array(time()))), LOCK_EX);
+                    }
+                } else {
+                    return null;
+                }
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    } else {
+        return null;
+    }
+}
+/** 
+ * Checks for brute force attempts based on IP, MAC address, and username. 
+ * 
+ * This function checks for brute force attempts based on the provided IP, MAC address, and username. 
+ * It handles the restriction of brute force attempts based on settings and frequency. 
+ * If the IP is not provided, it retrieves the user's IP address. 
+ * It excludes certain IPs from flood checking based on settings. 
+ * It tracks and limits brute force attempts for MAC and username separately. 
+ * If the number of attempts exceeds the limit, it blocks the IP and logs the attack. 
+ * 
+ * @param string|null $rIP (Optional) The IP address of the user. 
+ * @param string|null $rMAC (Optional) The MAC address of the device. 
+ * @param string|null $rUsername (Optional) The username of the user. 
+ * @return null|null|string Returns null if no brute force attempt is detected, or a string indicating the type of attack if the IP is blocked. 
+ */
+function checkBruteforce($rIP = null, $rMAC = null, $rUsername = null) {
+    global $ipTV_db;
+    if ($rMAC || $rUsername) {
+        if (!($rMAC && ipTV_lib::$settings['bruteforce_mac_attempts'] == 0)) {
+            if (!($rUsername && ipTV_lib::$settings['bruteforce_username_attempts'] == 0)) {
+                if (!$rIP) {
+                    $rIP = ipTV_streaming::getUserIP();
+                }
+                if (!(empty($rIP) || in_array($rIP, ipTV_lib::$allowedIPs))) {
+                    $rFloodExclude = array_filter(array_unique(explode(',', ipTV_lib::$settings['flood_ips_exclude'])));
+                    if (!in_array($rIP, $rFloodExclude)) {
+                        $rFloodType = (!is_null($rMAC) ? 'mac' : 'user');
+                        $rTerm = (!is_null($rMAC) ? $rMAC : $rUsername);
+                        $rIPFile = FLOOD_TMP_PATH . $rIP . '_' . $rFloodType;
+                        if (file_exists($rIPFile)) {
+                            $rFloodRow = json_decode(file_get_contents($rIPFile), true);
+                            $rFloodSeconds = intval(ipTV_lib::$settings['bruteforce_frequency']);
+                            $rFloodLimit = intval(ipTV_lib::$settings[array('mac' => 'bruteforce_mac_attempts', 'user' => 'bruteforce_username_attempts')[$rFloodType]]);
+                            $rFloodRow['attempts'] = truncateAttempts($rFloodRow['attempts'], $rFloodSeconds);
+                            if (!in_array($rTerm, array_keys($rFloodRow['attempts']))) {
+                                $rFloodRow['attempts'][$rTerm] = time();
+                                if ($rFloodLimit > count($rFloodRow['attempts'])) {
+                                    file_put_contents($rIPFile, json_encode($rFloodRow), LOCK_EX);
+                                } else {
+                                    if (!in_array($rIP, ipTV_lib::$blockedIPs)) {
+                                        if (ipTV_lib::$cached) {
+                                            ipTV_lib::setSignal('bruteforce_attack/' . $rIP, 1);
+                                        } else {
+                                            $ipTV_db->query('INSERT INTO `blocked_ips` (`ip`,`notes`,`date`) VALUES(\'%s\',\'%s\',\'%s\')', $rIP, 'BRUTEFORCE ' . strtoupper($rFloodType) . ' ATTACK', time());
+                                        }
+                                        touch(FLOOD_TMP_PATH . 'block_' . $rIP);
+                                    }
+                                    ipTV_lib::unlink_file($rIPFile);
+                                    return null;
+                                }
+                            }
+                        } else {
+                            $rFloodRow = array('attempts' => array($rTerm => time()));
+                            file_put_contents($rIPFile, json_encode($rFloodRow), LOCK_EX);
+                        }
+                    } else {
+                        return null;
+                    }
+                } else {
+                    return null;
+                }
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    } else {
+        return null;
+    }
+}
+/** 
+ * Truncates the attempts based on a given frequency. 
+ * 
+ * This function takes an array of attempts and a frequency value as input. 
+ * It checks if the time difference between the current time and each attempt time is less than the given frequency. 
+ * If the $rList parameter is true, it iterates through the attempt times directly. 
+ * If $rList is false, it iterates through the attempts as key-value pairs. 
+ * It returns an array of allowed attempts that meet the frequency criteria. 
+ * 
+ * @param array $rAttempts An array of attempt times or key-value pairs. 
+ * @param int $rFrequency The time frequency in seconds to compare against. 
+ * @param bool $rList (Optional) If true, iterates through attempts directly; otherwise, iterates through key-value pairs. 
+ * @return array An array containing the allowed attempts based on the frequency criteria. 
+ */
+function truncateAttempts($rAttempts, $rFrequency, $rList = false) {
+    $rAllowedAttempts = array();
+    $rTime = time();
+    if ($rList) {
+        foreach ($rAttempts as $rAttemptTime) {
+            if ($rTime - $rAttemptTime < $rFrequency) {
+                $rAllowedAttempts[] = $rAttemptTime;
+            }
+        }
+    } else {
+        foreach ($rAttempts as $rAttempt => $rAttemptTime) {
+            if ($rTime - $rAttemptTime < $rFrequency) {
+                $rAllowedAttempts[$rAttempt] = $rAttemptTime;
+            }
+        }
+    }
+    return $rAllowedAttempts;
+}
+
 function getTotalCPU() {
     $rTotalLoad = 0;
     exec('ps -Ao pid,pcpu', $processes);
@@ -68,7 +274,6 @@ function getTotalCPU() {
     }
     return $rTotalLoad / intval(shell_exec("grep -P '^processor' /proc/cpuinfo|wc -l"));
 }
-
 function getTotalTmpfs() {
     $rTotal = 0;
     exec('df | grep tmpfs', $rOutput);
@@ -79,6 +284,16 @@ function getTotalTmpfs() {
         }
     }
     return $rTotal;
+}
+function generateUniqueCode() {
+    return substr(md5(ipTV_lib::$settings['unique_id']), 0, 15);
+}
+function getUptime() {
+    if (!(file_exists('/proc/uptime') && is_readable('/proc/uptime'))) {
+        return '';
+    }
+    $tmp = explode(' ', file_get_contents('/proc/uptime'));
+    return secondsToTime(intval($tmp[0]));
 }
 function getNetworkInterfaces() {
     $rReturn = array();
@@ -127,73 +342,16 @@ function secondsToTime($inputSeconds) {
     $final .= "{$seconds}s";
     return $final;
 }
-function getUptime() {
-    if (!(file_exists('/proc/uptime') && is_readable('/proc/uptime'))) {
-        return '';
-    }
-    $tmp = explode(' ', file_get_contents('/proc/uptime'));
-    return secondsToTime(intval($tmp[0]));
-}
-function generateUniqueCode() {
-    return substr(md5(ipTV_lib::$settings['unique_id']), 0, 15);
-}
 /** 
- * Checks for flood attempts based on IP address. 
- * 
- * This function checks for flood attempts based on the provided IP address. 
- * It handles the restriction of flood attempts based on settings and time intervals. 
- * If the IP is not provided, it retrieves the user's IP address. 
- * It excludes certain IPs from flood checking based on settings. 
- * It tracks and limits flood attempts within a specified time interval. 
- * If the number of requests exceeds the limit, it blocks the IP and logs the attack. 
- * 
- * @param string|null $rIP (Optional) The IP address to check for flood attempts. 
- * @return null|null Returns null if no flood attempt is detected, or a string indicating the block status if the IP is blocked. 
+ * Encrypts the provided data using AES-256-CBC encryption with a given decryption key and device ID. 
+ *  
+ * @param string $rData The data to be encrypted. 
+ * @param string $decryptionKey The decryption key used to encrypt the data. 
+ * @param string $rDeviceID The device ID used in the encryption process. 
+ * @return string The encrypted data in base64url encoding. 
  */
-function checkFlood($rIP = null) {
-    global $ipTV_db;
-    if (ipTV_lib::$settings['flood_limit'] != 0) {
-        if (!$rIP) {
-            $rIP = ipTV_streaming::getUserIP();
-        }
-        if (!(empty($rIP) || in_array($rIP, ipTV_streaming::$allowedIPs))) {
-            $rFloodExclude = array_filter(array_unique(explode(',', ipTV_lib::$settings['flood_ips_exclude'])));
-            if (!in_array($rIP, $rFloodExclude)) {
-                $rIPFile = FLOOD_TMP_PATH . $rIP;
-                if (file_exists($rIPFile)) {
-                    $rFloodRow = json_decode(file_get_contents($rIPFile), true);
-                    $rFloodSeconds = ipTV_lib::$settings['flood_seconds'];
-                    $rFloodLimit = ipTV_lib::$settings['flood_limit'];
-                    if (time() - $rFloodRow['last_request'] <= $rFloodSeconds) {
-                        $rFloodRow['requests']++;
-                        if ($rFloodLimit > $rFloodRow['requests']) {
-                            $rFloodRow['last_request'] = time();
-                            file_put_contents($rIPFile, json_encode($rFloodRow), LOCK_EX);
-                        } else {
-                            if (!in_array($rIP, ipTV_lib::$blockedISP)) {
-                                $ipTV_db->query('INSERT INTO `blocked_ips` (`ip`,`notes`,`date`) VALUES(\'%s\',\'%s\',\'%d\')', $rIP, 'FLOOD ATTACK', time());
-                                touch(FLOOD_TMP_PATH . 'block_' . $rIP);
-                            }
-                            ipTV_lib::unlink_file($rIPFile);
-                            return null;
-                        }
-                    } else {
-                        $rFloodRow['requests'] = 0;
-                        $rFloodRow['last_request'] = time();
-                        file_put_contents($rIPFile, json_encode($rFloodRow), LOCK_EX);
-                    }
-                } else {
-                    file_put_contents($rIPFile, json_encode(array('requests' => 0, 'last_request' => time())), LOCK_EX);
-                }
-            } else {
-                return null;
-            }
-        } else {
-            return null;
-        }
-    } else {
-        return null;
-    }
+function encryptData($rData, $decryptionKey, $rDeviceID) {
+    return base64url_encode(openssl_encrypt($rData, 'aes-256-cbc', md5(sha1($rDeviceID) . $decryptionKey), OPENSSL_RAW_DATA, substr(md5(sha1($decryptionKey)), 0, 16)));
 }
 /** 
  * Decrypts the provided data using AES-256-CBC decryption with a given decryption key and device ID. 
@@ -207,28 +365,6 @@ function decryptData($rData, $decryptionKey, $rDeviceID) {
     return openssl_decrypt(base64url_decode($rData), 'aes-256-cbc', md5(sha1($rDeviceID) . $decryptionKey), OPENSSL_RAW_DATA, substr(md5(sha1($decryptionKey)), 0, 16));
 }
 /** 
- * Decodes the input data encoded using base64url encoding. 
- * 
- * This function takes the input data encoded using base64url encoding and decodes it. It first replaces the characters '-' and '_' back to '+' and '/' respectively, to revert the URL-safe encoding. Then, it decodes the base64 encoded string to retrieve the original data. 
- * 
- * @param string $rData The base64url encoded data to be decoded. 
- * @return string|false The decoded original data, or false if decoding fails. 
- */
-function base64url_decode($rData) {
-    return base64_decode(strtr($rData, '-_', '+/'));
-}
-/** 
- * Encrypts the provided data using AES-256-CBC encryption with a given decryption key and device ID. 
- *  
- * @param string $rData The data to be encrypted. 
- * @param string $decryptionKey The decryption key used to encrypt the data. 
- * @param string $rDeviceID The device ID used in the encryption process. 
- * @return string The encrypted data in base64url encoding. 
- */
-function encryptData($rData, $decryptionKey, $rDeviceID) {
-    return base64url_encode(openssl_encrypt($rData, 'aes-256-cbc', md5(sha1($rDeviceID) . $decryptionKey), OPENSSL_RAW_DATA, substr(md5(sha1($decryptionKey)), 0, 16)));
-}
-/** 
  * Encodes the input data using base64url encoding. 
  * 
  * This function takes the input data and encodes it using base64 encoding. It then replaces the characters '+' and '/' with '-' and '_', respectively, to make the encoding URL-safe. Finally, it removes any padding '=' characters at the end of the encoded string. 
@@ -240,150 +376,13 @@ function base64url_encode($rData) {
     return rtrim(strtr(base64_encode($rData), '+/', '-_'), '=');
 }
 /** 
- * Checks for authentication flood attempts for a user and IP address. 
+ * Decodes the input data encoded using base64url encoding. 
  * 
- * This function checks for authentication flood attempts for a user and optional IP address. 
- * It verifies if the user is not a restreamer and checks the IP address against allowed IPs and exclusions. 
- * It tracks and limits authentication flood attempts based on settings and time intervals. 
- * If the number of attempts exceeds the limit, it blocks further attempts until a specified time. 
+ * This function takes the input data encoded using base64url encoding and decodes it. It first replaces the characters '-' and '_' back to '+' and '/' respectively, to revert the URL-safe encoding. Then, it decodes the base64 encoded string to retrieve the original data. 
  * 
- * @param array $rUser The user information containing the ID and restreamer status. 
- * @param string|null $rIP (Optional) The IP address of the user. 
- * @return null|null Returns null if no authentication flood attempt is detected, or a string indicating the block status if the user is blocked. 
+ * @param string $rData The base64url encoded data to be decoded. 
+ * @return string|false The decoded original data, or false if decoding fails. 
  */
-function checkAuthFlood($rUser, $rIP = null) {
-    if (ipTV_lib::$settings['auth_flood_limit'] != 0) {
-        if (!$rUser['is_restreamer']) {
-            if (!$rIP) {
-                $rIP = ipTV_streaming::getUserIP();
-            }
-            if (!(empty($rIP) || in_array($rIP, ipTV_streaming::$allowedIPs))) {
-                $rFloodExclude = array_filter(array_unique(explode(',', ipTV_lib::$settings['flood_ips_exclude'])));
-                if (!in_array($rIP, $rFloodExclude)) {
-                    $rUserFile = FLOOD_TMP_PATH . intval($rUser['id']) . '_' . $rIP;
-                    if (file_exists($rUserFile)) {
-                        $rFloodRow = json_decode(file_get_contents($rUserFile), true);
-                        $rFloodSeconds = ipTV_lib::$settings['auth_flood_seconds'];
-                        $rFloodLimit = ipTV_lib::$settings['auth_flood_limit'];
-                        $rFloodRow['attempts'] = truncateAttempts($rFloodRow['attempts'], $rFloodSeconds, true);
-                        if ($rFloodLimit < count($rFloodRow['attempts'])) {
-                            $rFloodRow['block_until'] = time() + intval(ipTV_lib::$settings['auth_flood_seconds']);
-                        }
-                        $rFloodRow['attempts'][] = time();
-                        file_put_contents($rUserFile, json_encode($rFloodRow), LOCK_EX);
-                    } else {
-                        file_put_contents($rUserFile, json_encode(array('attempts' => array(time()))), LOCK_EX);
-                    }
-                } else {
-                    return null;
-                }
-            } else {
-                return null;
-            }
-        } else {
-            return null;
-        }
-    } else {
-        return null;
-    }
-}
-/** 
- * Truncates the attempts based on a given frequency. 
- * 
- * This function takes an array of attempts and a frequency value as input. 
- * It checks if the time difference between the current time and each attempt time is less than the given frequency. 
- * If the $rList parameter is true, it iterates through the attempt times directly. 
- * If $rList is false, it iterates through the attempts as key-value pairs. 
- * It returns an array of allowed attempts that meet the frequency criteria. 
- * 
- * @param array $rAttempts An array of attempt times or key-value pairs. 
- * @param int $rFrequency The time frequency in seconds to compare against. 
- * @param bool $rList (Optional) If true, iterates through attempts directly; otherwise, iterates through key-value pairs. 
- * @return array An array containing the allowed attempts based on the frequency criteria. 
- */
-function truncateAttempts($rAttempts, $rFrequency, $rList = false) {
-    $rAllowedAttempts = array();
-    $rTime = time();
-    if ($rList) {
-        foreach ($rAttempts as $rAttemptTime) {
-            if ($rTime - $rAttemptTime < $rFrequency) {
-                $rAllowedAttempts[] = $rAttemptTime;
-            }
-        }
-    } else {
-        foreach ($rAttempts as $rAttempt => $rAttemptTime) {
-            if ($rTime - $rAttemptTime < $rFrequency) {
-                $rAllowedAttempts[$rAttempt] = $rAttemptTime;
-            }
-        }
-    }
-    return $rAllowedAttempts;
-}
-
-/** 
- * Checks for brute force attempts based on IP, MAC address, and username. 
- * 
- * This function checks for brute force attempts based on the provided IP, MAC address, and username. 
- * It handles the restriction of brute force attempts based on settings and frequency. 
- * If the IP is not provided, it retrieves the user's IP address. 
- * It excludes certain IPs from flood checking based on settings. 
- * It tracks and limits brute force attempts for MAC and username separately. 
- * If the number of attempts exceeds the limit, it blocks the IP and logs the attack. 
- * 
- * @param string|null $rIP (Optional) The IP address of the user. 
- * @param string|null $rMAC (Optional) The MAC address of the device. 
- * @param string|null $rUsername (Optional) The username of the user. 
- * @return null|null|string Returns null if no brute force attempt is detected, or a string indicating the type of attack if the IP is blocked. 
- */
-function checkBruteforce($rIP = null, $rMAC = null, $rUsername = null) {
-    global $ipTV_db;
-    if ($rMAC || $rUsername) {
-        if (!($rMAC && ipTV_lib::$settings['bruteforce_mac_attempts'] == 0)) {
-            if (!($rUsername && ipTV_lib::$settings['bruteforce_username_attempts'] == 0)) {
-                if (!$rIP) {
-                    $rIP = ipTV_streaming::getUserIP();
-                }
-                if (!(empty($rIP) || in_array($rIP, ipTV_streaming::$allowedIPs))) {
-                    $rFloodExclude = array_filter(array_unique(explode(',', ipTV_lib::$settings['flood_ips_exclude'])));
-                    if (!in_array($rIP, $rFloodExclude)) {
-                        $rFloodType = (!is_null($rMAC) ? 'mac' : 'user');
-                        $rTerm = (!is_null($rMAC) ? $rMAC : $rUsername);
-                        $rIPFile = FLOOD_TMP_PATH . $rIP . '_' . $rFloodType;
-                        if (file_exists($rIPFile)) {
-                            $rFloodRow = json_decode(file_get_contents($rIPFile), true);
-                            $rFloodSeconds = intval(ipTV_lib::$settings['bruteforce_frequency']);
-                            $rFloodLimit = intval(ipTV_lib::$settings[array('mac' => 'bruteforce_mac_attempts', 'user' => 'bruteforce_username_attempts')[$rFloodType]]);
-                            $rFloodRow['attempts'] = truncateAttempts($rFloodRow['attempts'], $rFloodSeconds);
-                            if (!in_array($rTerm, array_keys($rFloodRow['attempts']))) {
-                                $rFloodRow['attempts'][$rTerm] = time();
-                                if ($rFloodLimit > count($rFloodRow['attempts'])) {
-                                    file_put_contents($rIPFile, json_encode($rFloodRow), LOCK_EX);
-                                } else {
-                                    if (!in_array($rIP, ipTV_lib::$blockedIPs)) {
-                                        $ipTV_db->query('INSERT INTO `blocked_ips` (`ip`,`notes`,`date`) VALUES(\'%s\',\'%s\',\'%s\')', $rIP, 'BRUTEFORCE ' . strtoupper($rFloodType) . ' ATTACK', time());
-                                        touch(FLOOD_TMP_PATH . 'block_' . $rIP);
-                                    }
-                                    ipTV_lib::unlink_file($rIPFile);
-                                    return null;
-                                }
-                            }
-                        } else {
-                            $rFloodRow = array('attempts' => array($rTerm => time()));
-                            file_put_contents($rIPFile, json_encode($rFloodRow), LOCK_EX);
-                        }
-                    } else {
-                        return null;
-                    }
-                } else {
-                    return null;
-                }
-            } else {
-                return null;
-            }
-        } else {
-            return null;
-        }
-    } else {
-        return null;
-    }
+function base64url_decode($rData) {
+    return base64_decode(strtr($rData, '-_', '+/'));
 }

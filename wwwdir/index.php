@@ -1,1 +1,1 @@
-<?php echo "Xtream Codes Reborn"; ?>
+<?php echo "Access denied.";

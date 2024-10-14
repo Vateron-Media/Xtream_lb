@@ -1,5 +1,37 @@
 <?php
+
 class ipTV_servers {
+    public static function isPIDsRunning($serverIDS, $PIDs, $eXE) {
+        if (!is_array($serverIDS)) {
+            $serverIDS = array(intval($serverIDS));
+        }
+        $PIDs = array_map('intval', $PIDs);
+        $output = array();
+        foreach ($serverIDS as $serverID) {
+            if (array_key_exists($serverID, ipTV_lib::$StreamingServers)) {
+                $esponse = self::serverRequest($serverID, ipTV_lib::$StreamingServers[$serverID]['api_url_ip'] . '&action=pidsAreRunning', array('program' => $eXE, 'pids' => $PIDs));
+                if ($esponse) {
+                    $output[$serverID] = array_map('trim', json_decode($esponse, true));
+                } else {
+                    $output[$serverID] = false;
+                }
+            }
+        }
+        return $output;
+    }
+    static function PidsChannels($createdChannelLocation, $pid, $ffmpeg_path) {
+        if (is_null($pid) || !is_numeric($pid) || !array_key_exists($createdChannelLocation, ipTV_lib::$StreamingServers)) {
+            return false;
+        }
+        if ($output = self::isPIDsRunning($createdChannelLocation, array($pid), $ffmpeg_path)) {
+            return $output[$createdChannelLocation][$pid];
+        }
+        return false;
+    }
+    static function getPidFromProcessName($serverIDS, $ffmpeg_path) {
+        $command = 'ps ax | grep \'' . basename($ffmpeg_path) . '\' | awk \'{print $1}\'';
+        return self::RunCommandServer($serverIDS, $command);
+    }
     public static function RunCommandServer($serverIDS, $cmd, $type = 'array') {
         $output = array();
         if (!is_array($serverIDS)) {
@@ -29,10 +61,6 @@ class ipTV_servers {
             }
         }
         return $output;
-    }
-    static function getPidFromProcessName($serverIDS, $ffmpeg_path) {
-        $command = 'ps ax | grep \'' . basename($ffmpeg_path) . '\' | awk \'{print $1}\'';
-        return self::RunCommandServer($serverIDS, $command);
     }
     public static function serverRequest($serverID, $rURL, $postData = array()) {
         if (ipTV_lib::$StreamingServers[$serverID]['server_online']) {
@@ -67,32 +95,5 @@ class ipTV_servers {
             return $output;
         }
         return false;
-    }
-    static function PidsChannels($createdChannelLocation, $pid, $ffmpeg_path) {
-        if (is_null($pid) || !is_numeric($pid) || !array_key_exists($createdChannelLocation, ipTV_lib::$StreamingServers)) {
-            return false;
-        }
-        if ($output = self::isPIDsRunning($createdChannelLocation, array($pid), $ffmpeg_path)) {
-            return $output[$createdChannelLocation][$pid];
-        }
-        return false;
-    }
-    public static function isPIDsRunning($serverIDS, $PIDs, $eXE) {
-        if (!is_array($serverIDS)) {
-            $serverIDS = array(intval($serverIDS));
-        }
-        $PIDs = array_map('intval', $PIDs);
-        $output = array();
-        foreach ($serverIDS as $serverID) {
-            if (array_key_exists($serverID, ipTV_lib::$StreamingServers)) {
-                $esponse = self::serverRequest($serverID, ipTV_lib::$StreamingServers[$serverID]['api_url_ip'] . '&action=pidsAreRunning', array('program' => $eXE, 'pids' => $PIDs));
-                if ($esponse) {
-                    $output[$serverID] = array_map('trim', json_decode($esponse, true));
-                } else {
-                    $output[$serverID] = false;
-                }
-            }
-        }
-        return $output;
     }
 }
