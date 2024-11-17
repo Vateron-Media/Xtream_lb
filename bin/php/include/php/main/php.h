@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 7                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2018 The PHP Group                                |
+   | Copyright (c) The PHP Group                                          |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -24,25 +24,25 @@
 #include <dmalloc.h>
 #endif
 
-#define PHP_API_VERSION 20180731
+#define PHP_API_VERSION 20190902
 #define PHP_HAVE_STREAMS
 #define YYDEBUG 0
 #define PHP_DEFAULT_CHARSET "UTF-8"
 
+#include "php_compat.h"
 #include "php_version.h"
 #include "zend.h"
 #include "zend_sort.h"
-#include "php_compat.h"
 
 #include "zend_API.h"
 
-#undef sprintf
-#define sprintf php_sprintf
+#define php_sprintf sprintf
 
 /* Operating system family definition */
 #ifdef PHP_WIN32
 #define PHP_OS_FAMILY "Windows"
-#elif defined(BSD) || defined(__DragonFly__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+#elif defined(BSD) || defined(__DragonFly__) || defined(__FreeBSD__) ||        \
+    defined(__NetBSD__) || defined(__OpenBSD__)
 #define PHP_OS_FAMILY "BSD"
 #elif defined(__APPLE__) || defined(__MACH__)
 #define PHP_OS_FAMILY "Darwin"
@@ -81,24 +81,21 @@
 /* Windows specific defines */
 #ifdef PHP_WIN32
 #define PHP_PROG_SENDMAIL "Built in mailer"
-#define HAVE_DECLARED_TIMEZONE
 #define WIN32_LEAN_AND_MEAN
 #define NOOPENFILE
 
+#include <direct.h>
 #include <io.h>
 #include <malloc.h>
-#include <direct.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <sys/types.h>
 #include <process.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
 
 typedef int uid_t;
 typedef int gid_t;
 typedef char *caddr_t;
-typedef unsigned int uint;
-typedef unsigned long ulong;
 typedef int pid_t;
 
 #ifndef PHP_DEBUG
@@ -123,7 +120,6 @@ typedef int pid_t;
 #endif
 #endif
 
-#if HAVE_ASSERT_H
 #if PHP_DEBUG
 #undef NDEBUG
 #else
@@ -132,11 +128,6 @@ typedef int pid_t;
 #endif
 #endif
 #include <assert.h>
-#else /* HAVE_ASSERT_H */
-#define assert(expr) ((void)(0))
-#endif /* HAVE_ASSERT_H */
-
-#define APACHE 0
 
 #if HAVE_UNIX_H
 #include <unix.h>
@@ -159,17 +150,17 @@ typedef int pid_t;
  * src_size is the number of bytes excluding the NUL of src
  */
 
-#define PHP_STRLCPY(dst, src, size, src_size) \
-    {                                         \
-        size_t php_str_len;                   \
-                                              \
-        if (src_size >= size)                 \
-            php_str_len = size - 1;           \
-        else                                  \
-            php_str_len = src_size;           \
-        memcpy(dst, src, php_str_len);        \
-        dst[php_str_len] = '\0';              \
-    }
+#define PHP_STRLCPY(dst, src, size, src_size)                                  \
+  {                                                                            \
+    size_t php_str_len;                                                        \
+                                                                               \
+    if (src_size >= size)                                                      \
+      php_str_len = size - 1;                                                  \
+    else                                                                       \
+      php_str_len = src_size;                                                  \
+    memcpy(dst, src, php_str_len);                                             \
+    dst[php_str_len] = '\0';                                                   \
+  }
 
 #ifndef HAVE_STRLCPY
 BEGIN_EXTERN_C()
@@ -223,39 +214,20 @@ typedef unsigned int socklen_t;
  * #define HAVE_ODBC (HAVE_IODBC|HAVE_SOLID)
  */
 
-#include <stdlib.h>
 #include <ctype.h>
+#include <stdlib.h>
 #if HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#if HAVE_STDARG_H
+
 #include <stdarg.h>
-#else
-#if HAVE_SYS_VARARGS_H
-#include <sys/varargs.h>
-#endif
-#endif
 
 #include "php_stdint.h"
 
-#include "zend_hash.h"
 #include "zend_alloc.h"
+#include "zend_hash.h"
 #include "zend_stack.h"
-
-#if STDC_HEADERS
 #include <string.h>
-#else
-#ifndef HAVE_MEMCPY
-#define memcpy(d, s, n) bcopy((s), (d), (n))
-#endif
-#ifndef HAVE_MEMMOVE
-#define memmove(d, s, n) bcopy((s), (d), (n))
-#endif
-#endif
-
-#ifndef HAVE_STRERROR
-char *strerror(int);
-#endif
 
 #if HAVE_PWD_H
 #ifdef PHP_WIN32
@@ -266,9 +238,7 @@ char *strerror(int);
 #endif
 #endif
 
-#if HAVE_LIMITS_H
 #include <limits.h>
-#endif
 
 #ifndef LONG_MAX
 #define LONG_MAX 2147483647L
@@ -319,7 +289,8 @@ END_EXTERN_C()
 #elif defined(MAX_PATH)
 #define MAXPATHLEN MAX_PATH
 #else
-#define MAXPATHLEN 256 /* Should be safe for any weird systems that do not define it */
+#define MAXPATHLEN                                                             \
+  256 /* Should be safe for any weird systems that do not define it */
 #endif
 #endif
 
@@ -343,8 +314,8 @@ ssize_t pread(int, void *, size_t, off64_t);
 BEGIN_EXTERN_C()
 void phperror(char *error);
 PHPAPI size_t php_write(void *buf, size_t size);
-PHPAPI size_t php_printf(const char *format, ...) PHP_ATTRIBUTE_FORMAT(printf, 1,
-                                                                       2);
+PHPAPI size_t php_printf(const char *format, ...)
+    PHP_ATTRIBUTE_FORMAT(printf, 1, 2);
 PHPAPI int php_get_module_initialized(void);
 #ifdef HAVE_SYSLOG_H
 #include "php_syslog.h"
@@ -352,7 +323,8 @@ PHPAPI int php_get_module_initialized(void);
 #else
 #define php_log_err(msg) php_log_err_with_severity(msg, 5)
 #endif
-PHPAPI ZEND_COLD void php_log_err_with_severity(char *log_message, int syslog_type_int);
+PHPAPI ZEND_COLD void php_log_err_with_severity(char *log_message,
+                                                int syslog_type_int);
 int Debug(char *format, ...) PHP_ATTRIBUTE_FORMAT(printf, 1, 2);
 int cfgparse(void);
 END_EXTERN_C()
@@ -361,27 +333,36 @@ END_EXTERN_C()
 #define error_handling_t zend_error_handling_t
 
 BEGIN_EXTERN_C()
-static inline ZEND_ATTRIBUTE_DEPRECATED void php_set_error_handling(error_handling_t error_handling, zend_class_entry *exception_class)
-{
-    zend_replace_error_handling(error_handling, exception_class, NULL);
+static inline ZEND_ATTRIBUTE_DEPRECATED void
+php_set_error_handling(error_handling_t error_handling,
+                       zend_class_entry *exception_class) {
+  zend_replace_error_handling(error_handling, exception_class, NULL);
 }
 static inline ZEND_ATTRIBUTE_DEPRECATED void php_std_error_handling() {}
 
-PHPAPI ZEND_COLD void php_verror(const char *docref, const char *params, int type, const char *format, va_list args) PHP_ATTRIBUTE_FORMAT(printf, 4, 0);
+PHPAPI ZEND_COLD void php_verror(const char *docref, const char *params,
+                                 int type, const char *format, va_list args)
+    PHP_ATTRIBUTE_FORMAT(printf, 4, 0);
 
 /* PHPAPI void php_error(int type, const char *format, ...); */
-PHPAPI ZEND_COLD void php_error_docref0(const char *docref, int type, const char *format, ...)
+PHPAPI ZEND_COLD void php_error_docref(const char *docref, int type,
+                                       const char *format, ...)
     PHP_ATTRIBUTE_FORMAT(printf, 3, 4);
-PHPAPI ZEND_COLD void php_error_docref1(const char *docref, const char *param1, int type, const char *format, ...)
+PHPAPI ZEND_COLD void php_error_docref1(const char *docref, const char *param1,
+                                        int type, const char *format, ...)
     PHP_ATTRIBUTE_FORMAT(printf, 4, 5);
-PHPAPI ZEND_COLD void php_error_docref2(const char *docref, const char *param1, const char *param2, int type, const char *format, ...)
+PHPAPI ZEND_COLD void php_error_docref2(const char *docref, const char *param1,
+                                        const char *param2, int type,
+                                        const char *format, ...)
     PHP_ATTRIBUTE_FORMAT(printf, 5, 6);
 #ifdef PHP_WIN32
-PHPAPI ZEND_COLD void php_win32_docref2_from_error(DWORD error, const char *param1, const char *param2);
+PHPAPI ZEND_COLD void php_win32_docref1_from_error(DWORD error,
+                                                   const char *param1);
+PHPAPI ZEND_COLD void php_win32_docref2_from_error(DWORD error,
+                                                   const char *param1,
+                                                   const char *param2);
 #endif
 END_EXTERN_C()
-
-#define php_error_docref php_error_docref0
 
 #define zenderror phperror
 #define zendlex phplex
@@ -396,10 +377,17 @@ END_EXTERN_C()
 BEGIN_EXTERN_C()
 PHPAPI extern int (*php_register_internal_extensions_func)(void);
 PHPAPI int php_register_internal_extensions(void);
-PHPAPI int php_mergesort(void *base, size_t nmemb, size_t size, int (*cmp)(const void *, const void *));
-PHPAPI void php_register_pre_request_shutdown(void (*func)(void *), void *userdata);
+PHPAPI int php_mergesort(void *base, size_t nmemb, size_t size,
+                         int (*cmp)(const void *, const void *));
+PHPAPI void php_register_pre_request_shutdown(void (*func)(void *),
+                                              void *userdata);
 PHPAPI void php_com_initialize(void);
 PHPAPI char *php_get_current_user(void);
+
+PHPAPI const char *php_get_internal_encoding(void);
+PHPAPI const char *php_get_input_encoding(void);
+PHPAPI const char *php_get_output_encoding(void);
+PHPAPI extern void (*php_internal_encoding_changed)(void);
 END_EXTERN_C()
 
 /* PHP-named Zend macro wrappers */
@@ -455,9 +443,9 @@ END_EXTERN_C()
 /* Output support */
 #include "main/php_output.h"
 
-#include "php_streams.h"
-#include "php_memory_streams.h"
 #include "fopen_wrappers.h"
+#include "php_memory_streams.h"
+#include "php_streams.h"
 
 /* Virtual current working directory support */
 #include "zend_virtual_cwd.h"
@@ -471,48 +459,4 @@ END_EXTERN_C()
 
 #include "php_reentrancy.h"
 
-/* Finding offsets of elements within structures.
- * Taken from the Apache code, which in turn, was taken from X code...
- */
-
-#ifndef XtOffset
-#if defined(CRAY) || (defined(__arm) && !(defined(LINUX) || defined(__riscos__)))
-#ifdef __STDC__
-#define XtOffset(p_type, field) _Offsetof(p_type, field)
-#else
-#ifdef CRAY2
-#define XtOffset(p_type, field) \
-    (sizeof(int) * ((unsigned int)&(((p_type)NULL)->field)))
-
-#else /* !CRAY2 */
-
-#define XtOffset(p_type, field) ((unsigned int)&(((p_type)NULL)->field))
-
-#endif /* !CRAY2 */
-#endif /* __STDC__ */
-#else  /* ! (CRAY || __arm) */
-
-#define XtOffset(p_type, field) \
-    ((zend_long)(((char *)(&(((p_type)NULL)->field))) - ((char *)NULL)))
-
-#endif /* !CRAY */
-#endif /* ! XtOffset */
-
-#ifndef XtOffsetOf
-#ifdef offsetof
-#define XtOffsetOf(s_type, field) offsetof(s_type, field)
-#else
-#define XtOffsetOf(s_type, field) XtOffset(s_type *, field)
 #endif
-#endif /* !XtOffsetOf */
-
-#endif
-
-/*
- * Local variables:
- * tab-width: 4
- * c-basic-offset: 4
- * End:
- * vim600: sw=4 ts=4 fdm=marker
- * vim<600: sw=4 ts=4
- */

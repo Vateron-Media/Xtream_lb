@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 7                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2018 The PHP Group                                |
+   | Copyright (c) The PHP Group                                          |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -20,21 +20,14 @@
 #ifndef PHP_GD_H
 #define PHP_GD_H
 
-#if HAVE_LIBFREETYPE
-#ifndef ENABLE_GD_TTF
-#define ENABLE_GD_TTF
-#endif
-#endif
-
 #if defined(HAVE_LIBGD) || defined(HAVE_GD_BUNDLED)
 
 /* open_basedir and safe_mode checks */
-#define PHP_GD_CHECK_OPEN_BASEDIR(filename, errormsg) \
-   if (!filename || php_check_open_basedir(filename)) \
-   {                                                  \
-      php_error_docref(NULL, E_WARNING, errormsg);    \
-      RETURN_FALSE;                                   \
-   }
+#define PHP_GD_CHECK_OPEN_BASEDIR(filename, errormsg)                          \
+  if (!filename || php_check_open_basedir(filename)) {                         \
+    php_error_docref(NULL, E_WARNING, errormsg);                               \
+    RETURN_FALSE;                                                              \
+  }
 
 #define PHP_GDIMG_TYPE_GIF 1
 #define PHP_GDIMG_TYPE_PNG 2
@@ -48,6 +41,7 @@
 #define PHP_GDIMG_TYPE_GD2PART 10
 #define PHP_GDIMG_TYPE_WEBP 11
 #define PHP_GDIMG_TYPE_BMP 12
+#define PHP_GDIMG_TYPE_TGA 13
 
 #define PHP_IMG_GIF 1
 #define PHP_IMG_JPG 2
@@ -57,6 +51,7 @@
 #define PHP_IMG_XPM 16
 #define PHP_IMG_WEBP 32
 #define PHP_IMG_BMP 64
+#define PHP_IMG_TGA 128
 
 #ifdef PHP_WIN32
 #define PHP_GD_API __declspec(dllexport)
@@ -82,9 +77,8 @@ extern zend_module_entry gd_module_entry;
 /* gd.c functions */
 PHP_MINFO_FUNCTION(gd);
 PHP_MINIT_FUNCTION(gd);
-#if HAVE_GD_FREETYPE && HAVE_LIBFREETYPE
+PHP_MSHUTDOWN_FUNCTION(gd);
 PHP_RSHUTDOWN_FUNCTION(gd);
-#endif
 
 PHP_FUNCTION(gd_info);
 PHP_FUNCTION(imagearc);
@@ -163,6 +157,9 @@ PHP_FUNCTION(imagecreatefromgd2);
 PHP_FUNCTION(imagecreatefromgd2part);
 #if defined(HAVE_GD_BMP)
 PHP_FUNCTION(imagecreatefrombmp);
+#endif
+#if defined(HAVE_GD_TGA)
+PHP_FUNCTION(imagecreatefromtga);
 #endif
 #if defined(HAVE_GD_XPM)
 PHP_FUNCTION(imagecreatefromxpm);

@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 7                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2018 The PHP Group                                |
+   | Copyright (c) The PHP Group                                          |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -36,15 +36,15 @@
 #define PHP_ICONV_VERSION PHP_VERSION
 
 #ifdef PHP_ATOM_INC
+#include "ext/iconv/php_have_bsd_iconv.h"
+#include "ext/iconv/php_have_glibc_iconv.h"
+#include "ext/iconv/php_have_ibm_iconv.h"
 #include "ext/iconv/php_have_iconv.h"
 #include "ext/iconv/php_have_libiconv.h"
 #include "ext/iconv/php_iconv_aliased_libiconv.h"
-#include "ext/iconv/php_have_glibc_iconv.h"
-#include "ext/iconv/php_have_bsd_iconv.h"
-#include "ext/iconv/php_have_ibm_iconv.h"
 #include "ext/iconv/php_iconv_supports_errno.h"
-#include "ext/iconv/php_php_iconv_impl.h"
 #include "ext/iconv/php_php_iconv_h_path.h"
+#include "ext/iconv/php_php_iconv_impl.h"
 #endif
 
 #ifdef HAVE_ICONV
@@ -92,8 +92,7 @@ ZEND_TSRMLS_CACHE_EXTERN()
 #endif
 
 /* {{{ typedef enum php_iconv_err_t */
-typedef enum _php_iconv_err_t
-{
+typedef enum _php_iconv_err_t {
   PHP_ICONV_ERR_SUCCESS = SUCCESS,
   PHP_ICONV_ERR_CONVERTER = 1,
   PHP_ICONV_ERR_WRONG_CHARSET = 2,
@@ -106,7 +105,10 @@ typedef enum _php_iconv_err_t
 } php_iconv_err_t;
 /* }}} */
 
-PHP_ICONV_API php_iconv_err_t php_iconv_string(const char *in_p, size_t in_len, zend_string **out, const char *out_charset, const char *in_charset);
+PHP_ICONV_API php_iconv_err_t php_iconv_string(const char *in_p, size_t in_len,
+                                               zend_string **out,
+                                               const char *out_charset,
+                                               const char *in_charset);
 
 #else
 
@@ -117,10 +119,3 @@ PHP_ICONV_API php_iconv_err_t php_iconv_string(const char *in_p, size_t in_len, 
 #define phpext_iconv_ptr iconv_module_ptr
 
 #endif /* PHP_ICONV_H */
-
-/*
- * Local variables:
- * tab-width: 4
- * c-basic-offset: 4
- * End:
- */

@@ -55,17 +55,20 @@ $rErrorCodes = array(
 // FOLDERS
 define('MAIN_DIR', '/home/xtreamcodes/');
 define('IPTV_ROOT_PATH', str_replace('\\', '/', dirname(__FILE__)) . '/');
-define('IPTV_INCLUDES_PATH', IPTV_ROOT_PATH . 'includes' . '/');
-define('IPTV_TEMPLATES_PATH', IPTV_ROOT_PATH . 'templates' . '/');
+define('INCLUDES_PATH', MAIN_DIR . 'includes/');
 define('CRON_PATH', MAIN_DIR . 'crons/');
 define('ASYNC_DIR', MAIN_DIR . 'async_incs/');
-define('TOOLS_PATH', MAIN_DIR . 'tools/');
 define('IPTV_CLIENT_AREA', MAIN_DIR . 'wwwdir/client_area/');
 define('BIN_PATH', MAIN_DIR . 'bin/');
 define('SIGNALS_PATH', MAIN_DIR . 'signals/');
 define('IPTV_CLIENT_AREA_TEMPLATES_PATH', IPTV_CLIENT_AREA . 'templates/');
 define('CONFIG_PATH', MAIN_DIR . 'config/');
 // -------------------
+
+// INCLUDES FOLDER
+define('CLI_PATH', INCLUDES_PATH . 'cli_tool/');
+// -------------------
+
 
 // BINARIES FILE
 define('PHP_BIN', '/home/xtreamcodes/bin/php/bin/php');
@@ -91,6 +94,7 @@ define('STALKER_TMP_PATH', TMP_PATH . 'stalker/');
 define('LOGS_TMP_PATH', TMP_PATH . 'logs/');
 define('CRONS_TMP_PATH', TMP_PATH . 'crons/');
 define('SIGNALS_TMP_PATH', TMP_PATH . 'signals/');
+define('CIDR_TMP_PATH', TMP_PATH . 'cidr/');
 // -------------------
 
 // CACHE FOLDERS
@@ -113,20 +117,12 @@ define('VIDEO_PATH', CONTENT_PATH . 'video/');
 // -------------------
 
 // CONSTANTS VAR
-define('SCRIPT_VERSION', '1.0.2');
+define('SCRIPT_VERSION', '1.0.3');
 define('FFMPEG_FONTS_PATH', BIN_PATH . 'free-sans.ttf');
 define('OPENSSL_EXTRA', '5gd46z5s4fg6sd8f4gs6');
 define('RESTART_TAKE_CACHE', 5);
 define('MONITOR_CALLS', 3);
 // -------------------
-
-// Temporary variables that should be added to the panel settings
-define('CACHE_PLAYLIST', 60);
-// -------------------
-
-if (!defined('FETCH_BOUQUETS')) {
-    define('FETCH_BOUQUETS', true);
-}
 
 define('CACHE_STREAMS', false);
 define('CACHE_STREAMS_TIME', 10);
@@ -162,6 +158,53 @@ if (PHP_ERRORS) {
     ini_set('display_errors', 0);
 }
 
+function getExceptionTraceAsString($exception) {
+    $rtn = "";
+    $count = 0;
+    foreach ($exception->getTrace() as $frame) {
+        $args = "";
+        if (isset($frame['args'])) {
+            $args = array();
+            foreach ($frame['args'] as $arg) {
+                if (is_string($arg)) {
+                    $args[] = "'" . $arg . "'";
+                } elseif (is_array($arg)) {
+                    $args[] = "Array";
+                } elseif (is_null($arg)) {
+                    $args[] = 'NULL';
+                } elseif (is_bool($arg)) {
+                    $args[] = ($arg) ? "true" : "false";
+                } elseif (is_object($arg)) {
+                    $args[] = get_class($arg);
+                } elseif (is_resource($arg)) {
+                    $args[] = get_resource_type($arg);
+                } else {
+                    $args[] = $arg;
+                }
+            }
+            $args = join(", ", $args);
+        }
+        $current_file = "[internal function]";
+        if (isset($frame['file'])) {
+            $current_file = $frame['file'];
+        }
+        $current_line = "";
+        if (isset($frame['line'])) {
+            $current_line = $frame['line'];
+        }
+        $rtn .= sprintf(
+            "#%s %s(%s): %s(%s)\n",
+            $count,
+            $current_file,
+            $current_line,
+            $frame['function'],
+            $args
+        );
+        $count++;
+    }
+    return $rtn;
+}
+
 function log_error($rErrNo, $rMessage, $rFile, $rLine, $rContext = null) {
     if (in_array($rErrNo, array(1, 2, 4))) {
         $error = array(1 => 'error', 2 => 'warning', 4 => 'parse')[$rErrNo];
@@ -170,7 +213,15 @@ function log_error($rErrNo, $rMessage, $rFile, $rLine, $rContext = null) {
 }
 
 function log_exception($e) {
-    panellog('exception', $e->getMessage(), $e->getTraceAsString(), $e->getLine());
+    panellog(
+        'exception',
+        $e->getMessage(),
+        getExceptionTraceAsString($e),
+        $e->getLine()
+    );
+
+
+    //  panellog('exception', $e->getMessage(), $e->getTraceAsString(), $e->getLine());
 }
 
 function log_fatal() {

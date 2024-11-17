@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 7                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2018 The PHP Group                                |
+   | Copyright (c) The PHP Group                                          |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -21,17 +21,11 @@
 #ifndef PHP_CRYPT_H
 #define PHP_CRYPT_H
 
-PHPAPI zend_string *php_crypt(const char *password, const int pass_len, const char *salt, int salt_len, zend_bool quiet);
+PHPAPI zend_string *php_crypt(const char *password, const int pass_len,
+                              const char *salt, int salt_len, zend_bool quiet);
 PHP_FUNCTION(crypt);
 PHP_MINIT_FUNCTION(crypt);
 PHP_MSHUTDOWN_FUNCTION(crypt);
 PHP_RINIT_FUNCTION(crypt);
 
 #endif
-
-/*
- * Local variables:
- * tab-width: 4
- * c-basic-offset: 4
- * End:
- */

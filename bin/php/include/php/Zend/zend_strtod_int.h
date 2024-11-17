@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | Zend Engine                                                          |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1998-2018 Zend Technologies Ltd. (http://www.zend.com) |
+   | Copyright (c) Zend Technologies Ltd. (http://www.zend.com)           |
    +----------------------------------------------------------------------+
    | This source file is subject to version 2.00 of the Zend license,     |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -23,11 +23,11 @@
 #include <TSRM.h>
 #endif
 
+#include <ctype.h>
+#include <math.h>
+#include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>
-#include <ctype.h>
-#include <stdarg.h>
-#include <math.h>
 
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
@@ -82,7 +82,8 @@ typedef unsigned long int uint32_t;
 #define IEEE_LITTLE_ENDIAN 1
 #endif
 
-#if (defined(__APPLE__) || defined(__APPLE_CC__)) && (defined(__BIG_ENDIAN__) || defined(__LITTLE_ENDIAN__))
+#if (defined(__APPLE__) || defined(__APPLE_CC__)) &&                           \
+    (defined(__BIG_ENDIAN__) || defined(__LITTLE_ENDIAN__))
 #if defined(__LITTLE_ENDIAN__)
 #undef WORDS_BIGENDIAN
 #else
@@ -127,36 +128,20 @@ typedef unsigned long int uint32_t;
 #ifdef ZTS
 #define MULTIPLE_THREADS 1
 
-#define ACQUIRE_DTOA_LOCK(x)           \
-   if (0 == x)                         \
-   {                                   \
-      tsrm_mutex_lock(dtoa_mutex);     \
-   }                                   \
-   else if (1 == x)                    \
-   {                                   \
-      tsrm_mutex_lock(pow5mult_mutex); \
-   }
+#define ACQUIRE_DTOA_LOCK(x)                                                   \
+  if (0 == x) {                                                                \
+    tsrm_mutex_lock(dtoa_mutex);                                               \
+  } else if (1 == x) {                                                         \
+    tsrm_mutex_lock(pow5mult_mutex);                                           \
+  }
 
-#define FREE_DTOA_LOCK(x)                \
-   if (0 == x)                           \
-   {                                     \
-      tsrm_mutex_unlock(dtoa_mutex);     \
-   }                                     \
-   else if (1 == x)                      \
-   {                                     \
-      tsrm_mutex_unlock(pow5mult_mutex); \
-   }
+#define FREE_DTOA_LOCK(x)                                                      \
+  if (0 == x) {                                                                \
+    tsrm_mutex_unlock(dtoa_mutex);                                             \
+  } else if (1 == x) {                                                         \
+    tsrm_mutex_unlock(pow5mult_mutex);                                         \
+  }
 
 #endif
 
 #endif /* ZEND_STRTOD_INT_H */
-
-/*
- * Local variables:
- * tab-width: 4
- * c-basic-offset: 4
- * indent-tabs-mode: t
- * End:
- * vim600: sw=4 ts=4 fdm=marker
- * vim<600: sw=4 ts=4
- */

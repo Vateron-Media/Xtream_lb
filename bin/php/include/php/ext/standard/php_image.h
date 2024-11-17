@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 7                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2018 The PHP Group                                |
+   | Copyright (c) The PHP Group                                          |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -30,30 +30,30 @@ PHP_FUNCTION(image_type_to_extension);
    This enum is used to have ext/standard/image.c and ext/exif/exif.c use
    the same constants for file types.
 */
-typedef enum
-{
-   IMAGE_FILETYPE_UNKNOWN = 0,
-   IMAGE_FILETYPE_GIF = 1,
-   IMAGE_FILETYPE_JPEG,
-   IMAGE_FILETYPE_PNG,
-   IMAGE_FILETYPE_SWF,
-   IMAGE_FILETYPE_PSD,
-   IMAGE_FILETYPE_BMP,
-   IMAGE_FILETYPE_TIFF_II, /* intel */
-   IMAGE_FILETYPE_TIFF_MM, /* motorola */
-   IMAGE_FILETYPE_JPC,
-   IMAGE_FILETYPE_JP2,
-   IMAGE_FILETYPE_JPX,
-   IMAGE_FILETYPE_JB2,
-   IMAGE_FILETYPE_SWC,
-   IMAGE_FILETYPE_IFF,
-   IMAGE_FILETYPE_WBMP,
-   /* IMAGE_FILETYPE_JPEG2000 is a userland alias for IMAGE_FILETYPE_JPC */
-   IMAGE_FILETYPE_XBM,
-   IMAGE_FILETYPE_ICO,
-   IMAGE_FILETYPE_WEBP,
-   /* WHEN EXTENDING: PLEASE ALSO REGISTER IN image.c:PHP_MINIT_FUNCTION(imagetypes) */
-   IMAGE_FILETYPE_COUNT
+typedef enum {
+  IMAGE_FILETYPE_UNKNOWN = 0,
+  IMAGE_FILETYPE_GIF = 1,
+  IMAGE_FILETYPE_JPEG,
+  IMAGE_FILETYPE_PNG,
+  IMAGE_FILETYPE_SWF,
+  IMAGE_FILETYPE_PSD,
+  IMAGE_FILETYPE_BMP,
+  IMAGE_FILETYPE_TIFF_II, /* intel */
+  IMAGE_FILETYPE_TIFF_MM, /* motorola */
+  IMAGE_FILETYPE_JPC,
+  IMAGE_FILETYPE_JP2,
+  IMAGE_FILETYPE_JPX,
+  IMAGE_FILETYPE_JB2,
+  IMAGE_FILETYPE_SWC,
+  IMAGE_FILETYPE_IFF,
+  IMAGE_FILETYPE_WBMP,
+  /* IMAGE_FILETYPE_JPEG2000 is a userland alias for IMAGE_FILETYPE_JPC */
+  IMAGE_FILETYPE_XBM,
+  IMAGE_FILETYPE_ICO,
+  IMAGE_FILETYPE_WEBP,
+  /* WHEN EXTENDING: PLEASE ALSO REGISTER IN
+     image.c:PHP_MINIT_FUNCTION(imagetypes) */
+  IMAGE_FILETYPE_COUNT
 } image_filetype;
 /* }}} */
 

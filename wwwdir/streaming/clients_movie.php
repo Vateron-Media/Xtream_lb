@@ -20,11 +20,11 @@ if (isset(ipTV_lib::$request['token'])) {
     $rTokenData = json_decode(decryptData(ipTV_lib::$request['token'], ipTV_lib::$settings['live_streaming_pass'], OPENSSL_EXTRA), true);
 
     if (!is_array($rTokenData)) {
-        ipTV_streaming::ClientLog(0, 0, "LB_TOKEN_INVALID", $IP);
+        ipTV_streaming::clientLog(0, 0, "LB_TOKEN_INVALID", $IP);
         generateError('LB_TOKEN_INVALID');
     }
 
-    if (isset($rTokenData['expires']) && $rTokenData['expires'] < time() - intval(ipTV_lib::$StreamingServers[SERVER_ID]['time_offset'])) {
+    if (isset($rTokenData['expires']) && $rTokenData['expires'] < time() - intval(ipTV_lib::$Servers[SERVER_ID]['time_offset'])) {
         generateError('TOKEN_EXPIRED');
     }
 
@@ -76,7 +76,7 @@ if ($rChannelInfo) {
 
 
     if (!$rConnection) {
-        if (!(file_exists(CONS_TMP_PATH . $rTokenData['uuid']) || ($activityStart + $rCreateExpiration) - intval(ipTV_lib::$StreamingServers[SERVER_ID]['time_offset']) >= time())) {
+        if (!(file_exists(CONS_TMP_PATH . $rTokenData['uuid']) || ($activityStart + $rCreateExpiration) - intval(ipTV_lib::$Servers[SERVER_ID]['time_offset']) >= time())) {
             generateError('TOKEN_EXPIRED');
         }
         $rResult = $ipTV_db->query('INSERT INTO `lines_live` (`user_id`,`stream_id`,`server_id`,`user_agent`,`user_ip`,`container`,`pid`,`uuid`,`date_start`,`geoip_country_code`,`isp`) VALUES(\'%s\',\'%s\',\'%s\',\'%s\',\'%s\',\'%s\',\'%s\',\'%s\',\'%s\',\'%s\',\'%s\');', $rUserInfo['id'], $streamID, $serverID, $rUserAgent, $IP, 'VOD', $rPID, $rTokenData['uuid'], $activityStart, $rCountryCode, $rUserInfo['con_isp_name']);
@@ -84,7 +84,7 @@ if ($rChannelInfo) {
         $IPMatch = (ipTV_lib::$settings['ip_subnet_match'] ? implode('.', array_slice(explode('.', $rConnection['user_ip']), 0, -1)) == implode('.', array_slice(explode('.', $IP), 0, -1)) : $rConnection['user_ip'] == $IP);
 
         if (!$IPMatch || ipTV_lib::$settings['restrict_same_ip']) {
-            ipTV_streaming::ClientLog($streamID, $rUserInfo['id'], 'IP_MISMATCH', $IP);
+            ipTV_streaming::clientLog($streamID, $rUserInfo['id'], 'IP_MISMATCH', $IP);
             generateError('IP_MISMATCH');
         }
 
@@ -100,7 +100,7 @@ if ($rChannelInfo) {
     }
 
     if (!$rResult) {
-        ipTV_streaming::ClientLog($streamID, $rUserInfo['id'], 'LINE_CREATE_FAIL', $IP);
+        ipTV_streaming::clientLog($streamID, $rUserInfo['id'], 'LINE_CREATE_FAIL', $IP);
         generateError('LINE_CREATE_FAIL');
     }
 
@@ -270,7 +270,7 @@ function shutdown() {
     ipTV_lib::$settings = ipTV_lib::getCache('settings');
 
     if ($rCloseCon) {
-        $ipTV_db->query('UPDATE `lines_live` SET `hls_end` = 1, `hls_last_read` = \'%s\' WHERE `uuid` = \'%s\' AND `pid` = \'%s\';', time() - intval(ipTV_lib::$StreamingServers[SERVER_ID]['time_offset']), $rTokenData['uuid'], $rPID);
+        $ipTV_db->query('UPDATE `lines_live` SET `hls_end` = 1, `hls_last_read` = \'%s\' WHERE `uuid` = \'%s\' AND `pid` = \'%s\';', time() - intval(ipTV_lib::$Servers[SERVER_ID]['time_offset']), $rTokenData['uuid'], $rPID);
     }
 
     if (is_object($ipTV_db)) {

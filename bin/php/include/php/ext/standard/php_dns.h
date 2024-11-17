@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 7                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2018 The PHP Group                                |
+   | Copyright (c) The PHP Group                                          |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -22,32 +22,36 @@
 #define PHP_DNS_H
 
 #if defined(HAVE_DNS_SEARCH)
-#define php_dns_search(res, dname, class, type, answer, anslen) \
-   ((int)dns_search(res, dname, class, type, answer, anslen, (struct sockaddr *)&from, &fromsize))
-#define php_dns_free_handle(res) \
-   dns_free(res)
+#define php_dns_search(res, dname, class, type, answer, anslen)                \
+  ((int)dns_search(res, dname, class, type, (char *)answer, anslen,            \
+                   (struct sockaddr *)&from, &fromsize))
+#define php_dns_free_handle(res) dns_free(res)
+#define php_dns_errno(handle) h_errno
 
 #elif defined(HAVE_RES_NSEARCH)
-#define php_dns_search(res, dname, class, type, answer, anslen) \
-   res_nsearch(res, dname, class, type, answer, anslen);
+#define php_dns_search(res, dname, class, type, answer, anslen)                \
+  res_nsearch(res, dname, class, type, answer, anslen);
 #if HAVE_RES_NDESTROY
-#define php_dns_free_handle(res) \
-   res_ndestroy(res);            \
-   php_dns_free_res(res)
+#define php_dns_free_handle(res)                                               \
+  res_ndestroy(res);                                                           \
+  php_dns_free_res(res)
 #else
-#define php_dns_free_handle(res) \
-   res_nclose(res);              \
-   php_dns_free_res(res)
+#define php_dns_free_handle(res)                                               \
+  res_nclose(res);                                                             \
+  php_dns_free_res(res)
 #endif
+#define php_dns_errno(handle) handle->res_h_errno
 
 #elif defined(HAVE_RES_SEARCH)
-#define php_dns_search(res, dname, class, type, answer, anslen) \
-   res_search(dname, class, type, answer, anslen)
+#define php_dns_search(res, dname, class, type, answer, anslen)                \
+  res_search(dname, class, type, answer, anslen)
 #define php_dns_free_handle(res) /* noop */
+#define php_dns_errno(handle) h_errno
 
 #endif
 
-#if defined(HAVE_DNS_SEARCH) || defined(HAVE_RES_NSEARCH) || defined(HAVE_RES_SEARCH)
+#if defined(HAVE_DNS_SEARCH) || defined(HAVE_RES_NSEARCH) ||                   \
+    defined(HAVE_RES_SEARCH)
 #define HAVE_DNS_SEARCH_FUNC 1
 #endif
 

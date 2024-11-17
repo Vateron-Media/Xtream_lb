@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 7                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2018 The PHP Group                                |
+   | Copyright (c) The PHP Group                                          |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -54,20 +54,18 @@ typedef int PHP_SOCKET;
 typedef SOCKET PHP_SOCKET;
 #endif
 
-typedef struct
-{
-	PHP_SOCKET bsd_socket;
-	int type;
-	int error;
-	int blocking;
-	zval zstream;
+typedef struct {
+  PHP_SOCKET bsd_socket;
+  int type;
+  int error;
+  int blocking;
+  zval zstream;
 } php_socket;
 
 #ifdef PHP_WIN32
-struct sockaddr_un
-{
-	short sun_family;
-	char sun_path[108];
+struct sockaddr_un {
+  short sun_family;
+  char sun_path[108];
 };
 #endif
 
@@ -79,17 +77,17 @@ PHP_SOCKETS_API void php_destroy_sockaddr(zend_resource *rsrc);
 #define php_sockets_le_socket_name "Socket"
 #define php_sockets_le_addrinfo_name "AddressInfo"
 
-#define PHP_SOCKET_ERROR(socket, msg, errn)                                                         \
-	do                                                                                              \
-	{                                                                                               \
-		int _err = (errn); /* save value to avoid repeated calls to WSAGetLastError() on Windows */ \
-		(socket)->error = _err;                                                                     \
-		SOCKETS_G(last_error) = _err;                                                               \
-		if (_err != EAGAIN && _err != EWOULDBLOCK && _err != EINPROGRESS)                           \
-		{                                                                                           \
-			php_error_docref(NULL, E_WARNING, "%s [%d]: %s", msg, _err, sockets_strerror(_err));    \
-		}                                                                                           \
-	} while (0)
+#define PHP_SOCKET_ERROR(socket, msg, errn)                                    \
+  do {                                                                         \
+    int _err = (errn); /* save value to avoid repeated calls to                \
+                          WSAGetLastError() on Windows */                      \
+    (socket)->error = _err;                                                    \
+    SOCKETS_G(last_error) = _err;                                              \
+    if (_err != EAGAIN && _err != EWOULDBLOCK && _err != EINPROGRESS) {        \
+      php_error_docref(NULL, E_WARNING, "%s [%d]: %s", msg, _err,              \
+                       sockets_strerror(_err));                                \
+    }                                                                          \
+  } while (0)
 
 ZEND_BEGIN_MODULE_GLOBALS(sockets)
 int last_error;
@@ -103,12 +101,7 @@ ZEND_END_MODULE_GLOBALS(sockets)
 ZEND_EXTERN_MODULE_GLOBALS(sockets)
 #define SOCKETS_G(v) ZEND_MODULE_GLOBALS_ACCESSOR(sockets, v)
 
-enum sockopt_return
-{
-	SOCKOPT_ERROR,
-	SOCKOPT_CONTINUE,
-	SOCKOPT_SUCCESS
-};
+enum sockopt_return { SOCKOPT_ERROR, SOCKOPT_CONTINUE, SOCKOPT_SUCCESS };
 
 char *sockets_strerror(int error);
 php_socket *socket_import_file_descriptor(PHP_SOCKET sock);
@@ -122,10 +115,3 @@ php_socket *socket_import_file_descriptor(PHP_SOCKET sock);
 #endif
 
 #endif
-
-/*
- * Local variables:
- * tab-width: 4
- * c-basic-offset: 4
- * End:
- */

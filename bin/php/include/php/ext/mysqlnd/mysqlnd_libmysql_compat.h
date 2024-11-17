@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | PHP Version 7                                                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 2006-2018 The PHP Group                                |
+  | Copyright (c) The PHP Group                                          |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -39,7 +39,8 @@
 /* functions */
 #define mysql_affected_rows(r) mysqlnd_affected_rows((r))
 #define mysql_autocommit(r, m) mysqlnd_autocommit((r), (m))
-#define mysql_change_user(r, a, b, c) mysqlnd_change_user((r), (a), (b), (c), FALSE)
+#define mysql_change_user(r, a, b, c)                                          \
+  mysqlnd_change_user((r), (a), (b), (c), FALSE)
 #define mysql_character_set_name(c) mysqlnd_character_set_name((c))
 #define mysql_close(r) mysqlnd_close((r), MYSQLND_CLOSE_EXPLICIT)
 #define mysql_commit(r) mysqlnd_commit((r), TRANS_COR_NO_OPT, NULL)
@@ -68,7 +69,8 @@
 #define mysql_num_fields(r) mysqlnd_num_fields((r))
 #define mysql_num_rows(r) mysqlnd_num_rows((r))
 #define mysql_ping(r) mysqlnd_ping((r))
-#define mysql_real_escape_string(r, a, b, c) mysqlnd_real_escape_string((r), (a), (b), (c))
+#define mysql_real_escape_string(r, a, b, c)                                   \
+  mysqlnd_real_escape_string((r), (a), (b), (c))
 #define mysql_real_query(r, a, b) mysqlnd_query((r), (a), (b))
 #define mysql_refresh(conn, options) mysqlnd_refresh((conn), (options))
 #define mysql_rollback(r) mysqlnd_rollback((r), TRANS_COR_NO_OPT, NULL)
@@ -76,13 +78,14 @@
 #define mysql_set_server_option(r, o) mysqlnd_set_server_option((r), (o))
 #define mysql_set_character_set(r, a) mysqlnd_set_character_set((r), (a))
 #define mysql_sqlstate(r) mysqlnd_sqlstate((r))
-#define mysql_ssl_set(c, key, cert, ca, capath, cipher) mysqlnd_ssl_set((c), (key), (cert), (ca), (capath), (cipher))
+#define mysql_ssl_set(c, key, cert, ca, capath, cipher)                        \
+  mysqlnd_ssl_set((c), (key), (cert), (ca), (capath), (cipher))
 #define mysql_stmt_affected_rows(s) mysqlnd_stmt_affected_rows((s))
 #define mysql_stmt_field_count(s) mysqlnd_stmt_field_count((s))
 #define mysql_stmt_param_count(s) mysqlnd_stmt_param_count((s))
 #define mysql_stmt_num_rows(s) mysqlnd_stmt_num_rows((s))
 #define mysql_stmt_insert_id(s) mysqlnd_stmt_insert_id((s))
-#define mysql_stmt_close(s) mysqlnd_stmt_close((s))
+#define mysql_stmt_close(s) mysqlnd_stmt_close((s), 0)
 #define mysql_stmt_bind_param(s, b) mysqlnd_stmt_bind_param((s), (b))
 #define mysql_stmt_bind_result(s, b) mysqlnd_stmt_bind_result((s), (b))
 #define mysql_stmt_errno(s) mysqlnd_stmt_errno((s))
@@ -94,7 +97,8 @@
 #define mysql_stmt_store_result(s) mysqlnd_stmt_store_result((s))
 #define mysql_stmt_free_result(s) mysqlnd_stmt_free_result((s))
 #define mysql_stmt_data_seek(s, r) mysqlnd_stmt_data_seek((s), (r))
-#define mysql_stmt_send_long_data(s, p, d, l) mysqlnd_stmt_send_long_data((s), (p), (d), (l))
+#define mysql_stmt_send_long_data(s, p, d, l)                                  \
+  mysqlnd_stmt_send_long_data((s), (p), (d), (l))
 #define mysql_stmt_attr_get(s, a, v) mysqlnd_stmt_attr_get((s), (a), (v))
 #define mysql_stmt_attr_set(s, a, v) mysqlnd_stmt_attr_set((s), (a), (v))
 #define mysql_stmt_param_metadata(s) mysqlnd_stmt_param_metadata((s))
@@ -118,7 +122,8 @@
 #define mysql_get_server_info(r) mysqlnd_get_server_info((r))
 #define mysql_get_server_version(r) mysqlnd_get_server_version((r))
 #define mysql_warning_count(r) mysqlnd_warning_count((r))
-#define mysql_eof(r) (((r)->unbuf && (r)->unbuf->eof_reached) || (r)->stored_data)
+#define mysql_eof(r)                                                           \
+  (((r)->unbuf && (r)->unbuf->eof_reached) || (r)->stored_data)
 
 #define REFRESH_GRANT MYSQLND_REFRESH_GRANT
 #define REFRESH_LOG MYSQLND_REFRESH_LOG

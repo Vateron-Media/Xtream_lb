@@ -7,7 +7,7 @@ if (posix_getpwuid(posix_geteuid())['name'] == 'xtreamcodes') {
         require str_replace('\\', '/', dirname($argv[0])) . '/../wwwdir/init.php';
         cli_set_process_title('XtreamCodes[Errors]');
         $unique_id = CRONS_TMP_PATH . md5(generateUniqueCode() . __FILE__);
-        ipTV_lib::check_cron($unique_id);
+        ipTV_lib::checkCron($unique_id);
         $rIgnoreErrors = array('the user-agent option is deprecated', 'last message repeated', 'deprecated', 'packets poorly interleaved', 'invalid timestamps', 'timescale not set', 'frame size not set', 'non-monotonous dts in output stream', 'invalid dts', 'no trailing crlf', 'failed to parse extradata', 'truncated', 'missing picture', 'non-existing pps', 'clipping', 'out of range', 'cannot use rename on non file protocol', 'end of file', 'stream ends prematurely');
         loadCron();
     } else {
@@ -52,31 +52,31 @@ function inArray($needles, $haystack) {
 function loadCron() {
     global $rIgnoreErrors;
     global $ipTV_db;
-    // $rQuery = '';
-    // foreach (array(STREAMS_PATH) as $rPath) {
-    //     if ($rHandle = opendir($rPath)) {
-    //         while (false !== ($fileEntry = readdir($rHandle))) {
-    //             if ($fileEntry != '.' && $fileEntry != '..' && is_file($rPath . $fileEntry)) {
-    //                 $rFile = $rPath . $fileEntry;
-    //                 list($rStreamID, $rExtension) = explode('.', $fileEntry);
-    //                 if ($rExtension == 'errors') {
-    //                     $rErrors = array_values(array_unique(array_map('trim', explode("\n", file_get_contents($rFile)))));
-    //                     foreach ($rErrors as $rError) {
-    //                         if (!(empty($rError) || inArray($rIgnoreErrors, $rError))) {
-    //                             $rQuery .= '(' . $rStreamID . ',' . SERVER_ID . ',' . time() . ', \'' . $ipTV_db->escape($rError) . '\'),';
-    //                         }
-    //                     }
-    //                     unlink($rFile);
-    //                 }
-    //             }
-    //         }
-    //         closedir($rHandle);
-    //     }
-    // }
-    // if (!empty($rQuery)) {
-    //     $rQuery = rtrim($rQuery, ',');
-    //     $ipTV_db->query('INSERT INTO `stream_logs` (`stream_id`,`server_id`,`date`,`error`) VALUES ' . $rQuery . ';');
-    // }
+    $rQuery = '';
+    foreach (array(STREAMS_PATH) as $rPath) {
+        if ($rHandle = opendir($rPath)) {
+            while (false !== ($fileEntry = readdir($rHandle))) {
+                if ($fileEntry != '.' && $fileEntry != '..' && is_file($rPath . $fileEntry)) {
+                    $rFile = $rPath . $fileEntry;
+                    list($rStreamID, $rExtension) = explode('.', $fileEntry);
+                    if ($rExtension == 'errors') {
+                        $rErrors = array_values(array_unique(array_map('trim', explode("\n", file_get_contents($rFile)))));
+                        foreach ($rErrors as $rError) {
+                            if (!(empty($rError) || inArray($rIgnoreErrors, $rError))) {
+                                $rQuery .= '(' . $rStreamID . ',' . SERVER_ID . ',' . time() . ', \'' . $ipTV_db->escape($rError) . '\'),';
+                            }
+                        }
+                        unlink($rFile);
+                    }
+                }
+            }
+            closedir($rHandle);
+        }
+    }
+    if (!empty($rQuery)) {
+        $rQuery = rtrim($rQuery, ',');
+        $ipTV_db->query('INSERT INTO `stream_logs` (`stream_id`,`server_id`,`date`,`error`) VALUES ' . $rQuery . ';');
+    }
     $rLog = LOGS_TMP_PATH . 'error_log.log';
     if (file_exists($rLog)) {
         $rQuery = rtrim(parseLog($rLog), ',');

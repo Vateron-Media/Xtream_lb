@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | PHP Version 7                                                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 1997-2018 The PHP Group                                |
+  | Copyright (c) The PHP Group                                          |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -21,13 +21,13 @@
 #define PHP_FILTER_H
 
 #include "SAPI.h"
-#include "zend_API.h"
-#include "php.h"
-#include "php_ini.h"
+#include "ext/standard/html.h"
 #include "ext/standard/info.h"
 #include "ext/standard/php_string.h"
-#include "ext/standard/html.h"
+#include "php.h"
+#include "php_ini.h"
 #include "php_variables.h"
+#include "zend_API.h"
 
 extern zend_module_entry filter_module_entry;
 #define phpext_filter_ptr &filter_module_entry
@@ -71,7 +71,8 @@ ZEND_TSRMLS_CACHE_EXTERN()
 
 #define IF_G(v) ZEND_MODULE_GLOBALS_ACCESSOR(filter, v)
 
-#define PHP_INPUT_FILTER_PARAM_DECL zval *value, zend_long flags, zval *option_array, char *charset
+#define PHP_INPUT_FILTER_PARAM_DECL                                            \
+  zval *value, zend_long flags, zval *option_array, char *charset
 void php_filter_int(PHP_INPUT_FILTER_PARAM_DECL);
 void php_filter_boolean(PHP_INPUT_FILTER_PARAM_DECL);
 void php_filter_float(PHP_INPUT_FILTER_PARAM_DECL);
@@ -92,15 +93,8 @@ void php_filter_url(PHP_INPUT_FILTER_PARAM_DECL);
 void php_filter_number_int(PHP_INPUT_FILTER_PARAM_DECL);
 void php_filter_number_float(PHP_INPUT_FILTER_PARAM_DECL);
 void php_filter_add_slashes(PHP_INPUT_FILTER_PARAM_DECL);
+void php_filter_magic_quotes(PHP_INPUT_FILTER_PARAM_DECL);
 
 void php_filter_callback(PHP_INPUT_FILTER_PARAM_DECL);
 
 #endif /* FILTER_H */
-
-/*
- * Local variables:
- * tab-width: 4
- * c-basic-offset: 4
- * indent-tabs-mode: t
- * End:
- */

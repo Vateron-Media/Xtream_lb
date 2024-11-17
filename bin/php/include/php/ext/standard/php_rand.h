@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 7                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2018 The PHP Group                                |
+   | Copyright (c) The PHP Group                                          |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -59,13 +59,18 @@
  *
  * -RL
  */
-#define RAND_RANGE_BADSCALING(__n, __min, __max, __tmax) \
-  (__n) = (__min) + (zend_long)((double)((double)(__max) - (__min) + 1.0) * ((__n) / ((__tmax) + 1.0)))
+#define RAND_RANGE_BADSCALING(__n, __min, __max, __tmax)                       \
+  (__n) = (__min) + (zend_long)((double)((double)(__max) - (__min) + 1.0) *    \
+                                ((__n) / ((__tmax) + 1.0)))
 
 #ifdef PHP_WIN32
-#define GENERATE_SEED() (((zend_long)(time(0) * GetCurrentProcessId())) ^ ((zend_long)(1000000.0 * php_combined_lcg())))
+#define GENERATE_SEED()                                                        \
+  (((zend_long)(time(0) * GetCurrentProcessId())) ^                            \
+   ((zend_long)(1000000.0 * php_combined_lcg())))
 #else
-#define GENERATE_SEED() (((zend_long)(time(0) * getpid())) ^ ((zend_long)(1000000.0 * php_combined_lcg())))
+#define GENERATE_SEED()                                                        \
+  (((zend_long)(time(0) * getpid())) ^                                         \
+   ((zend_long)(1000000.0 * php_combined_lcg())))
 #endif
 
 PHPAPI void php_srand(zend_long seed);

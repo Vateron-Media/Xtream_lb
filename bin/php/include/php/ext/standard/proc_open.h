@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 7                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2018 The PHP Group                                |
+   | Copyright (c) The PHP Group                                          |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -28,16 +28,14 @@ typedef pid_t php_process_id_t;
  * name=value strings.
  * Under unix, it is an argv style array.
  * */
-typedef struct _php_process_env
-{
+typedef struct _php_process_env {
   char *envp;
 #ifndef PHP_WIN32
   char **envarray;
 #endif
 } php_process_env_t;
 
-struct php_process_handle
-{
+struct php_process_handle {
   php_process_id_t child;
 #ifdef PHP_WIN32
   HANDLE childHandle;

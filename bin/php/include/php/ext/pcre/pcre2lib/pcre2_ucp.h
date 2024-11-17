@@ -54,8 +54,7 @@ called catposstab in pcre2_compile.c. */
 
 /* These are the general character categories. */
 
-enum
-{
+enum {
   ucp_C, /* Other */
   ucp_L, /* Letter */
   ucp_M, /* Mark */
@@ -67,8 +66,7 @@ enum
 
 /* These are the particular character categories. */
 
-enum
-{
+enum {
   ucp_Cc, /* Control */
   ucp_Cf, /* Format */
   ucp_Cn, /* Unassigned */
@@ -104,8 +102,7 @@ enum
 /* These are grapheme break properties. The Extended Pictographic property
 comes from the emoji-data.txt file. */
 
-enum
-{
+enum {
   ucp_gbCR,                   /*  0 */
   ucp_gbLF,                   /*  1 */
   ucp_gbControl,              /*  2 */
@@ -125,8 +122,8 @@ enum
 
 /* These are the script identifications. */
 
-enum
-{
+enum {
+  ucp_Unknown,
   ucp_Arabic,
   ucp_Armenian,
   ucp_Bengali,
@@ -283,7 +280,17 @@ enum
   ucp_Makasar,
   ucp_Medefaidrin,
   ucp_Old_Sogdian,
-  ucp_Sogdian
+  ucp_Sogdian,
+  /* New for Unicode 12.0.0 */
+  ucp_Elymaic,
+  ucp_Nandinagari,
+  ucp_Nyiakeng_Puachue_Hmong,
+  ucp_Wancho,
+  /* New for Unicode 13.0.0 */
+  ucp_Chorasmian,
+  ucp_Dives_Akuru,
+  ucp_Khitan_Small_Script,
+  ucp_Yezidi
 };
 
 #endif /* PCRE2_UCP_H_IDEMPOTENT_GUARD */

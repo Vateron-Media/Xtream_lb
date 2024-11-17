@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 7                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2018 The PHP Group                                |
+   | Copyright (c) The PHP Group                                          |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -46,11 +46,10 @@
 #define PHP_OUTPUT_HANDLER_PROCESSED 0x4000
 
 /* handler op return values */
-typedef enum _php_output_handler_status_t
-{
-	PHP_OUTPUT_HANDLER_FAILURE,
-	PHP_OUTPUT_HANDLER_SUCCESS,
-	PHP_OUTPUT_HANDLER_NO_DATA
+typedef enum _php_output_handler_status_t {
+  PHP_OUTPUT_HANDLER_FAILURE,
+  PHP_OUTPUT_HANDLER_SUCCESS,
+  PHP_OUTPUT_HANDLER_NO_DATA
 } php_output_handler_status_t;
 
 /* php_output_stack_pop() flags */
@@ -71,72 +70,74 @@ typedef enum _php_output_handler_status_t
 #define PHP_OUTPUT_ACTIVATED 0x100000
 
 /* handler hooks */
-typedef enum _php_output_handler_hook_t
-{
-	PHP_OUTPUT_HANDLER_HOOK_GET_OPAQ,
-	PHP_OUTPUT_HANDLER_HOOK_GET_FLAGS,
-	PHP_OUTPUT_HANDLER_HOOK_GET_LEVEL,
-	PHP_OUTPUT_HANDLER_HOOK_IMMUTABLE,
-	PHP_OUTPUT_HANDLER_HOOK_DISABLE,
-	/* unused */
-	PHP_OUTPUT_HANDLER_HOOK_LAST
+typedef enum _php_output_handler_hook_t {
+  PHP_OUTPUT_HANDLER_HOOK_GET_OPAQ,
+  PHP_OUTPUT_HANDLER_HOOK_GET_FLAGS,
+  PHP_OUTPUT_HANDLER_HOOK_GET_LEVEL,
+  PHP_OUTPUT_HANDLER_HOOK_IMMUTABLE,
+  PHP_OUTPUT_HANDLER_HOOK_DISABLE,
+  /* unused */
+  PHP_OUTPUT_HANDLER_HOOK_LAST
 } php_output_handler_hook_t;
 
-#define PHP_OUTPUT_HANDLER_INITBUF_SIZE(s) \
-	(((s) > 1) ? (s) + PHP_OUTPUT_HANDLER_ALIGNTO_SIZE - ((s) % (PHP_OUTPUT_HANDLER_ALIGNTO_SIZE)) : PHP_OUTPUT_HANDLER_DEFAULT_SIZE)
+#define PHP_OUTPUT_HANDLER_INITBUF_SIZE(s)                                     \
+  (((s) > 1) ? (s) + PHP_OUTPUT_HANDLER_ALIGNTO_SIZE -                         \
+                   ((s) % (PHP_OUTPUT_HANDLER_ALIGNTO_SIZE))                   \
+             : PHP_OUTPUT_HANDLER_DEFAULT_SIZE)
 #define PHP_OUTPUT_HANDLER_ALIGNTO_SIZE 0x1000
 #define PHP_OUTPUT_HANDLER_DEFAULT_SIZE 0x4000
 
-typedef struct _php_output_buffer
-{
-	char *data;
-	size_t size;
-	size_t used;
-	uint32_t free : 1;
-	uint32_t _reserved : 31;
+typedef struct _php_output_buffer {
+  char *data;
+  size_t size;
+  size_t used;
+  uint32_t free : 1;
+  uint32_t _reserved : 31;
 } php_output_buffer;
 
-typedef struct _php_output_context
-{
-	int op;
-	php_output_buffer in;
-	php_output_buffer out;
+typedef struct _php_output_context {
+  int op;
+  php_output_buffer in;
+  php_output_buffer out;
 } php_output_context;
 
 /* old-style, stateless callback */
-typedef void (*php_output_handler_func_t)(char *output, size_t output_len, char **handled_output, size_t *handled_output_len, int mode);
+typedef void (*php_output_handler_func_t)(char *output, size_t output_len,
+                                          char **handled_output,
+                                          size_t *handled_output_len, int mode);
 /* new-style, opaque context callback */
-typedef int (*php_output_handler_context_func_t)(void **handler_context, php_output_context *output_context);
+typedef int (*php_output_handler_context_func_t)(
+    void **handler_context, php_output_context *output_context);
 /* output handler context dtor */
 typedef void (*php_output_handler_context_dtor_t)(void *opaq);
 /* conflict check callback */
-typedef int (*php_output_handler_conflict_check_t)(const char *handler_name, size_t handler_name_len);
+typedef int (*php_output_handler_conflict_check_t)(const char *handler_name,
+                                                   size_t handler_name_len);
 /* ctor for aliases */
-typedef struct _php_output_handler *(*php_output_handler_alias_ctor_t)(const char *handler_name, size_t handler_name_len, size_t chunk_size, int flags);
+typedef struct _php_output_handler *(*php_output_handler_alias_ctor_t)(
+    const char *handler_name, size_t handler_name_len, size_t chunk_size,
+    int flags);
 
-typedef struct _php_output_handler_user_func_t
-{
-	zend_fcall_info fci;
-	zend_fcall_info_cache fcc;
-	zval zoh;
+typedef struct _php_output_handler_user_func_t {
+  zend_fcall_info fci;
+  zend_fcall_info_cache fcc;
+  zval zoh;
 } php_output_handler_user_func_t;
 
-typedef struct _php_output_handler
-{
-	zend_string *name;
-	int flags;
-	int level;
-	size_t size;
-	php_output_buffer buffer;
+typedef struct _php_output_handler {
+  zend_string *name;
+  int flags;
+  int level;
+  size_t size;
+  php_output_buffer buffer;
 
-	void *opaq;
-	void (*dtor)(void *opaq);
+  void *opaq;
+  void (*dtor)(void *opaq);
 
-	union
-	{
-		php_output_handler_user_func_t *user;
-		php_output_handler_context_func_t internal;
-	} func;
+  union {
+    php_output_handler_user_func_t *user;
+    php_output_handler_context_func_t internal;
+  } func;
 } php_output_handler;
 
 ZEND_BEGIN_MODULE_GLOBALS(output)
@@ -164,31 +165,31 @@ PHPAPI ZEND_EXTERN_MODULE_GLOBALS(output)
 #define PUTC(c) php_output_write((const char *)&(c), 1)
 #define PUTC_H(c) php_output_write_unbuffered((const char *)&(c), 1)
 
-#define PUTS(str)                               \
-	do                                          \
-	{                                           \
-		const char *__str = (str);              \
-		php_output_write(__str, strlen(__str)); \
-	} while (0)
-#define PUTS_H(str)                                        \
-	do                                                     \
-	{                                                      \
-		const char *__str = (str);                         \
-		php_output_write_unbuffered(__str, strlen(__str)); \
-	} while (0)
+#define PUTS(str)                                                              \
+  do {                                                                         \
+    const char *__str = (str);                                                 \
+    php_output_write(__str, strlen(__str));                                    \
+  } while (0)
+#define PUTS_H(str)                                                            \
+  do {                                                                         \
+    const char *__str = (str);                                                 \
+    php_output_write_unbuffered(__str, strlen(__str));                         \
+  } while (0)
 
-	BEGIN_EXTERN_C()
+    BEGIN_EXTERN_C()
 
-		extern const char php_output_default_handler_name[sizeof("default output handler")];
-extern const char php_output_devnull_handler_name[sizeof("null output handler")];
+        extern const
+    char php_output_default_handler_name[sizeof("default output handler")];
+extern const char
+    php_output_devnull_handler_name[sizeof("null output handler")];
 
-#define php_output_tearup() \
-	php_output_startup();   \
-	php_output_activate()
-#define php_output_teardown() \
-	php_output_end_all();     \
-	php_output_deactivate();  \
-	php_output_shutdown()
+#define php_output_tearup()                                                    \
+  php_output_startup();                                                        \
+  php_output_activate()
+#define php_output_teardown()                                                  \
+  php_output_end_all();                                                        \
+  php_output_deactivate();                                                     \
+  php_output_shutdown()
 
 /* MINIT */
 PHPAPI void php_output_startup(void);
@@ -228,25 +229,44 @@ PHPAPI php_output_handler *php_output_get_active_handler(void);
 PHPAPI int php_output_start_default(void);
 PHPAPI int php_output_start_devnull(void);
 
-PHPAPI int php_output_start_user(zval *output_handler, size_t chunk_size, int flags);
-PHPAPI int php_output_start_internal(const char *name, size_t name_len, php_output_handler_func_t output_handler, size_t chunk_size, int flags);
+PHPAPI int php_output_start_user(zval *output_handler, size_t chunk_size,
+                                 int flags);
+PHPAPI int php_output_start_internal(const char *name, size_t name_len,
+                                     php_output_handler_func_t output_handler,
+                                     size_t chunk_size, int flags);
 
-PHPAPI php_output_handler *php_output_handler_create_user(zval *handler, size_t chunk_size, int flags);
-PHPAPI php_output_handler *php_output_handler_create_internal(const char *name, size_t name_len, php_output_handler_context_func_t handler, size_t chunk_size, int flags);
+PHPAPI php_output_handler *
+php_output_handler_create_user(zval *handler, size_t chunk_size, int flags);
+PHPAPI php_output_handler *
+php_output_handler_create_internal(const char *name, size_t name_len,
+                                   php_output_handler_context_func_t handler,
+                                   size_t chunk_size, int flags);
 
-PHPAPI void php_output_handler_set_context(php_output_handler *handler, void *opaq, void (*dtor)(void *));
+PHPAPI void php_output_handler_set_context(php_output_handler *handler,
+                                           void *opaq, void (*dtor)(void *));
 PHPAPI int php_output_handler_start(php_output_handler *handler);
 PHPAPI int php_output_handler_started(const char *name, size_t name_len);
 PHPAPI int php_output_handler_hook(php_output_handler_hook_t type, void *arg);
 PHPAPI void php_output_handler_dtor(php_output_handler *handler);
 PHPAPI void php_output_handler_free(php_output_handler **handler);
 
-PHPAPI int php_output_handler_conflict(const char *handler_new, size_t handler_new_len, const char *handler_set, size_t handler_set_len);
-PHPAPI int php_output_handler_conflict_register(const char *handler_name, size_t handler_name_len, php_output_handler_conflict_check_t check_func);
-PHPAPI int php_output_handler_reverse_conflict_register(const char *handler_name, size_t handler_name_len, php_output_handler_conflict_check_t check_func);
+PHPAPI int php_output_handler_conflict(const char *handler_new,
+                                       size_t handler_new_len,
+                                       const char *handler_set,
+                                       size_t handler_set_len);
+PHPAPI int php_output_handler_conflict_register(
+    const char *handler_name, size_t handler_name_len,
+    php_output_handler_conflict_check_t check_func);
+PHPAPI int php_output_handler_reverse_conflict_register(
+    const char *handler_name, size_t handler_name_len,
+    php_output_handler_conflict_check_t check_func);
 
-PHPAPI php_output_handler_alias_ctor_t php_output_handler_alias(const char *handler_name, size_t handler_name_len);
-PHPAPI int php_output_handler_alias_register(const char *handler_name, size_t handler_name_len, php_output_handler_alias_ctor_t func);
+PHPAPI php_output_handler_alias_ctor_t
+php_output_handler_alias(const char *handler_name, size_t handler_name_len);
+PHPAPI int
+php_output_handler_alias_register(const char *handler_name,
+                                  size_t handler_name_len,
+                                  php_output_handler_alias_ctor_t func);
 
 END_EXTERN_C()
 
@@ -268,12 +288,3 @@ PHP_FUNCTION(output_add_rewrite_var);
 PHP_FUNCTION(output_reset_rewrite_vars);
 
 #endif
-
-/*
- * Local variables:
- * tab-width: 4
- * c-basic-offset: 4
- * End:
- * vim600: sw=4 ts=4 fdm=marker
- * vim<600: sw=4 ts=4
- */
