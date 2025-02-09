@@ -282,68 +282,30 @@ if ($rExtension) {
             }
         }
 
-        //Testing is required on the mag set-top box, not on the emulator
-
-        // if (($rUserInfo['is_stalker'] && in_array($rType, array('live', 'movie', 'series', 'timeshift')))) {
-        //     if ((empty(ipTV_lib::$request['stalker_key']) || $rExtension != 'ts')) {
-        //         generateError('STALKER_INVALID_KEY');
-        //     }
-
-        //     $rStalkerKey = base64_decode(urldecode(ipTV_lib::$request['stalker_key']));
-
-        //     if ($rDecryptKey = ipTV_lib::mc_decrypt($rStalkerKey, md5(ipTV_lib::$settings['live_streaming_pass']))) {
-        //         $rStalkerData = explode('=', $rDecryptKey);
-
-        //         if ($rStalkerData[2] != $streamID) {
-        //             ipTV_streaming::clientLog($streamID, $rUserInfo['id'], 'STALKER_CHANNEL_MISMATCH', $IP);
-        //             generateError('STALKER_CHANNEL_MISMATCH');
-        //         }
-        //         $IPMatch = (ipTV_lib::$settings['ip_subnet_match'] ? implode('.', array_slice(explode('.', $rStalkerData[1]), 0, -1)) == implode('.', array_slice(explode('.', $IP), 0, -1)) : $rStalkerData[1] == $IP);
-        //         if (!$IPMatch && ipTV_lib::$settings['restrict_same_ip']) {
-        //             ipTV_streaming::clientLog($streamID, $rUserInfo['id'], 'STALKER_IP_MISMATCH', $IP);
-        //             generateError('STALKER_IP_MISMATCH');
-        //         }
-
-        //         $rCreateExpiration = (ipTV_lib::$settings['create_expiration'] ?: 5);
-
-        //         if ($rStalkerData[3] < time() - $rCreateExpiration) {
-        //             ipTV_streaming::clientLog($streamID, $rUserInfo['id'], 'STALKER_KEY_EXPIRED', $IP);
-        //             generateError('STALKER_KEY_EXPIRED');
-        //         }
-
-        //         $rExternalDevice = $rStalkerData[0];
-        //     } else {
-        //         ipTV_streaming::clientLog($streamID, $rUserInfo['id'], 'STALKER_DECRYPT_FAILED', $IP);
-        //         generateError('STALKER_DECRYPT_FAILED');
-        //     }
-        // }
-
-        // ------------------------------------------------------------------
-
         if (!in_array($rType, array('thumb', 'subtitle'))) {
             if (!($rUserInfo['is_restreamer'] || in_array($IP, ipTV_lib::$allowedIPs))) {
-                // if ((ipTV_lib::$settings['block_streaming_servers'] || ipTV_lib::$settings['block_proxies'])) {
-                //     $rCIDR = ipTV_streaming::matchCIDR($rUserInfo['isp_asn'], $IP);
+                if ((ipTV_lib::$settings['block_streaming_servers'] || ipTV_lib::$settings['block_proxies'])) {
+                    $rCIDR = ipTV_streaming::matchCIDR($rUserInfo['isp_asn'], $IP);
 
-                //     if ($rCIDR) {
-                //         if ((ipTV_lib::$settings['block_streaming_servers'] && $rCIDR[3]) && !$rCIDR[4]) {
-                //             ipTV_streaming::clientLog($streamID, $rUserInfo['id'], 'HOSTING_DETECT', $IP, json_encode(array('user_agent' => $rUserAgent, 'isp' => $rUserInfo['con_isp_name'], 'asn' => $rUserInfo['isp_asn'])), true);
-                //             generateError('HOSTING_DETECT');
-                //         }
+                    if ($rCIDR) {
+                        if ((ipTV_lib::$settings['block_streaming_servers'] && $rCIDR[3]) && !$rCIDR[4]) {
+                            ipTV_streaming::clientLog($streamID, $rUserInfo['id'], 'HOSTING_DETECT', $IP, json_encode(array('user_agent' => $rUserAgent, 'isp' => $rUserInfo['con_isp_name'], 'asn' => $rUserInfo['isp_asn'])), true);
+                            generateError('HOSTING_DETECT');
+                        }
 
-                //         if ((ipTV_lib::$settings['block_proxies'] && $rCIDR[4])) {
-                //             ipTV_streaming::clientLog($streamID, $rUserInfo['id'], 'PROXY_DETECT', $IP, json_encode(array('user_agent' => $rUserAgent, 'isp' => $rUserInfo['con_isp_name'], 'asn' => $rUserInfo['isp_asn'])), true);
-                //             generateError('PROXY_DETECT');
-                //         }
-                //     }
-                // }
+                        if ((ipTV_lib::$settings['block_proxies'] && $rCIDR[4])) {
+                            ipTV_streaming::clientLog($streamID, $rUserInfo['id'], 'PROXY_DETECT', $IP, json_encode(array('user_agent' => $rUserAgent, 'isp' => $rUserInfo['con_isp_name'], 'asn' => $rUserInfo['isp_asn'])), true);
+                            generateError('PROXY_DETECT');
+                        }
+                    }
+                }
 
                 if ($rRestreamDetect) {
                     if (ipTV_lib::$settings['detect_restream_block_user']) {
                         if (ipTV_lib::$cached) {
                             ipTV_lib::setSignal('restream_block_user/' . $rUserInfo['id'] . '/' . $streamID . '/' . $IP, 1);
                         } else {
-                            $ipTV_db->query('UPDATE `users` SET `admin_enabled` = 0 WHERE `id` = \'%s\';', $rUserInfo['id']);
+                            $ipTV_db->query('UPDATE `lines` SET `admin_enabled` = 0 WHERE `id` = ?;', $rUserInfo['id']);
                         }
                     }
 
@@ -366,7 +328,7 @@ if ($rExtension) {
             if (ipTV_lib::$cached) {
                 ipTV_lib::setSignal('expiring/' . $rUserInfo['id'], time());
             } else {
-                $ipTV_db->query('UPDATE `users` SET `last_expiration_video` = \'%s\' WHERE `id` = \'%s\';', time(), $rUserInfo['id']);
+                $ipTV_db->query('UPDATE `lines` SET `last_expiration_video` = ? WHERE `id` = ?;', time(), $rUserInfo['id']);
             }
 
             ipTV_streaming::showVideoServer('show_expiring_video', 'expiring_video_path', $rExtension, $rUserInfo, $IP, $rCountryCode, $rUserInfo['con_isp_name'], SERVER_ID);
@@ -460,7 +422,7 @@ if ($rExtension) {
                             exit();
                         }
 
-                    // no break
+                        // no break
                     case 'ts':
                         if ((ipTV_lib::$settings['disable_ts'] && (!$rUserInfo['is_restreamer'] || !ipTV_lib::$settings['disable_ts_allow_restream']))) {
                             generateError('TS_DISABLED');
@@ -552,7 +514,7 @@ if ($rExtension) {
 
                     exit();
             }
-        // no break
+            // no break
         case 'thumb':
             $rStreamInfo = null;
 

@@ -4,7 +4,7 @@ if (posix_getpwuid(posix_geteuid())['name'] == 'xtreamcodes') {
     if ($argc) {
         register_shutdown_function('shutdown');
         require str_replace('\\', '/', dirname($argv[0])) . '/../wwwdir/init.php';
-        cli_set_process_title('XtreamCodes[Activity]');
+        cli_set_process_title('XC_VM[Activity]');
         $unique_id = CRONS_TMP_PATH . md5(generateUniqueCode() . __FILE__);
         ipTV_lib::checkCron($unique_id);
         loadCron();
@@ -12,7 +12,7 @@ if (posix_getpwuid(posix_geteuid())['name'] == 'xtreamcodes') {
         exit(0);
     }
 } else {
-    exit('Please run as XtreamCodes!' . "\n");
+    exit('Please run as XC_VM!' . "\n");
 }
 function loadCron() {
     global $ipTV_db;
@@ -31,7 +31,7 @@ function loadCron() {
                 $rFirstID = $ipTV_db->last_insert_id();
                 $i = 0;
                 while ($i < $rCount) {
-                    $rUpdateQuery .= '(' . $rUpdates[$i][0] . ',\'' . $ipTV_db->escape($rUpdates[$i][1]) . '\',' . ($rFirstID + $i) . ',' . json_encode($rUpdates[$i][2]) . '),';
+                    $rUpdateQuery .= '(' . $rUpdates[$i][0] . ',' . $ipTV_db->escape($rUpdates[$i][1]) . ',' . ($rFirstID + $i) . ',' . $ipTV_db->escape($rUpdates[$i][2]) . '),';
                     $i++;
                 }
             }
@@ -39,7 +39,7 @@ function loadCron() {
     }
     $rUpdateQuery = rtrim($rUpdateQuery, ',');
     if (!empty($rUpdateQuery)) {
-        $ipTV_db->query('INSERT INTO `users`(`id`,`last_ip`,`last_activity`,`last_activity_array`) VALUES ' . $rUpdateQuery . ' ON DUPLICATE KEY UPDATE `id`=VALUES(`id`), `last_ip`=VALUES(`last_ip`), `last_activity`=VALUES(`last_activity`), `last_activity_array`=VALUES(`last_activity_array`);');
+        $ipTV_db->query('INSERT INTO `lines`(`id`,`last_ip`,`last_activity`,`last_activity_array`) VALUES ' . $rUpdateQuery . ' ON DUPLICATE KEY UPDATE `id`=VALUES(`id`), `last_ip`=VALUES(`last_ip`), `last_activity`=VALUES(`last_activity`), `last_activity_array`=VALUES(`last_activity_array`);');
     }
 }
 function parseLog($rFile) {
@@ -56,7 +56,7 @@ function parseLog($rFile) {
                 if ($rLine['server_id'] && $rLine['user_id'] && $rLine['stream_id'] && $rLine['user_ip']) {
                     $rUpdates[] = array($rLine['user_id'], $rLine['user_ip'], json_encode(array('date_end' => $rLine['date_end'], 'stream_id' => $rLine['stream_id'])));
                     $rLine = array_map(array($ipTV_db, 'escape'), $rLine);
-                    $rQuery .= '(' . $rLine['server_id'] . ',' . $rLine['user_id'] . ',\'' . $rLine['isp'] . '\',\'' . $rLine['external_device'] . '\',' . $rLine['stream_id'] . ',' . $rLine['date_start'] . ',\'' . $rLine['user_agent'] . '\',\'' . $rLine['user_ip'] . '\',' . $rLine['date_end'] . ',\'' . $rLine['container'] . '\',\'' . $rLine['geoip_country_code'] . '\',' . $rLine['divergence'] . '),';
+                    $rQuery .= '(' . $rLine['server_id'] . ',' . $rLine['user_id'] . ',' . $rLine['isp'] . ',' . $rLine['external_device'] . ',' . $rLine['stream_id'] . ',' . $rLine['date_start'] . ',' . $rLine['user_agent'] . ',' . $rLine['user_ip'] . ',' . $rLine['date_end'] . ',' . $rLine['container'] . ',' . $rLine['geoip_country_code'] . ',' . $rLine['divergence'] . '),';
                     $rCount++;
                 }
                 break;

@@ -1,18 +1,19 @@
 <?php
+
 require_once 'constants.php';
 require_once INCLUDES_PATH . 'lib.php';
 require_once INCLUDES_PATH . 'functions.php';
 require_once INCLUDES_PATH . 'pdo.php';
 require_once INCLUDES_PATH . 'streaming.php';
-require_once INCLUDES_PATH . 'servers.php';
 require_once INCLUDES_PATH . 'stream.php';
+require_once INCLUDES_PATH . 'servers.php';
+
 if (!function_exists('getallheaders')) {
     function getallheaders() {
         $rHeaders = array();
 
         foreach ($_SERVER as $rName => $rValue) {
-            if (substr($rName, 0, 5) == 'HTTP_') {
-            } else {
+            if (substr($rName, 0, 5) != 'HTTP_') {
                 $rHeaders[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($rName, 5)))))] = $rValue;
             }
         }
@@ -34,7 +35,7 @@ if (file_exists(MAIN_DIR . 'config')) {
     die(array("main_fetch" => false, "error" => "Config Not Found"));
 }
 
-$ipTV_db = new ipTV_db($_INFO['username'], $_INFO['password'], $_INFO['database'], $_INFO['hostname'], $_INFO['port'], empty($_INFO['pconnect']) ? false : true, false);
+$ipTV_db = new Database($_INFO['username'], $_INFO['password'], $_INFO['database'], $_INFO['hostname'], $_INFO['port'], empty($_INFO['pconnect']) ? false : true);
 
 ipTV_lib::$ipTV_db = &$ipTV_db;
 ipTV_streaming::$ipTV_db = &$ipTV_db;

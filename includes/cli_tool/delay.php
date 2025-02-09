@@ -22,11 +22,11 @@ function killStreamProcess($stream_id) {
         $pid = intval(file_get_contents("/home/xtreamcodes/streams/" . $stream_id . ".monitor_delay"));
     }
     if (empty($pid)) {
-        shell_exec("kill -9 `ps -ef | grep 'XtreamCodesDelay\\[" . $stream_id . "\\]' | grep -v grep | awk '{print \$2}'`;");
+        shell_exec("kill -9 `ps -ef | grep 'XC_VMDelay\\[" . $stream_id . "\\]' | grep -v grep | awk '{print \$2}'`;");
     } else {
         if (file_exists("/proc/" . $pid)) {
             $name = trim(file_get_contents("/proc/" . $pid . "/cmdline"));
-            if ($name == "XtreamCodesDelay[" . $stream_id . "]") {
+            if ($name == "XC_VMDelay[" . $stream_id . "]") {
                 posix_kill($pid, 9);
             }
         }
@@ -77,11 +77,11 @@ if (@$argc) {
         $stream_id = intval($argv[1]);
         $stream_minutes = intval(abs($argv[2]));
         killStreamProcess($stream_id);
-        cli_set_process_title("XtreamCodesDelay[" . $stream_id . "]");
+        cli_set_process_title("XC_VMDelay[" . $stream_id . "]");
         require str_replace('\\', '/', dirname($argv[0])) . '/../../wwwdir/init.php';
         set_time_limit(0);
 
-        $ipTV_db->query("SELECT * FROM `streams` t1 INNER JOIN `streams_servers` t2 ON t2.stream_id = t1.id AND t2.server_id = '%d' WHERE t1.id = '%d'", SERVER_ID, $stream_id);
+        $ipTV_db->query("SELECT * FROM `streams` t1 INNER JOIN `streams_servers` t2 ON t2.stream_id = t1.id AND t2.server_id = ? WHERE t1.id = ?", SERVER_ID, $stream_id);
 
         if ($ipTV_db->num_rows() > 0) {
             $stream_data = $ipTV_db->get_row();
@@ -93,7 +93,7 @@ if (@$argc) {
                 $m3uFile = DELAY_PATH . $stream_id . "_.m3u8";
                 $playlistPath = DELAY_PATH . $stream_id . "_.m3u8_old";
                 $D90a38f0f1d7f1bcd1b2eee088e76aca = $stream_data["delay_pid"];
-                $ipTV_db->query("UPDATE `streams_servers` SET delay_pid = '%d' WHERE stream_id = '%d' AND server_id = '%d'", getmypid(), $stream_id, SERVER_ID);
+                $ipTV_db->query("UPDATE `streams_servers` SET delay_pid = ? WHERE stream_id = ? AND server_id = ?", getmypid(), $stream_id, SERVER_ID);
                 $ipTV_db->close_mysql();
                 $cleanup_minutes = $stream_data["delay_minutes"] + 5;
                 shell_exec("find " . DELAY_PATH . $stream_id . "_*" . " -type f -cmin +" . $cleanup_minutes . " -delete");

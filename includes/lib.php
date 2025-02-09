@@ -101,7 +101,6 @@ class ipTV_lib {
         //         file_put_contents(MAIN_DIR . "config", $_INFO, LOCK_EX);
         //     }
         // }
-
     }
     public static function calculateSegNumbers() {
         $segments_settings = array();
@@ -129,14 +128,14 @@ class ipTV_lib {
      * Retrieves a list of blocked user agents from the database.
      *
      * This method checks if a cached version of the blocked user agents is available.
-     * If caching is disabled or the cache is empty, it queries the database for the 
+     * If caching is disabled or the cache is empty, it queries the database for the
      * blocked user agents and updates the cache with the retrieved results.
      *
-     * @param bool $rForce Optional. If set to true, the method will bypass the cache 
+     * @param bool $rForce Optional. If set to true, the method will bypass the cache
      *                     and always fetch the user agents from the database. Default is false.
      *
-     * @return array An associative array of blocked user agents, where the keys are 
-     *               the IDs of the user agents and the values are the user agent strings 
+     * @return array An associative array of blocked user agents, where the keys are
+     *               the IDs of the user agents and the values are the user agent strings
      *               in lowercase. Returns an empty array if no blocked user agents are found.
      */
     public static function getBlockedUserAgents($rForce = false) {
@@ -152,10 +151,10 @@ class ipTV_lib {
         self::setCache('blocked_ua', $output);
         return $output;
     }
-    /** 
-     * Retrieves the list of bouquets with their associated streams, series, channels, movies, and radios. 
-     * 
-     * @return array An array containing the bouquets with their respective streams, series, channels, movies, and radios. 
+    /**
+     * Retrieves the list of bouquets with their associated streams, series, channels, movies, and radios.
+     *
+     * @return array An array containing the bouquets with their respective streams, series, channels, movies, and radios.
      */
     public static function getBouquets($rForce = false) {
         if (!$rForce) {
@@ -181,13 +180,13 @@ class ipTV_lib {
      *
      * This method first checks if a cached version of the blocked IPs is available.
      * If caching is not forced and a valid cache exists, it returns the cached data.
-     * If caching is disabled or the cache is empty, it queries the database for 
+     * If caching is disabled or the cache is empty, it queries the database for
      * the blocked IPs and updates the cache with the retrieved results.
      *
-     * @param bool $rForce Optional. If set to true, the method will bypass the cache 
+     * @param bool $rForce Optional. If set to true, the method will bypass the cache
      *                     and always fetch the blocked IPs from the database. Default is false.
      *
-     * @return array An array of blocked IP addresses. Returns an empty array if no 
+     * @return array An array of blocked IP addresses. Returns an empty array if no
      *               blocked IPs are found.
      */
     public static function getBlockedIPs($rForce = false) {
@@ -205,10 +204,10 @@ class ipTV_lib {
         self::setCache('blocked_ips', $output);
         return $output;
     }
-    /** 
-     * Retrieves the list of blocked ISPs from the cache or database. 
-     * 
-     * @return array The list of blocked ISPs with their IDs, ISP names, and blocked status. 
+    /**
+     * Retrieves the list of blocked ISPs from the cache or database.
+     *
+     * @return array The list of blocked ISPs with their IDs, ISP names, and blocked status.
      */
     public static function getBlockedISP($rForce = false) {
         if (!$rForce) {
@@ -228,14 +227,14 @@ class ipTV_lib {
      *
      * This method first checks if a cached version of the settings is available.
      * If caching is not forced and a valid cache exists, it returns the cached data.
-     * If caching is disabled or the cache is empty, it queries the database for the 
+     * If caching is disabled or the cache is empty, it queries the database for the
      * settings and updates the cache with the retrieved results.
      *
      *
-     * @param bool $rForce Optional. If set to true, the method will bypass the cache 
+     * @param bool $rForce Optional. If set to true, the method will bypass the cache
      *                     and always fetch the settings from the database. Default is false.
      *
-     * @return array An associative array of settings. Returns an empty array if no 
+     * @return array An associative array of settings. Returns an empty array if no
      *               settings are found.
      */
     public static function getSettings($rForce = false) {
@@ -260,6 +259,7 @@ class ipTV_lib {
         if (array_key_exists("bouquet_name", $output)) {
             $output["bouquet_name"] = str_replace(" ", "_", $output["bouquet_name"]);
         }
+        $output["watchdog"] = json_decode($output["watchdog_data"], true);
         $output["api_ips"] = explode(",", $output["api_ips"]);
         self::setCache('settings', $output);
         return $output;
@@ -276,7 +276,7 @@ class ipTV_lib {
             if (is_array($value)) {
                 $value = json_encode($value);
             }
-            if (!self::$ipTV_db->query("UPDATE `settings` SET `value` = '%s' WHERE `name` = '%s'", $value, $key)) {
+            if (!self::$ipTV_db->query("UPDATE `settings` SET `value` = ? WHERE `name` = ?", $value, $key)) {
                 return false;
             }
         }
@@ -287,24 +287,24 @@ class ipTV_lib {
      * Retrieves stream categories from the database.
      *
      * This method can retrieve categories based on a specific category type or,
-     * if no type is provided, it fetches all categories. The method first checks 
-     * if a category type is specified and queries the database accordingly. If 
-     * the type is provided, it fetches categories of that type. If no type is 
-     * specified and caching is not forced, it checks for a cached version of the 
-     * categories. If a valid cache exists, it returns the cached data. If caching 
-     * is disabled or the cache is empty, it retrieves all categories from the 
+     * if no type is provided, it fetches all categories. The method first checks
+     * if a category type is specified and queries the database accordingly. If
+     * the type is provided, it fetches categories of that type. If no type is
+     * specified and caching is not forced, it checks for a cached version of the
+     * categories. If a valid cache exists, it returns the cached data. If caching
+     * is disabled or the cache is empty, it retrieves all categories from the
      * database and updates the cache with the results.
      *
-     * @param string|null $rType Optional. The type of category to retrieve. If 
-     *                           specified, it limits the results to categories of 
-     *                           that type. Default is null, which retrieves all 
+     * @param string|null $rType Optional. The type of category to retrieve. If
+     *                           specified, it limits the results to categories of
+     *                           that type. Default is null, which retrieves all
      *                           categories.
-     * @param bool $rForce Optional. If set to true, the method will bypass the 
-     *                     cache and always fetch the categories from the database. 
+     * @param bool $rForce Optional. If set to true, the method will bypass the
+     *                     cache and always fetch the categories from the database.
      *                     Default is false.
      *
-     * @return array An associative array of stream categories, where the keys 
-     *               are the category IDs. Returns an empty array if no categories 
+     * @return array An associative array of stream categories, where the keys
+     *               are the category IDs. Returns an empty array if no categories
      *               are found.
      */
     public static function getCategories($rType = null, $rForce = false) {
@@ -335,7 +335,6 @@ class ipTV_lib {
      *
      * @return array Returns an associative array of streaming servers with their details, including:
      *
-     * @throws Exception If there is an issue with the database query or data retrieval.
      */
     public static function getServers($rForce = false) {
         if (!$rForce) {
@@ -347,12 +346,12 @@ class ipTV_lib {
         if (empty($_SERVER["REQUEST_SCHEME"])) {
             $_SERVER["REQUEST_SCHEME"] = "http";
         }
-        self::$ipTV_db->query("SELECT * FROM `streaming_servers`");
+        self::$ipTV_db->query("SELECT * FROM `servers`");
         $servers = array();
         $server_status = array(1, 3);
         foreach (self::$ipTV_db->get_rows() as $row) {
-            if (!empty($row["vpn_ip"]) && inet_pton($row["vpn_ip"]) !== false) {
-                $url = $row["vpn_ip"];
+            if (!empty($row["private_ip"]) && inet_pton($row["private_ip"]) !== false) {
+                $url = $row["private_ip"];
             } elseif (!empty($row["domain_name"])) {
                 $url = str_replace(array("http://", "/", "https://"), '', $row["domain_name"]);
             } else {
@@ -405,26 +404,51 @@ class ipTV_lib {
         self::setCache('allowed_ips', $IPs);
         return array_unique($IPs);
     }
-    /** 
-     * Sets the cache data for a given cache key. 
-     * 
-     * @param string $cache The cache key. 
-     * @param mixed $data The data to be cached. 
-     * @return void 
+    public static function sortChannels($rChannels) {
+        if (0 < count($rChannels) && file_exists(CACHE_TMP_PATH . 'channel_order') && self::$settings['channel_number_type'] != 'bouquet') {
+            $order = igbinary_unserialize(file_get_contents(CACHE_TMP_PATH . 'channel_order'));
+            $rChannels = array_flip($rChannels);
+            $rNewOrder = array();
+            foreach ($order as $rID) {
+                if (isset($rChannels[$rID])) {
+                    $rNewOrder[] = $rID;
+                }
+            }
+            if (count($rNewOrder) > 0) {
+                return $rNewOrder;
+            }
+        }
+        return $rChannels;
+    }
+    public static function movieProperties($stream_id) {
+        $movie_properties = array();
+        if (file_exists(TMP_PATH . $stream_id . "_cache_properties")) {
+            $movie_properties = igbinary_unserialize(file_get_contents(TMP_PATH . $stream_id . "_cache_properties"));
+        }
+        return isset($movie_properties) && is_array($movie_properties) ? $movie_properties : array();
+    }
+    /**
+     * Sets the cache data for a given cache key.
+     *
+     * @param string $cache The cache key.
+     * @param mixed $data The data to be cached.
+     * @return void
      */
     public static function setCache($cache, $data) {
-        $serializedData = igbinary_serialize($data);
-        if (!file_exists(CACHE_TMP_PATH)) {
-            mkdir(CACHE_TMP_PATH);
+        if (posix_getpwuid(posix_geteuid())['name'] == 'xtreamcodes') {
+            $serializedData = igbinary_serialize($data);
+            if (!file_exists(CACHE_TMP_PATH)) {
+                mkdir(CACHE_TMP_PATH);
+            }
+            file_put_contents(CACHE_TMP_PATH . $cache, $serializedData, LOCK_EX);
         }
-        file_put_contents(CACHE_TMP_PATH . $cache, $serializedData, LOCK_EX);
     }
-    /** 
-     * Retrieves the cached data for a given cache key if it exists and is not expired. 
-     * 
-     * @param string $cache The cache key. 
-     * @param int|null $rSeconds The expiration time in seconds. 
-     * @return mixed|false The cached data if it exists and is not expired, null otherwise. 
+    /**
+     * Retrieves the cached data for a given cache key if it exists and is not expired.
+     *
+     * @param string $cache The cache key.
+     * @param int|null $rSeconds The expiration time in seconds.
+     * @return mixed|false The cached data if it exists and is not expired, null otherwise.
      */
     public static function getCache($cache, $rSeconds = null) {
         if (file_exists(CACHE_TMP_PATH . $cache)) {
@@ -434,6 +458,69 @@ class ipTV_lib {
             }
         }
         return false;
+    }
+    /**
+     * Makes multiple cURL requests to the specified URLs and returns the results.
+     *
+     * @param array $urls An array of URLs to make cURL requests to.
+     * @param callable|null $callback Optional callback function to process the cURL response.
+     * @param int $timeout The timeout value for each cURL request (default is 5 seconds).
+     * @return array An array of results from the cURL requests.
+     */
+    public static function getMultiCURL(array $urls, $callback = null, int $timeout = 5) {
+        if (empty($urls)) {
+            return array();
+        }
+        $cmrKeys = array();
+        $ch = array();
+        $results = array();
+        $mh = curl_multi_init();
+        foreach ($urls as $key => $val) {
+            if (ipTV_lib::$Servers[$key]["server_online"]) {
+                $ch[$key] = curl_init();
+                curl_setopt($ch[$key], CURLOPT_URL, $val["url"]);
+                curl_setopt($ch[$key], CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch[$key], CURLOPT_FOLLOWLOCATION, true);
+                curl_setopt($ch[$key], CURLOPT_CONNECTTIMEOUT, 5);
+                curl_setopt($ch[$key], CURLOPT_TIMEOUT, $timeout);
+                curl_setopt($ch[$key], CURLOPT_SSL_VERIFYHOST, 0);
+                curl_setopt($ch[$key], CURLOPT_SSL_VERIFYPEER, 0);
+                if ($val["postdata"] != null) {
+                    curl_setopt($ch[$key], CURLOPT_POST, true);
+                    curl_setopt($ch[$key], CURLOPT_POSTFIELDS, http_build_query($val["postdata"]));
+                }
+                curl_multi_add_handle($mh, $ch[$key]);
+            } else {
+                $cmrKeys[] = $key;
+            }
+        }
+
+        $running = null;
+
+        do {
+            $mrc = curl_multi_exec($mh, $running);
+        } while ($mrc == CURLM_CALL_MULTI_PERFORM);
+
+        while ($running && $mrc == CURLM_OK) {
+            if (curl_multi_select($mh) == -1) {
+                usleep(50000);
+            }
+            do {
+                $mrc = curl_multi_exec($mh, $running);
+            } while ($mrc == CURLM_CALL_MULTI_PERFORM);
+        }
+        foreach ($ch as $key => $val) {
+            $results[$key] = curl_multi_getcontent($val);
+            if ($callback != null) {
+                $results[$key] = call_user_func($callback, $results[$key], true);
+            }
+            curl_multi_remove_handle($mh, $val);
+        }
+        foreach ($cmrKeys as $key) {
+            $results[$key] = false;
+        }
+        curl_multi_close($mh);
+        return $results;
     }
     public static function cleanGlobals(&$data, $iteration = 0) {
         if ($iteration >= 10) {
@@ -493,8 +580,13 @@ class ipTV_lib {
         $val = preg_replace("/&#(\\d+?)([^\\d;])/i", "&#\\1;\\2", $val);
         return trim($val);
     }
-    public static function saveLog($msg) {
-        self::$ipTV_db->query('INSERT INTO `panel_logs` (`log_message`,`date`) VALUES(\'%s\',\'%d\')', $msg, time());
+    public static function saveLog_old($msg) {
+        self::$ipTV_db->query('INSERT INTO `panel_logs` (`log_message`,`date`) VALUES(?,?)', $msg, time());
+    }
+    public static function saveLog($rType, $rMessage, $rExtra = '', $rLine = 0) {
+        if (stripos($rExtra, 'panel_logs') === false && stripos($rMessage, 'timeout exceeded') === false && stripos($rMessage, 'lock wait timeout') === false && stripos($rMessage, 'duplicate entry') === false) {
+            panelLog($rType, $rMessage, $rExtra, $rLine);
+        }
     }
     public static function generateString($length = 10) {
         $chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789qwertyuiopasdfghjklzxcvbnm";
@@ -515,7 +607,7 @@ class ipTV_lib {
         foreach ($array as $value) {
             if ((is_scalar($value) or is_resource($value))) {
                 $arrayValues[] = $value;
-            } else if (is_array($value)) {
+            } elseif (is_array($value)) {
                 $arrayValues = array_merge($arrayValues, self::arrayValuesRecursive($value));
             }
         }
@@ -549,11 +641,11 @@ class ipTV_lib {
     /**
      * Deletes a file from the filesystem if it exists.
      *
-     * This function checks if the specified file exists at the given file path. 
+     * This function checks if the specified file exists at the given file path.
      * If the file exists, it attempts to delete it using the `unlink` function.
      *
      * @param string $filePath The path to the file that needs to be deleted.
-     * @return void This function does not return a value. It performs the deletion 
+     * @return void This function does not return a value. It performs the deletion
      *              operation and will not raise an error if the file does not exist.
      */
     public static function unlinkFile($filePath) {
@@ -572,31 +664,45 @@ class ipTV_lib {
         }
         return $rNginx > 0;
     }
+
     public static function generateCron() {
         if (!file_exists(TMP_PATH . 'crontab')) {
-            $rJobs = array();
-            self::$ipTV_db->query('SELECT * FROM `crontab` WHERE `enabled` = 1;');
-            foreach (self::$ipTV_db->get_rows() as $rRow) {
-                $rFullPath = CRON_PATH . $rRow['filename'];
-                if (pathinfo($rFullPath, PATHINFO_EXTENSION) == 'php' && file_exists($rFullPath)) {
-                    $rJobs[] = $rRow['time'] . ' ' . PHP_BIN . ' ' . $rFullPath . ' # XtreamCodes';
+            if (posix_getpwuid(posix_geteuid())['name'] == "xtreamcodes") {
+                $rJobs = array();
+                self::$ipTV_db->query('SELECT * FROM `crontab` WHERE `enabled` = 1;');
+                foreach (self::$ipTV_db->get_rows() as $rRow) {
+                    $rFullPath = CRON_PATH . $rRow['filename'];
+                    if (pathinfo($rFullPath, PATHINFO_EXTENSION) == 'php' && file_exists($rFullPath)) {
+                        $rJobs[] = $rRow['time'] . ' ' . PHP_BIN . ' ' . $rFullPath . ' # XC_VM';
+                    }
                 }
+                shell_exec('crontab -r');
+                $rTempName = tempnam('/tmp', 'crontab');
+                $rHandle = fopen($rTempName, 'w');
+                fwrite($rHandle, implode("\n", $rJobs) . "\n");
+                fclose($rHandle);
+                shell_exec('crontab -u xtreamcodes ' . $rTempName);
+                @unlink($rTempName);
+                file_put_contents(TMP_PATH . 'crontab', 1);
+                return true;
             }
-            shell_exec('crontab -r');
-            $rTempName = tempnam('/tmp', 'crontab');
-            $rHandle = fopen($rTempName, 'w');
-            fwrite($rHandle, implode("\n", $rJobs) . "\n");
-            fclose($rHandle);
-            shell_exec('crontab -u xtreamcodes ' . $rTempName);
-            @unlink($rTempName);
-            file_put_contents(TMP_PATH . 'crontab', 1);
-            return true;
+            return false;
         } else {
             return false;
         }
     }
     public static function setSignal($rKey, $rData) {
         file_put_contents(SIGNALS_TMP_PATH . 'cache_' . md5($rKey), json_encode(array($rKey, $rData)));
+    }
+    public static function updateLine($rUserID, $rForce = false) {
+        if (self::$cached) {
+            self::$ipTV_db->query('SELECT COUNT(*) AS `count` FROM `signals` WHERE `server_id` = ? AND `cache` = 1 AND `custom_data` = ?;', ipTV_streaming::getMainID(), json_encode(array('type' => 'update_line', 'id' => $rUserID)));
+            if (self::$ipTV_db->get_row()['count'] == 0) {
+                self::$ipTV_db->query('INSERT INTO `signals`(`server_id`, `cache`, `time`, `custom_data`) VALUES(?, 1, ?, ?);', ipTV_streaming::getMainID(), time(), json_encode(array('type' => 'update_line', 'id' => $rUserID)));
+            }
+            return true;
+        }
+        return false;
     }
     public static function connectRedis() {
         if (!is_object(self::$redis)) {
@@ -617,5 +723,38 @@ class ipTV_lib {
             self::$redis = null;
         }
         return true;
+    }
+    /**
+     * Creates a stack trace in a readable format.
+     *
+     * @return string Трассировка стека.
+     */
+    public static function generateStackTrace(): string {
+        // Get the call stack
+        $trace = debug_backtrace();
+
+        // String to accumulate the result
+        $stackTrace = "Stack trace:\n";
+
+        // Iterate over the stack and generate readable output
+        foreach ($trace as $index => $frame) {
+            $file = $frame['file'] ?? '[internal function]';
+            $line = $frame['line'] ?? 'N/A';
+            $function = $frame['function'] ?? 'unknown';
+            $class = $frame['class'] ?? '';
+            $type = $frame['type'] ?? '';
+
+            $stackTrace .= sprintf(
+                "#%d %s(%s): %s%s%s()\n",
+                $index,
+                $file,
+                $line,
+                $class,
+                $type,
+                $function
+            );
+        }
+
+        return $stackTrace;
     }
 }
