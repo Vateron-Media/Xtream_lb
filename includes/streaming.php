@@ -385,6 +385,7 @@ class ipTV_streaming {
         $userInfo['category_ids'] = array_values(array_unique($rAllowedCategories));
         return $userInfo;
     }
+
     public static function validateConnections($userInfo, $IP = null, $userAgent = null) {
         if ($userInfo['max_connections'] != 0) {
             if (!empty($userInfo['pair_id'])) {
@@ -393,6 +394,7 @@ class ipTV_streaming {
             self::closeConnections($userInfo['id'], $userInfo['max_connections'], $IP, $userAgent);
         }
     }
+    
     /**
      * Closes active connections for a user when they exceed the maximum allowed limit
      *
@@ -499,7 +501,11 @@ class ipTV_streaming {
             }
             foreach ($rDelSID as $streamID => $rUUIDs) {
                 foreach ($rUUIDs as $rUUID) {
-                    ipTV_lib::unlinkFile(CONS_TMP_PATH . $streamID . '/' . $rUUID);
+                    if (is_array($rUUID)) {
+                        ipTV_lib::unlinkFile(CONS_TMP_PATH . $streamID . '/' . $rUUID[0]);
+                    }else{
+                        ipTV_lib::unlinkFile(CONS_TMP_PATH . $streamID . '/' . $rUUID);
+                    }
                 }
             }
         }

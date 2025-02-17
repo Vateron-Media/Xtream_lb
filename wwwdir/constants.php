@@ -62,10 +62,8 @@ define('IPTV_ROOT_PATH', str_replace('\\', '/', dirname(__FILE__)) . '/');
 define('INCLUDES_PATH', MAIN_DIR . 'includes/');
 define('CRON_PATH', MAIN_DIR . 'crons/');
 define('ASYNC_DIR', MAIN_DIR . 'async_incs/');
-define('IPTV_CLIENT_AREA', MAIN_DIR . 'wwwdir/client_area/');
 define('BIN_PATH', MAIN_DIR . 'bin/');
 define('SIGNALS_PATH', MAIN_DIR . 'signals/');
-define('IPTV_CLIENT_AREA_TEMPLATES_PATH', IPTV_CLIENT_AREA . 'templates/');
 define('CONFIG_PATH', MAIN_DIR . 'config/');
 // -------------------
 
@@ -125,7 +123,7 @@ define('VIDEO_PATH', CONTENT_PATH . 'video/');
 // -------------------
 
 // CONSTANTS VAR
-define('SCRIPT_VERSION', '1.2.5');
+define('SCRIPT_VERSION', '1.2.6.2');
 define('FFMPEG_FONTS_PATH', BIN_PATH . 'free-sans.ttf');
 define('OPENSSL_EXTRA', '5gd46z5s4fg6sd8f4gs6');
 define('RESTART_TAKE_CACHE', 5);

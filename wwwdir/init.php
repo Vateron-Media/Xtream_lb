@@ -32,7 +32,7 @@ if (file_exists(MAIN_DIR . 'config')) {
     $_INFO = parse_ini_file(CONFIG_PATH . 'config.ini');
     define('SERVER_ID', $_INFO['server_id']);
 } else {
-    die(array("main_fetch" => false, "error" => "Config Not Found"));
+    die('no config found');
 }
 
 $ipTV_db = new Database($_INFO['username'], $_INFO['password'], $_INFO['database'], $_INFO['hostname'], $_INFO['port'], empty($_INFO['pconnect']) ? false : true);
